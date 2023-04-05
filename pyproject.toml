@@ -1,0 +1,18 @@
+[project]
+name = "gee_raster"
+version = "0.0.1"
+authors = [
+  { name="Clément Niot", email="clement.niot@oeil.nc" },
+]
+description = "A small example package"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
