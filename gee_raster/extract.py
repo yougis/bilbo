@@ -11,13 +11,10 @@ import rasterstats as rs
 import ee
 
 
-def extract_gee_data(spec_file_path: str, input_gdf):
+def extract_gee_data(specs: dict, input_gdf):
     service_account = 'ee-oeil@surfor.iam.gserviceaccount.com'
     credentials = ee.ServiceAccountCredentials(service_account,  os.path.dirname(__file__) + '/surfor-8383e43c3aa7.json')
     ee.Initialize(credentials)
-
-    with open(spec_file_path) as f:
-        specs = yaml.load(f, Loader=SafeLoader)
 
     # vérification du contenu de l'entrée
     if len(input_gdf) == 0:
@@ -31,7 +28,7 @@ def extract_gee_data(spec_file_path: str, input_gdf):
             geom_type=input_gdf.geom_type[0])
 
 
-def _extract_gee_data_polygon(specs: {}, input_gdf):
+def _extract_gee_data_polygon(specs: dict, input_gdf):
     # image de référence
     image = ee.Image(specs['confRaster']['uri_image']).select(specs['keepList'])
     scale = image.getInfo()['bands'][0]['crs_transform'][0]
@@ -42,12 +39,9 @@ def _extract_gee_data_polygon(specs: {}, input_gdf):
     if input_gdf.crs is None:
         input_gdf = input_gdf.set_crs(crs=projection)
 
-    # traitement sur les polygones un à un pour éviter de dépasser la limite de GEE de 262144 pixels
-    feature_collection = geemap.geopandas_to_ee(input_gdf)
-    features_list = feature_collection.toList(feature_collection.size())
     output_features = []
-    for idx in range(feature_collection.size().getInfo()):
-        feature = ee.Feature(features_list.get(idx))
+    # traitement sur les polygones un à un pour éviter de dépasser la limite de GEE de 262144 pixels
+    for feature in input_gdf.iterfeatures():
         # récupération du raster correspondant au polygon
         image_clipped = gee.ee_to_numpy(image, region=ee.FeatureCollection([feature]), default_value=default_value)
         image_clipped_reshaped = None
@@ -56,7 +50,7 @@ def _extract_gee_data_polygon(specs: {}, input_gdf):
                                                            (image_clipped.shape[1] * image_clipped.shape[2]))
 
         # récupération de l'affine
-        sample_gdf = gee.ee_to_geopandas(ee.FeatureCollection([feature]))
+        sample_gdf = gpd.GeoDataFrame(feature)
         xmin, _, _, ymax = sample_gdf.total_bounds
         transform = affine.Affine.from_gdal(_round_down(xmin, scale), scale, 0, _round_up(ymax, scale), 0, -scale)
 
@@ -69,7 +63,7 @@ def _extract_gee_data_polygon(specs: {}, input_gdf):
     return gpd.GeoDataFrame.from_features(output_features, crs=projection)
 
 
-def _extract_gee_data_point(specs: {}, input_gdf):
+def _extract_gee_data_point(specs: dict, input_gdf):
     pass
 
 
