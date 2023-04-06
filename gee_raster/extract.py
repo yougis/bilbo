@@ -13,33 +13,36 @@ def extract_gee_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFra
     credentials = ee.ServiceAccountCredentials(service_account, os.path.dirname(__file__) + '/surfor-8383e43c3aa7.json')
     ee.Initialize(credentials)
 
+    # récupération de l'image de référence
+    uri_image = specs['confRaster']['uri_image']
+    bands = specs['keepList']
+    if len(bands) != 1:
+        raise ValueError("Pour l'instant l'attribut keepList ne peut contenir qu'un seul élément mais en contient {nb}"
+                         "".format(nb=len(bands)))
+
+    # création de l'image de référence
+    image = ee.Image(uri_image).select(bands)
+
     # vérification du contenu de l'entrée
     if len(input_gdf) == 0:
         raise 'Aucune donnée à traiter'
     elif input_gdf.geom_type[0] == 'Polygon':
-        return _extract_gee_data_polygon(specs, input_gdf)
+        return _extract_gee_data_polygon(specs, input_gdf, image)
     elif input_gdf.geom_type[0] == 'Point':
-        return _extract_gee_data_point(specs, input_gdf)
+        return _extract_gee_data_point(specs, input_gdf, image)
     else:
         raise ValueError(
             "Les géométries peuvent seulement être de type 'Polygon' ou 'Point' mais pas '{geom_type}'".format(
                 geom_type=input_gdf.geom_type[0]))
 
 
-def _extract_gee_data_polygon(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+def _extract_gee_data_polygon(specs: dict, input_gdf: gpd.GeoDataFrame, image: ee.Image) -> gpd.GeoDataFrame:
     # récupération des specs utiles
     mask_ranges = specs['confRaster']['masque']
     output_value = specs['confRaster']['outputValue']
-    uri_image = specs['confRaster']['uri_image']
     bands = specs['keepList']
-    if len(bands) != 1:
-        raise ValueError("Pour l'instant l'attribut keepList ne peut contenir qu'un seul élément mais en contient {nb}"
-                         "".format(nb=len(bands)))
     default_value = specs['confRaster']['defaultValue']
     projection = specs['epsg']
-
-    # création de l'image de référence
-    image = ee.Image(uri_image).select(bands)
     scale = image.getInfo()['bands'][0]['crs_transform'][0]
 
     # application des masques
@@ -110,8 +113,14 @@ def _apply_mask_on_image(mask_ranges: list, output_value: str, image: ee.Image) 
                          "mais pas '{output_value}'".format(output_value=output_value))
 
 
-def _extract_gee_data_point(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    pass
+def _extract_gee_data_point(specs: dict, input_gdf: gpd.GeoDataFrame, image: ee.Image) -> gpd.GeoDataFrame:
+    # récupération des specs utils
+    projection = specs['epsg']
+
+    # récupération des valeurs pour chaque point
+    feature_collection = gee.geopandas_to_ee(input_gdf.set_crs(crs=projection))
+    output_features = image.sampleRegions(feature_collection)
+    return gpd.GeoDataFrame.from_features(output_features.getInfo(), crs=projection)
 
 
 def _round_up(x, increment):
