@@ -21,8 +21,8 @@ def extract_gee_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFra
         input_gdf = input_gdf.to_crs(ee_crs)
 
     # récupération de l'image de référence
-    uri_image = specs['confRaster']['uri_image']
-    bands = specs['keepList']
+    uri_image = specs.get('confRaster').get('uri_image')
+    bands = specs.get('keepList')
     if len(bands) != 1:
         raise ValueError("Pour l'instant l'attribut keepList ne peut contenir qu'un seul élément mais en contient {nb}"
                          "".format(nb=len(bands)))
@@ -45,11 +45,11 @@ def extract_gee_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFra
 
 def _extract_gee_data_polygon(specs: dict, input_gdf: gpd.GeoDataFrame, image: ee.Image) -> gpd.GeoDataFrame:
     # récupération des specs utiles
-    mask_ranges = specs['confRaster']['masque']
-    output_value = specs['confRaster']['outputValue']
-    bands = specs['keepList']
-    default_value = specs['confRaster']['defaultValue']
-    scale = image.getInfo()['bands'][0]['crs_transform'][0]
+    mask_ranges = specs.get('confRaster').get('masque') or None
+    output_value = specs.get('confRaster').get('outputValue')
+    bands = specs.get('keepList')
+    default_value = specs.get('confRaster').get('defaultValue')
+    scale = image.getInfo().get('bands')[0].get('crs_transform')[0]
 
     # application des masques
     image = _apply_mask_on_image(mask_ranges, output_value, image)
@@ -117,7 +117,7 @@ def _apply_mask_on_image(mask_ranges: list, output_value: str, image: ee.Image) 
 
 def _extract_gee_data_point(specs: dict, input_gdf: gpd.GeoDataFrame, image: ee.Image) -> gpd.GeoDataFrame:
     # récupération des specs utils
-    projection = specs['epsg']
+    projection = specs.get('epsg')
 
     # récupération des valeurs pour chaque point
     feature_collection = gee.geopandas_to_ee(input_gdf.set_crs(crs=projection))
