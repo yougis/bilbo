@@ -28,7 +28,7 @@ def extract_gee_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFra
 
 def _extract_gee_data_polygon(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     # récupération des specs utiles
-    masques = specs['confRaster']['masque']
+    mask_ranges = specs['confRaster']['masque']
     output_value = specs['confRaster']['outputValue']
     uri_image = specs['confRaster']['uri_image']
     bands = specs['keepList']
@@ -43,7 +43,7 @@ def _extract_gee_data_polygon(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.G
     scale = image.getInfo()['bands'][0]['crs_transform'][0]
 
     # application des masques
-    image = _apply_mask_on_image(masques, output_value, image)
+    image = _apply_mask_on_image(mask_ranges, output_value, image)
 
     # indiquer le crs si pas déjà fait
     if input_gdf.crs is None:
@@ -75,76 +75,35 @@ def _extract_gee_data_polygon(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.G
     return gpd.GeoDataFrame.from_features(output_features, crs=projection)
 
 
-def _apply_mask_on_image(masques: list, output_value: str, image: ee.Image) -> ee.Image:
-    if masques is None:
+def _apply_mask_on_image(mask_ranges: list, output_value: str, image: ee.Image) -> ee.Image:
+    if mask_ranges is None:
         return image
     if output_value == 'continue':
-        if len(masques) > 0:
-            masque_type = list(masques[0].keys())[0]
-            masque_value = list(masques[0].values())[0]
-            if masque_type == 'gt':
-                return image.updateMask(image.gt(masque_value))
-            elif masque_type == 'gte':
-                return image.updateMask(image.gte(masque_value))
-            elif masque_type == 'lt':
-                return image.updateMask(image.lt(masque_value))
-            elif masque_type == 'lte':
-                return image.updateMask(image.lte(masque_value))
-            elif masque_type == 'eq':
-                return image.updateMask(image.eq(masque_value))
-            elif masque_type == 'neq':
-                return image.updateMask(image.neq(masque_value))
-            else:
-                raise ValueError(
-                    "Le type de masque n'est pas correcte, devrait être 'gt', 'gte', eq', 'neq', 'lt ou 'lte' mais "
-                    "pas '{masque_type}'".format(
-                        masque_type=masque_type))
-        else:
-            return image
+        if len(mask_ranges) != 2:
+            raise ValueError("Le masque appliqué devrait contenir uniquement 2 valeurs, le min (inclut) et le max ("
+                             "exclut) de la plage de valeur")
+        min = mask_ranges[0]
+        max = mask_ranges[1]
+        print("Utilisation d'un filtre sur les données [{min},{max}[".format(min=min, max=max))
+        return image.updateMask(image.gte(min).And(image.lt(max)))
     elif output_value == 'classifie':
+        if len(mask_ranges) < 2:
+            raise ValueError("Le masque appliqué devrait contenir au moins 2 valeurs, mais en contient {nb}".format(
+                nb=len(mask_ranges)))
         original_image = image
-        for masque_idx, masque in enumerate(masques):
-            if len(masque.keys()) != 1 or len(masque.values()) != 1:
-                raise ValueError(
-                    "Le masque '{masque}' n'est pas correctement configuré, devrait être sous le format 'gt: 30'".format(
-                        masque=masque))
-            masque_type = list(masque.keys())[0]
-            masque_value = list(masque.values())[0]
-            if masque_type == 'gt':
-                if masque_idx == 0:
-                    image = original_image.gt(masque_value)
-                else:
-                    image = image.add(original_image.gt(masque_value))
-            elif masque_type == 'gte':
-                if masque_idx == 0:
-                    image = original_image.gte(masque_value)
-                else:
-                    image = image.add(original_image.gte(masque_value))
-            elif masque_type == 'lt':
-                if masque_idx == 0:
-                    image = original_image.lt(masque_value)
-                else:
-                    image = image.add(original_image.lt(masque_value))
-            elif masque_type == 'lte':
-                if masque_idx == 0:
-                    image = original_image.lte(masque_value)
-                else:
-                    image = image.add(original_image.lte(masque_value))
-            elif masque_type == 'eq':
-                if masque_idx == 0:
-                    image = original_image.eq(masque_value)
-                else:
-                    image = image.add(original_image.eq(masque_value))
-            elif masque_type == 'neq':
-                if masque_idx == 0:
-                    image = original_image.neq(masque_value)
-                else:
-                    image = image.add(original_image.neq(masque_value))
+        clauses = []
+        for idx, value in enumerate(mask_ranges):
+            if idx == 0:
+                continue
+            left_limit = mask_ranges[idx-1]
+            right_limit = value
+            if idx == len(mask_ranges) - 1: # dans le cas de la dernière valeur, on l'inclut dans l'interval
+                image = image.where(original_image.gte(left_limit).And(original_image.lte(right_limit)), idx)
+                clauses.append('[{left},{right}] = {value}'.format(left=left_limit, right=right_limit, value=idx))
             else:
-                raise ValueError(
-                    "Le type de masque n'est pas correcte, devrait être 'gt', 'gte', eq', 'neq', 'lt ou 'lte' mais "
-                    "pas '{masque_type}'".format(
-                        masque_type=masque_type))
+                image = image.where(original_image.gte(left_limit).And(original_image.lt(right_limit)), idx)
+                clauses.append('[{left},{right}[ = {value}'.format(left=left_limit, right=right_limit, value=idx))
+        print("Classification des données selon les intervals suivants : {clauses}".format(clauses=' | '.join(clauses)))
         return image
     else:
         raise ValueError("Le type de données de sortie n'est pas correcte, devrait être 'continue' ou 'classifie' "
