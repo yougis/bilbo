@@ -100,9 +100,9 @@ def _apply_mask_on_image(mask_ranges: list, output_value: str, image: ee.Image) 
         for idx, value in enumerate(mask_ranges):
             if idx == 0:
                 continue
-            left_limit = mask_ranges[idx-1]
+            left_limit = mask_ranges[idx - 1]
             right_limit = value
-            if idx == len(mask_ranges) - 1: # dans le cas de la dernière valeur, on l'inclut dans l'interval
+            if idx == len(mask_ranges) - 1:  # dans le cas de la dernière valeur, on l'inclut dans l'interval
                 image = image.where(original_image.gte(left_limit).And(original_image.lte(right_limit)), idx)
                 clauses.append('[{left},{right}] = {value}'.format(left=left_limit, right=right_limit, value=idx))
             else:
