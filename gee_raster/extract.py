@@ -7,11 +7,18 @@ import rasterstats as rs
 import ee
 import numpy as np
 
+ee_crs = "EPSG:4326"
+
 
 def extract_gee_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     service_account = 'ee-oeil@surfor.iam.gserviceaccount.com'
     credentials = ee.ServiceAccountCredentials(service_account, os.path.dirname(__file__) + '/surfor-8383e43c3aa7.json')
     ee.Initialize(credentials)
+
+    # modifier le CRS du gdf si ce n'est pas celui de Google Earth Engine (EPSG:4326)
+    if input_gdf.crs is not None and input_gdf.crs != ee_crs:
+        print("Le CRS de la donnée d'entrée n'est pas {ee_crs}, conversion en cours...".format(ee_crs=ee_crs))
+        input_gdf = input_gdf.to_crs(ee_crs)
 
     # récupération de l'image de référence
     uri_image = specs['confRaster']['uri_image']
@@ -42,15 +49,10 @@ def _extract_gee_data_polygon(specs: dict, input_gdf: gpd.GeoDataFrame, image: e
     output_value = specs['confRaster']['outputValue']
     bands = specs['keepList']
     default_value = specs['confRaster']['defaultValue']
-    projection = specs['epsg']
     scale = image.getInfo()['bands'][0]['crs_transform'][0]
 
     # application des masques
     image = _apply_mask_on_image(mask_ranges, output_value, image)
-
-    # indiquer le crs si pas déjà fait
-    if input_gdf.crs is None:
-        input_gdf = input_gdf.set_crs(crs=projection)
 
     nb_input_features = len(input_gdf.index)
     output_features = []
@@ -75,7 +77,7 @@ def _extract_gee_data_polygon(specs: dict, input_gdf: gpd.GeoDataFrame, image: e
                                             all_touched=True)
         if len(feature_with_stats) > 0:
             output_features.append(feature_with_stats[0])
-    return gpd.GeoDataFrame.from_features(output_features, crs=projection)
+    return gpd.GeoDataFrame.from_features(output_features)
 
 
 def _apply_mask_on_image(mask_ranges: list, output_value: str, image: ee.Image) -> ee.Image:
