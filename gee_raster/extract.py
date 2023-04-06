@@ -32,6 +32,9 @@ def _extract_gee_data_polygon(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.G
     output_value = specs['confRaster']['outputValue']
     uri_image = specs['confRaster']['uri_image']
     bands = specs['keepList']
+    if len(bands) != 1:
+        raise ValueError("Pour l'instant l'attribut keepList ne peut contenir qu'un seul élément mais en contient {nb}"
+                         "".format(nb=len(bands)))
     default_value = specs['confRaster']['defaultValue']
     projection = specs['epsg']
 
@@ -52,9 +55,9 @@ def _extract_gee_data_polygon(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.G
     for count, feature in enumerate(input_gdf.iterfeatures()):
         print("Analyse de la feature n°{nb} / {total}".format(nb=count + 1, total=nb_input_features))
         # récupération du raster correspondant au polygon
-        feature_collection = ee.FeatureCollection([feature])
-        band = image.sampleRectangle(region=feature.get('geometry'), defaultValue=default_value).get(bands[0])
-        image_clipped = np.array(band.getInfo())
+        sample = image.sampleRectangle(region=feature.get('geometry'), defaultValue=default_value)
+        sample_first_band = sample.get(bands[0])
+        image_clipped = np.array(sample_first_band.getInfo())
 
         # récupération de l'affine
         sample_gdf = gpd.GeoDataFrame.from_features([feature])
