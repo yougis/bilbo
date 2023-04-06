@@ -1,5 +1,10 @@
-# Example Package
+# Installation et utilisation du package
 
-This is a simple example package. You can use
-[Github-flavored Markdown](https://guides.github.com/features/mastering-markdown/)
-to write your content.
+```bash
+pip install git+https://Oeilnc@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages
+```
+
+```python
+from gee_raster import extract
+extract.extract_gee_data()
+```

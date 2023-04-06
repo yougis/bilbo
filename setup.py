@@ -11,7 +11,7 @@ setuptools.setup(
     description='Testing installation of Package',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packagesx',
+    url='https://dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages',
     license='OEIL.NC',
     packages=['gee_raster'],
     install_requires=['geopandas', 'geemap', 'rasterstats', 'ee', 'numpy'],
