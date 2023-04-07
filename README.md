@@ -5,6 +5,6 @@ pip install git+https://Oeilnc@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages
 ```
 
 ```python
-from gee_raster import extract
-extract.extract_gee_data()
+from generate_indicator import *
+gee.extract_data()
 ```

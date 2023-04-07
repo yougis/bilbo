@@ -1,65 +1,75 @@
 import os
 import geopandas as gpd
-import geemap as gee
+import geemap
 import math
 import affine
 import rasterstats as rs
 import ee
 import numpy as np
 
-ee_crs = "EPSG:4326"
-band_name_key = 'confRaster.bandName'
-mask_key = 'confRaster.masque'
-output_value_key = 'confRaster.outputValue'
-default_value_key = 'confRaster.defaultValue'
-uri_image_key = 'confRaster.uri_image'
-spec_err = "Le champ '{field}' n'est pas défini dans les specifications"
+_ee_crs = "EPSG:4326"
+_band_name_key = 'confRaster.bandName'
+_mask_key = 'confRaster.masque'
+_output_value_key = 'confRaster.outputValue'
+_default_value_key = 'confRaster.defaultValue'
+_uri_image_key = 'confRaster.uri_image'
+_spec_err = "Le champ '{field}' n'est pas défini dans les specifications"
 
 
-def extract_gee_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+def extract_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """
+    Cette méthode permet de récupérer les données d'un catalogue Google Earth Engine pour des géométries données, soit des polygones, soit des points.
+    :param specs: Contient toutes les spécifications, certaines valeurs sont obligatoires : bandName, uri_image, outputValue, defaultValue.
+    :type specs: dict
+    :param input_gdf: Contient l'ensemble des géométries à étudier, soit des polygones, soit des points. L'attribut CRS doit être spécifié.
+    :type input_gdf: gpd.GeoDataFrame
+    :returns: GeoDataFrame fourni en entrée avec des nouvelles propriétés, soit mini_raster_array, mini_raster_affine, min and max pour les polygones, soit la valeur de la bande spécifiée pour les points.
+    :rtype: gpd.GeoDataFrame
+    """
     service_account = 'ee-oeil@surfor.iam.gserviceaccount.com'
-    credentials = ee.ServiceAccountCredentials(service_account, os.path.dirname(__file__) + '/surfor-8383e43c3aa7.json')
+    credentials = ee.ServiceAccountCredentials(service_account, os.path.dirname(__file__) + '/gee_credentials.json')
     ee.Initialize(credentials)
 
     # modifier le CRS du gdf si ce n'est pas celui de Google Earth Engine (EPSG:4326)
     if input_gdf.crs is None:
         raise ValueError("Le CRS n'est pas défini pour la donnée d'entrée.")
-    elif input_gdf.crs != ee_crs:
-        print("Le CRS de la donnée d'entrée n'est pas {ee_crs}, conversion en cours...".format(ee_crs=ee_crs))
-        input_gdf = input_gdf.to_crs(ee_crs)
+    elif input_gdf.crs != _ee_crs:
+        print("Le CRS de la donnée d'entrée n'est pas {ee_crs}, conversion en cours...".format(ee_crs=_ee_crs))
+        input_gdf = input_gdf.to_crs(_ee_crs)
 
     # vérification du contenu de l'entrée
-    _gee_extractor = GeeExtractor(specs, input_gdf)
+    _gee_extractor = _GeeExtractor(specs, input_gdf)
     if len(input_gdf) == 0:
         raise ValueError("Aucune donnée à traiter, vérifiez la valeur de l'input")
     elif input_gdf.geom_type[0] == 'Polygon':
-        return _gee_extractor.extract_gee_data_polygon()
+        return _gee_extractor.extract_data_polygon()
     elif input_gdf.geom_type[0] == 'Point':
-        return _gee_extractor.extract_gee_data_point()
+        return _gee_extractor.extract_data_point()
     else:
         raise ValueError(
             "Les géométries peuvent seulement être de type 'Polygon' ou 'Point' mais pas '{geom_type}'".format(
                 geom_type=input_gdf.geom_type[0]))
 
 
-class GeeExtractor:
-    """Class permettant d'extraire les données de Google Earth Engine"""
+class _GeeExtractor:
+    """Classe permettant d'extraire les données de Google Earth Engine, soit à partir de polygones, soit de points."""
 
     def __init__(self, specs: dict, input_gdf: gpd.GeoDataFrame):
         self.specs = specs
         self.input_gdf = input_gdf
 
-    def extract_gee_data_polygon(self) -> gpd.GeoDataFrame:
+    def extract_data_polygon(self) -> gpd.GeoDataFrame:
+        """Génère le raster array à partir du catalogue GEE pour chaque polygone fourni en entrée."""
         # récupération des specs
-        uri_image = self._get_spec_value(uri_image_key)
-        band_name = self._get_spec_value(band_name_key)
+        uri_image = self._get_spec_value(_uri_image_key)
+        band_name = self._get_spec_value(_band_name_key)
 
         # création de l'image de référence
         image = ee.Image(uri_image).select(band_name)
 
         # récupération des specs utiles
-        output_value = self._get_spec_value(output_value_key)
-        default_value = self._get_spec_value(default_value_key)
+        output_value = self._get_spec_value(_output_value_key)
+        default_value = self._get_spec_value(_default_value_key)
         image_info = image.getInfo()
         bands = image_info.get('bands')
         if bands is None or len(bands) == 0:
@@ -102,30 +112,36 @@ class GeeExtractor:
                 output_features.append(feature_with_stats[0])
         return gpd.GeoDataFrame.from_features(output_features)
 
-    def extract_gee_data_point(self) -> gpd.GeoDataFrame:
+    def extract_data_point(self) -> gpd.GeoDataFrame:
+        """Récupère la valeur du pixel à partir du catalogue GEE pour chaque point fourni en entrée"""
         # récupération des specs
-        uri_image = self._get_spec_value(uri_image_key)
-        band_name = self._get_spec_value(band_name_key)
+        uri_image = self._get_spec_value(_uri_image_key)
+        band_name = self._get_spec_value(_band_name_key)
 
         # création de l'image de référence
         image = ee.Image(uri_image).select(band_name)
 
         # récupération des valeurs pour chaque point
-        feature_collection = gee.geopandas_to_ee(self.input_gdf)
+        feature_collection = geemap.geopandas_to_ee(self.input_gdf)
         output_features = image.sampleRegions(feature_collection)
         return gpd.GeoDataFrame.from_features(output_features.getInfo())
 
     def _get_spec_value(self, spec_key: str, raise_err_if_not_found=True):
+        """Récupère la valeur d'une spécification depuis le dictionnaire fourni en entrée. 
+        La clé peut contenir des '.' pour les sous dictionnaires, exemple : 'confRaster.uri_image'.
+        Une exception est levée si la clé n'est pas trouvée dans le dictionnaire et si raise_err_if_not_found est à True
+         (défaut : True)."""
         keys = spec_key.split('.')
         spec_value = self.specs
         for key in keys:
             spec_value = spec_value.get(key)
             if spec_value is None and raise_err_if_not_found:
-                raise ValueError(spec_err.format(field=key))
+                raise ValueError(_spec_err.format(field=key))
         return spec_value
 
     def _apply_mask_on_image(self, output_value: str, image: ee.Image) -> ee.Image:
-        mask_ranges = self._get_spec_value(mask_key, raise_err_if_not_found=False)
+        """Applique un masque à l'image GEE à partir des spécifications."""
+        mask_ranges = self._get_spec_value(_mask_key, raise_err_if_not_found=False)
         if mask_ranges is None:
             return image
         if output_value == 'continue':
