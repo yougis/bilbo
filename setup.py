@@ -14,5 +14,5 @@ setuptools.setup(
     url='https://dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages',
     license='OEIL.NC',
     packages=['generate_indicator'],
-    install_requires=['geopandas', 'geemap', 'rasterstats', 'ee', 'numpy']
+    install_requires=['geopandas', 'geemap', 'rasterstats', 'earthengine-api', 'numpy']
 )
