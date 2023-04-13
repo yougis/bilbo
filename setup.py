@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name='generate_indicator',
-    version='0.1.1',
+    version='0.1.2',
     author='Clément Niot',
     author_email='',
     description="Contient l'ensemble des packages nécessaires au traitement de la donnée pour l'Oeil",

@@ -156,8 +156,14 @@ class _GeeExtractor:
             if len(mask_ranges) < 2:
                 raise ValueError("Le masque appliqué devrait contenir au moins 2 valeurs, mais en contient {nb}".format(
                     nb=len(mask_ranges)))
+            min = mask_ranges[0]
+            max = mask_ranges[len(mask_ranges) - 1]
+            # on filtre pour retirer les valeurs inférieures au début du range et les valeurs supérieures à la fin du range
+            print("Les valeurs inférieures ou égales à {min} ou supérieures à {max} ne seront pas considérées.".format(min=min, max=max))
+            image = image.updateMask(image.gte(min).And(image.lt(max)))
             original_image = image
             clauses = []
+
             for idx, value in enumerate(mask_ranges):
                 if idx == 0:
                     continue
