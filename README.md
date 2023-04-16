@@ -11,9 +11,24 @@ Les scripts spécifiques à chaque projet seront par conséquent de taille très
 
 ## Contribuer
 
-Pour contribuer au package, il suffit d'utiliser, soit l'envrionnement Conda fourni dans le fichier `environment.yml`, soit d'installer les packages utilisés :
+### Pipenv
+
+Pour contribuer au package vous pouvez utiliser l'environnement virtuel créé par pipenv.
+Pour installer pipenv, il suffit de faire :
+```powershell
+# installer d'abord pipenv
+pip install pipenv
+
+# création de l'environnement virtuel (depuis la racine du projet)
+python -m pipenv install
+```
+Dans le prompt vous verrez le nom de l'environnement virtuel créé (bilbo_packages_<sha>). Vous pourrez directement l'utiliser comme Kernel Jupyter dans VSCode.
+
+### Conda
+
+Pour contribuer au package, il faut installer les packages suivants dans votre envrionnement Conda :
 ```bash
-conda install -c conda-forge earthengine-api numpy geemap rasterstats geopandas rasterio matplotlib
+conda install -c conda-forge earthengine-api numpy geemap rasterstats geopandas rasterio matplotlib plotly
 ```
 Le dossier `generate_indicator` contient les méthodes permettant de récupérer des données provenant de catalogue Google Earth Engine.
 Différents exemples illustrent son utilisation dans le dossier `examples`.
