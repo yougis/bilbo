@@ -3,7 +3,7 @@ import geopandas as gpd
 import geemap
 import math
 import affine
-import rasterstats as rs
+from rasterstats import zonal_stats
 import ee
 import numpy as np
 
@@ -39,7 +39,7 @@ def extract_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     # vérification du contenu de l'entrée
     _gee_extractor = _GeeExtractor(specs, input_gdf)
-    if input_gdf.shape[0] <= 0:
+    if input_gdf.shape[0] == 0 or len(input_gdf) == 0:
         raise ValueError("Aucune donnée à traiter, vérifiez la valeur de l'input")
     elif input_gdf.geom_type[0] == 'Polygon':
         return _gee_extractor.extract_data_polygon()
@@ -103,7 +103,7 @@ class _GeeExtractor:
             transform = affine.Affine.from_gdal(_round_down(xmin, scale), scale, 0, _round_up(ymax, scale), 0, -scale)
 
             # récupération des stats de la zone
-            feature_with_stats = rs.zonal_stats(sample_gdf, image_clipped,
+            feature_with_stats = zonal_stats(sample_gdf, image_clipped,
                                                 stats=['min', 'max','nodata'],
                                                 affine=transform, nodata=default_value, geojson_out=True,
                                                 raster_out=True,
