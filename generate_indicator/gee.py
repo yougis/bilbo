@@ -39,7 +39,7 @@ def extract_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     # vérification du contenu de l'entrée
     _gee_extractor = _GeeExtractor(specs, input_gdf)
-    if len(input_gdf) == 0:
+    if input_gdf.shape[0] <= 0:
         raise ValueError("Aucune donnée à traiter, vérifiez la valeur de l'input")
     elif input_gdf.geom_type[0] == 'Polygon':
         return _gee_extractor.extract_data_polygon()
@@ -104,13 +104,13 @@ class _GeeExtractor:
 
             # récupération des stats de la zone
             feature_with_stats = rs.zonal_stats(sample_gdf, image_clipped,
-                                                stats=['min', 'max', 'nodata'],
+                                                stats=['min', 'max','nodata'],
                                                 affine=transform, nodata=default_value, geojson_out=True,
                                                 raster_out=True,
                                                 all_touched=True)
             if len(feature_with_stats) > 0:
                 output_features.append(feature_with_stats[0])
-        return gpd.GeoDataFrame.from_features(output_features).set_crs(_ee_crs)
+        return gpd.GeoDataFrame.from_features(output_features)
 
     def extract_data_point(self) -> gpd.GeoDataFrame:
         """Récupère la valeur du pixel à partir du catalogue GEE pour chaque point fourni en entrée"""
@@ -124,7 +124,7 @@ class _GeeExtractor:
         # récupération des valeurs pour chaque point
         feature_collection = geemap.geopandas_to_ee(self.input_gdf)
         output_features = image.sampleRegions(feature_collection)
-        return gpd.GeoDataFrame.from_features(output_features.getInfo()).set_crs(_ee_crs)
+        return gpd.GeoDataFrame.from_features(output_features.getInfo())
 
     def _get_spec_value(self, spec_key: str, raise_err_if_not_found=True):
         """Récupère la valeur d'une spécification depuis le dictionnaire fourni en entrée. 
