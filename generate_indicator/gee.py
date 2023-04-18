@@ -39,16 +39,17 @@ def extract_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     # vérification du contenu de l'entrée
     _gee_extractor = _GeeExtractor(specs, input_gdf)
-    if input_gdf.shape[0] == 0 or len(input_gdf) == 0:
+    geom_type = _checkGeomType(input_gdf)
+    if input_gdf.shape[0] == 0 or len(input_gdf) == 0 or len(input_gdf.geom_type) == 0 or geom_type is None:
         raise ValueError("Aucune donnée à traiter, vérifiez la valeur de l'input")
-    elif input_gdf.geom_type[0] == 'Polygon':
+    elif geom_type == 'Polygon':
         return _gee_extractor.extract_data_polygon()
-    elif input_gdf.geom_type[0] == 'Point':
+    elif geom_type == 'Point':
         return _gee_extractor.extract_data_point()
     else:
         raise ValueError(
             "Les géométries peuvent seulement être de type 'Polygon' ou 'Point' mais pas '{geom_type}'".format(
-                geom_type=input_gdf.geom_type[0]))
+                geom_type=geom_type))
 
 
 class _GeeExtractor:
@@ -189,3 +190,18 @@ def _round_up(x, increment):
 
 def _round_down(x, increment):
     return math.floor(x / increment) * increment
+
+def _checkGeomType(gdf): 
+    points = gdf.loc[(gdf.geom_type =='Point') | (gdf.geom_type =='MultiPoint' )]
+    polygons = gdf.loc[(gdf.geom_type =='Polygon') | (gdf.geom_type =='MultiPolygon')] 
+    lines = gdf.loc[(gdf.geom_type =='LineString') | (gdf.geom_type =='MultiLineString')] 
+    if points.shape[0]>0: 
+        print("Geometry type : Point or MultiPoint") 
+        return 'Point' 
+    if polygons.shape[0]>0: 
+        print("Geometry type : Polygon or MultiPolygon") 
+        return 'Polygon' 
+    if lines.shape[0]>0: 
+        print("Geometry type : Line or MultiLineString") 
+        return 'Line' 
+    print("Geom type UNKNOWN")
