@@ -100,7 +100,7 @@ class _GeeExtractor:
             image_clipped = np.array(sample_first_band.getInfo())
 
             # récupération de l'affine
-            sample_gdf = gpd.GeoDataFrame.from_features([feature])
+            sample_gdf = gpd.GeoDataFrame.from_features([feature], crs=_ee_crs)
             xmin, _, _, ymax = sample_gdf.total_bounds
             transform = affine.Affine.from_gdal(_round_down(xmin, scale), scale, 0, _round_up(ymax, scale), 0, -scale)
 
@@ -112,7 +112,7 @@ class _GeeExtractor:
                                                 all_touched=True)
             if len(feature_with_stats) > 0:
                 output_features.append(feature_with_stats[0])
-        return gpd.GeoDataFrame.from_features(output_features)
+        return gpd.GeoDataFrame.from_features(output_features, crs=_ee_crs)
 
     def extract_data_point(self) -> gpd.GeoDataFrame:
         """Récupère la valeur du pixel à partir du catalogue GEE pour chaque point fourni en entrée"""
@@ -126,7 +126,7 @@ class _GeeExtractor:
         # récupération des valeurs pour chaque point
         feature_collection = geemap.geopandas_to_ee(self.input_gdf)
         output_features = image.sampleRegions(feature_collection)
-        return gpd.GeoDataFrame.from_features(output_features.getInfo())
+        return gpd.GeoDataFrame.from_features(output_features.getInfo(), crs=_ee_crs)
 
     def _get_spec_value(self, spec_key: str, raise_err_if_not_found=True):
         """Récupère la valeur d'une spécification depuis le dictionnaire fourni en entrée. 
