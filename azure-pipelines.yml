@@ -16,7 +16,7 @@ jobs:
   #     sshpass -p ${ADMIN_OEIL_PASSWORD} ssh administrateur@172.20.10.112 -o StrictHostKeyChecking=no "./miniconda3/condabin/conda run -n gis39 pip install git+https://clement.niot:3w5ycaxyg5jnil4vsfnlpdpahodsx2xz2elcgezjw5d7ce7ylh7a@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@${GIT_COMMIT}"
   #   displayName: "#112 Maj env conda Linux"
   - script: |
-      sshpass -p ${ADMIN_OEIL_PASSWORD} ssh oeil.local/administrateur@172.20.10.113 -o StrictHostKeyChecking=no "Miniconda3\condabin\conda run -n gis39v2 pip install git+https://clement.niot:3w5ycaxyg5jnil4vsfnlpdpahodsx2xz2elcgezjw5d7ce7ylh7a@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@${GIT_COMMIT}"
+      sshpass -p ${ADMIN_OEIL_PASSWORD} ssh oeil.local/administrateur@172.20.10.113 -o StrictHostKeyChecking=no "Miniconda3\condabin\conda run -n gis39v2 pip install -e git+https://clement.niot:3w5ycaxyg5jnil4vsfnlpdpahodsx2xz2elcgezjw5d7ce7ylh7a@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@${GIT_COMMIT}#egg=generate_indicator"
     displayName: "#113 Maj env conda Windows"
 #   - script: |
 #       sshpass -p ${ADMIN_OEIL_PASSWORD} ssh oeil.local/administrateur@172.20.10.109 -o StrictHostKeyChecking=no "Miniconda3\condabin\conda run -n gis39 pip install git+https://clement.niot:3w5ycaxyg5jnil4vsfnlpdpahodsx2xz2elcgezjw5d7ce7ylh7a@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@${GIT_COMMIT}"
