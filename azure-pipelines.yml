@@ -6,32 +6,23 @@
 pool:
   name: Mordor
 
+trigger:
+  branches:
+    include:
+    - master
+    - tags
+
 variables:
-  GIT_COMMIT: $(Build.SourceVersion)
+  hosts_qual: "172.20.10.113,172.20.10.112"
+  hosts_prod: "172.20.10.113,172.20.10.112,172.20.10.106,172.20.10.109"
+  packages: "git+https://clement.niot:3w5ycaxyg5jnil4vsfnlpdpahodsx2xz2elcgezjw5d7ce7ylh7a@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages#egg=generate_indicator"
 
-jobs:
-- job: maj_conda_env
-  steps:
-  # - script: |
-  #     sshpass -p ${ADMIN_OEIL_PASSWORD} ssh administrateur@172.20.10.112 -o StrictHostKeyChecking=no "./miniconda3/condabin/conda run -n gis39 pip install git+https://clement.niot:3w5ycaxyg5jnil4vsfnlpdpahodsx2xz2elcgezjw5d7ce7ylh7a@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@${GIT_COMMIT}"
-  #   displayName: "#112 Maj env conda Linux"
-  - script: |
-      sshpass -p ${ADMIN_OEIL_PASSWORD} ssh oeil.local/administrateur@172.20.10.113 -o StrictHostKeyChecking=no "Miniconda3\condabin\conda run -n gis39v2 pip install -e git+https://clement.niot:3w5ycaxyg5jnil4vsfnlpdpahodsx2xz2elcgezjw5d7ce7ylh7a@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@${GIT_COMMIT}#egg=generate_indicator"
-    displayName: "#113 Maj env conda Windows"
-#   - script: |
-#       sshpass -p ${ADMIN_OEIL_PASSWORD} ssh oeil.local/administrateur@172.20.10.109 -o StrictHostKeyChecking=no "Miniconda3\condabin\conda run -n gis39 pip install git+https://clement.niot:3w5ycaxyg5jnil4vsfnlpdpahodsx2xz2elcgezjw5d7ce7ylh7a@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@${GIT_COMMIT}"
-#     displayName: "#109 Maj env conda Windows"
-#   - script: |
-#       sshpass -p ${ADMIN_OEIL_PASSWORD} ssh oeil.local/administrateur@172.20.10.106 -o StrictHostKeyChecking=no "Miniconda3\condabin\conda run -n gis39 pip install git+https://clement.niot:3w5ycaxyg5jnil4vsfnlpdpahodsx2xz2elcgezjw5d7ce7ylh7a@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@${GIT_COMMIT}"
-#     displayName: "#106 Maj env conda Windows"
-
-# - job: deploy_worker_113
-#   dependsOn: maj_conda_env
-#   condition: succeeded()
-#   steps:
-#   - script: |
-#       sshpass -p ${ADMIN_OEIL_PASSWORD} ssh oeil.local/administrateur@172.20.10.113 -o StrictHostKeyChecking=no <<EOF
-#       tasklist /FI "ImageName eq dask.exe" /FO LIST | findstr PID
-#       EOF
-#       sshpass -p ${ADMIN_OEIL_PASSWORD} ssh -f administrateur@172.20.10.113 -o StrictHostKeyChecking=no 'Miniconda3\condabin\conda run -n gis39v2 dask worker 172.20.12.11:8786 --nthreads=2 --name PC05 --worker-port 5010 --dashboard-address=5011 --no-nanny'
-#     displayName: "#113 Redémarrage worker dask"
+steps:
+- script: |
+    echo "Branche : $(Build.SourceBranchName)"
+    prod_arg=""
+    hosts=$(hosts_qual)
+    if [[ $(Build.SourceBranchName) != "master" ]]; then prod_arg="--prod"; hosts=$(hosts_prod); fi
+    /azp/deploy.sh conda ${prod_arg} --hosts ${hosts} --packages $(packages)
+    /azp/deploy.sh worker ${prod_arg} --hosts ${hosts}
+  displayName: "Maj du package sur les environnements Conda"
