@@ -10,7 +10,9 @@ trigger:
   branches:
     include:
     - main
-    - tags
+  tags:
+    include:
+    - 'v*.*.*'
 
 variables:
   hosts_qual: "172.20.10.113,172.20.10.112"
