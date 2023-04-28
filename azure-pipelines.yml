@@ -26,5 +26,6 @@ steps:
     hosts=$(hosts_qual)
     if [[ $(Build.SourceBranchName) != "main" ]]; then prod_arg="--prod"; hosts=$(hosts_prod); fi
     /azp/deploy.sh conda ${prod_arg} --hosts ${hosts} --packages $(packages)
+    if [[ $? != 0 ]]; then echo "Erreur rencontrée, arrêt du déploiement..."; exit 1; fi
     /azp/deploy.sh worker ${prod_arg} --hosts ${hosts}
   displayName: "Maj du package sur les environnements Conda"
