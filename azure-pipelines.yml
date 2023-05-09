@@ -16,7 +16,7 @@ trigger:
 
 variables:
   hosts_qual: "172.20.10.113,172.20.10.112"
-  hosts_prod: "172.20.10.113,172.20.10.112,172.20.10.106,172.20.10.109"
+  hosts_prod: "172.20.10.113,172.20.10.112,172.20.10.106,172.20.10.109,172.20.9.103,172.20.10.115"
   packages: "git+https://clement.niot:3w5ycaxyg5jnil4vsfnlpdpahodsx2xz2elcgezjw5d7ce7ylh7a@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages#egg=generate_indicator"
 
 steps:
