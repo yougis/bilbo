@@ -15,8 +15,12 @@ _default_value_key = 'confRaster.defaultValue'
 _uri_image_key = 'confRaster.uri_image'
 _spec_err = "Le champ '{field}' n'est pas défini dans les specifications"
 _service_account = 'ee-oeil@surfor.iam.gserviceaccount.com'
-_credentials = ee.ServiceAccountCredentials(_service_account, os.path.dirname(__file__) + '/gee_credentials.json')
-ee.Initialize(_credentials)
+
+print("gee Imported")
+
+def initialize():
+    _credentials = ee.ServiceAccountCredentials(_service_account, os.path.dirname(__file__) + '/gee_credentials.json')
+    ee.Initialize(_credentials)
 
 
 def extract_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
