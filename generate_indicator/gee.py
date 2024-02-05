@@ -6,6 +6,8 @@ import affine
 from rasterstats import zonal_stats
 import ee
 import numpy as np
+from datetime import datetime, timedelta
+import pandas as pd
 
 _ee_crs = "EPSG:4326"
 _band_name_key = 'confRaster.bandName'
@@ -15,6 +17,10 @@ _default_value_key = 'confRaster.defaultValue'
 _uri_image_key = 'confRaster.uri_image'
 _spec_err = "Le champ '{field}' n'est pas défini dans les specifications"
 _service_account = 'ee-oeil@surfor.iam.gserviceaccount.com'
+_date_start = 'confRaster.date_start'
+_date_end = 'confRaster.date_end'
+_scale = 'confRaster.scale'
+_temporality = 'confRaster.temporality'
 
 print("gee Imported")
 
@@ -56,7 +62,6 @@ def extract_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
             "Les géométries peuvent seulement être de type 'Polygon' ou 'Point' mais pas '{geom_type}'".format(
                 geom_type=geom_type))
 
-
 class _GeeExtractor:
     """Classe permettant d'extraire les données de Google Earth Engine, soit à partir de polygones, soit de points."""
 
@@ -69,14 +74,50 @@ class _GeeExtractor:
         # récupération des specs
         uri_image = self._get_spec_value(_uri_image_key)
         band_name = self._get_spec_value(_band_name_key)
+        scale_img = self._get_spec_value(_scale)
+        scale_temporal = self._get_spec_value(_temporality)
 
-        # création de l'image de référence
-        image = ee.Image(uri_image).select(band_name)
+        if scale_temporal == 'Annual' :
+            print("Annual Image collection")
+            date_start = self._get_spec_value(_date_start)
+            date_end = self._get_spec_value(_date_end)
+            # création de l'image de référence à partir d'une collection d'image
+            s2=ee.ImageCollection(uri_image).filter(
+                    ee.Filter.date(date_start, date_end))
+            classification = s2.select(band_name)
 
-        # récupération des specs utiles
+            image=classification.mode() ## application de la méthode "mode" pour garder les classes les plus récurentes
+            image=image.reproject(crs= _ee_crs,scale=scale_img)
+
+        elif scale_temporal == 'Daily' :
+            print("Daily Image collection")
+            print('date_start',self.input_gdf.date_)
+            s2=ee.ImageCollection(uri_image).filter(
+                    ee.Filter.date(pd.to_datetime(self.input_gdf.date_[0]), pd.to_datetime(self.input_gdf.date_[0])+timedelta(hours=24)))
+            if band_name == 'NDVI' :
+                print("NDVI collection")
+                s2=s2.mode() ## application de la méthode "mode" pour garder les classes les plus récurentes
+                ndvi=s2.normalizedDifference(['B8', 'B4']).rename('NDVI')
+                #s2=s2.addBands(ndvi)
+                image=ndvi.reproject(crs= _ee_crs,scale=scale_img)
+            else:
+                classification = s2.select(band_name)
+                image=classification.mode() ## application de la méthode "mode" pour garder les classes les plus récurentes
+                image=image.reproject(crs= _ee_crs,scale=scale_img)
+            
+        else:
+            print("Simple image")
+            # création de l'image de référence à partir d'une image
+            image = ee.Image(uri_image).select(band_name)
+       
+        # récupération des specs utiles 
         output_value = self._get_spec_value(_output_value_key)
-        default_value = self._get_spec_value(_default_value_key)
+        if band_name == 'NDVI' :
+            default_value=None
+        else:
+            default_value = self._get_spec_value(_default_value_key)
         image_info = image.getInfo()
+
         bands = image_info.get('bands')
         if bands is None or len(bands) == 0:
             raise ValueError("Impossible de récupérer la liste des bandes à partir de l'image EE : {ee_image}".format(
@@ -89,7 +130,6 @@ class _GeeExtractor:
                     "Impossible de récupérer la liste des transformations CRS à partir de la bande : {band}"
                     .format(band=band))
             scale = crs_transform[0]
-
         # application des masques
         image = self._apply_mask_on_image(output_value, image)
 
@@ -99,10 +139,12 @@ class _GeeExtractor:
         for count, feature in enumerate(self.input_gdf.iterfeatures()):
             print("Analyse de la feature n°{nb} / {total}".format(nb=count + 1, total=nb_input_features))
             # récupération du raster correspondant au polygon
-            sample = image.sampleRectangle(region=feature.get('geometry'), defaultValue=default_value)
+            
+            sample = image.sampleRectangle(region=feature.get('geometry'),defaultValue=default_value)
+
             sample_first_band = sample.get(band_name)
             image_clipped = np.array(sample_first_band.getInfo())
-
+            print(image_clipped)
             # récupération de l'affine
             sample_gdf = gpd.GeoDataFrame.from_features([feature], crs=_ee_crs)
             xmin, _, _, ymax = sample_gdf.total_bounds
@@ -114,10 +156,16 @@ class _GeeExtractor:
                                                 affine=transform, nodata=default_value, geojson_out=True,
                                                 raster_out=True,
                                                 all_touched=True)
+            print("RESULTATS",feature_with_stats[0])
             if len(feature_with_stats) > 0:
                 output_features.append(feature_with_stats[0])
+
         return gpd.GeoDataFrame.from_features(output_features, crs=_ee_crs)
 
+    def _imreproj(self,image)-> ee.Image:   
+        scale_img = self._get_spec_value(_scale)
+        return image.reproject(crs=_ee_crs, scale=scale_img)
+    
     def extract_data_point(self) -> gpd.GeoDataFrame:
         """Récupère la valeur du pixel à partir du catalogue GEE pour chaque point fourni en entrée"""
         # récupération des specs
