@@ -1,0 +1,371 @@
+import logging
+from warnings import deprecated
+
+from os import getenv
+import os
+import yaml
+from intake import open_catalog
+import rasterio
+import threading
+from rasterstats import zonal_stats
+import concurrent.futures
+from geopandas import GeoDataFrame
+from shapely.geometry import shape
+
+from oeilnc_utils.raster import block_shapes, changeTypeMaskArrayToUint8
+from oeilnc_utils.connection import fixOsPath, fixpath
+from oeilnc_utils.geometry import checkGeomType, splitGeomByAnother
+import numpy as np
+import pandas as pd
+
+commun_path = getenv("COMMUN_PATH")
+project_dir = getenv("PROJECT_PATH")
+data_catalog_dir = getenv("DATA_CATALOG_DIR")
+data_output_dir = getenv("DATA_OUTPUT_DIR")
+sig_data_path = getenv("SIG_DATA_PATH")
+project_db_schema = getenv("PROJECT_DB_SCHEMA")
+
+null_variables = []
+if commun_path is None:
+    null_variables.append("commun_path")
+if project_dir is None:
+    null_variables.append("project_dir")
+if data_catalog_dir is None:
+    null_variables.append("data_catalog_dir")
+if data_output_dir is None:
+    null_variables.append("data_output_dir")
+if sig_data_path is None:
+    null_variables.append("sig_data_path")
+if project_db_schema is None:
+    null_variables.append("project_db_schema")
+
+if null_variables:
+    logging.warning("The following variables are null: {}".format(", ".join(null_variables)))
+
+
+def getStatMultiThread(gdf,width=512, height=512,raster="full_masked.tif"):
+
+    num_workers=12
+    geoprocess=[]   
+    gdf_filtered_list=[]
+    out_grids=[]
+    
+    with rasterio.open(raster) as src:
+        blocks = list(block_shapes(src,width,height))
+        print(src.profile)
+        count = 0
+        read_lock = threading.Lock()
+        def process(window):
+            with read_lock:
+                xmin, ymin, xmax, ymax = src.window_bounds(window)
+                bounds = [xmin,ymin,xmax,ymax]
+                gdf_filtered = gdf.cx[xmin:xmax,ymin:ymax]
+                if gdf_filtered.shape[0] > 0:
+                    img = src.read(1, window=window)
+                    transform = src.window_transform(window)
+                    result = zonal_stats(gdf_filtered,img, affine=transform, nodata=99,geojson_out=True,raster_out=True, all_touched=True)
+                    geoprocess.append(result)
+                    
+                    
+            return geoprocess
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+            executor.map(process, blocks)
+            executor.shutdown()
+        
+    return geoprocess
+
+
+def createRasterMasked(rasterDataset, features, identifiant):
+
+    # Deprecated
+    out_img, out_transform = rasterio.mask(data, shapes=getFeatures(features), crop=True,filled=False)
+    out_meta = data.meta.copy()
+    out_meta.update({"driver": "GTiff",
+                     "height": out_img.shape[1],
+                     "width": out_img.shape[2],
+                     "transform": out_transform,
+                     "nodata":0,
+                     "dtype": rasterio.ubyte})
+
+    with rasterio.open(f"tmp/{identifiant}_masked.tif", "w", **out_meta) as dest:
+        dest.write(out_img)
+
+
+
+def createRasterIndicateur(data,uri_image, spec_raster_indicateur, epsg="EPSG:3163"):
+    windows_width = spec_raster_indicateur.get('windows_width',2048)
+    windows_height = spec_raster_indicateur.get('windows_height',2048)
+    indicateur_raster = GeoDataFrame.from_features([item for i in getStatMultiThread(data,windows_width,windows_height,uri_image) for item in i],crs=epsg)
+    
+    if indicateur_raster.shape[0] > 0:
+        try:
+            indicateur_raster.sindex
+        except Exception as e:
+            print("Indexing error:", e)
+    return indicateur_raster
+
+
+def polygonizeRaster(indexRef, rowId, img, crs, transform):
+    """
+    Polygonizes a raster image.
+
+    Args:
+        indexRef (int): The reference index.
+        rowId (int): The row ID.
+        img (numpy.ndarray): The raster image.
+        crs (rasterio.crs.CRS): The coordinate reference system.
+        transform (affine.Affine): The affine transformation.
+
+    Returns:
+        dict: A dictionary containing the index reference, row ID, mini raster values, and geometries.
+    """
+    print(rowId, "  polygonizeRaster", transform)
+    try:
+        geometries = []
+        colvalues = []
+
+        for (geom, colval) in rasterio.features.shapes(img, mask=None, transform=transform):
+            polygon = shape(geom)
+            geometries.append(polygon)
+            colvalues.append(colval)
+        return {indexRef: rowId, "mini_raster_value": colvalues, "geometry": geometries}
+    except Exception as e:
+        print("Unexpected error:", e)
+   
+def polygonizeRasterThreader(gdf_to_split, individuStatSpec):
+    """
+    Threaded function to polygonize raster data.
+
+    Args:
+        gdf_to_split (GeoDataFrame): The GeoDataFrame to split.
+        individuStatSpec (dict): The individual statistical specifications.
+
+    Returns:
+        list: A list of results from polygonizing the raster data.
+    """
+    print("""polygonizeRasterThreader""")
+    indexRef = individuStatSpec.get('indexRef', None)
+    num_workers = 12
+    result = []
+    n = 1000  # chunk row size
+    read_lock = threading.Lock()
+
+    def process(gdf_to_split):
+        crs = gdf_to_split.crs
+        print("read_lock polygonizeRasterThreader")
+        try:
+            result.append(gdf_to_split.apply(lambda row: polygonizeRaster(indexRef, getattr(row, indexRef), row.mini_raster_array, crs, row.mini_raster_affine), axis='columns', result_type='expand'))
+            # print("next polygonizeRasterThreader")
+        except Exception as e:
+            print("Error during execution polygonizeRaster:", e)
+        return result
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+        # print("thread",gdf_to_split.shape)
+        list_df = [gdf_to_split[i:i+n] for i in range(0, gdf_to_split.shape[0], n)]
+        executor.map(process, list_df)
+
+    return result
+
+
+def indicateur_from_raster(data, iterables):
+    """
+    Extracts indicators from a raster based on the geometries of individual data points or polygons.
+
+    Args:
+        data (GeoDataFrame): The input data containing geometries.
+        iterables (tuple): A tuple containing indicator specifications, individual statistics specifications,
+                           EPSG code, and metamodel.
+
+    Returns:
+        GeoDataFrame: The final indicator data containing the extracted values from the raster.
+
+    Raises:
+        ValueError: If the geometry type of the input data is not supported.
+
+    """
+    print("indicateur_from_raster Data loaded ", data)
+    indicateurSpec, individuStatSpec, epsg, metamodel = iterables
+    spec_raster_indicateur = indicateurSpec.get('confRaster', {})
+    uri_image = f"{spec_raster_indicateur.get('uri_image', None)}"
+    if os.name == 'nt':
+        replace = commun_path
+        print('fix path:', commun_path)
+        uri_image = fixpath(uri_image, replace)
+        # print('New uri_image for Windows',uri_image)
+
+    indexRef = individuStatSpec.get('indexRef', None)
+    keepList = individuStatSpec.get('keepList', [])
+
+    # By default, the value from the raster will be stored in a field named after the first item in the keepList of the spec
+    raster_classe = indicateurSpec.get('keepList', [])[0]
+
+    # Check if we are dealing with temporal data, in which case an attribute needs to be created to integrate the corresponding date or year value.
+    # The confTemporal property of indicateurSpec defines how the attribute is named (to match the model if the table already exists),
+    # indicates if the value is fixed or if it will be drawn from the pixel value, in which case the raster_classe field becomes colName.
+    spec_temporal_indicateur = indicateurSpec.get('confTemporal', {})
+    fromPixel = spec_temporal_indicateur.get('valuefromPixel', False)
+    colDate = spec_temporal_indicateur.get('colName', raster_classe)
+
+    if fromPixel:
+        raster_classe = colDate
+    else:
+        data[colDate] = spec_temporal_indicateur.get('value', np.nan)
+
+    emptyDataframe = GeoDataFrame(columns=metamodel)
+
+    # Fetch the indicators from the raster based on the geometries of the individual data
+    # Method varies depending on the type of input geometry
+    print(checkGeomType(data))
+    if checkGeomType(data) == 'Point':
+
+        with rasterio.open(uri_image) as src:
+            coord_list = [(x, y) for x, y in zip(data['geometry'].x, data['geometry'].y)]
+            data[raster_classe] = [x for x in src.sample(coord_list)]
+            data['id_split'] = 'None'
+            data = data[metamodel]
+        return data
+    elif checkGeomType(data) == 'Polygon':
+        gdf_to_split = createRasterIndicateur(data, uri_image, spec_raster_indicateur, epsg)
+
+        # Check
+        if gdf_to_split.shape[0] > 0:
+            gdf_to_split["mini_raster_array"] = gdf_to_split["mini_raster_array"].apply(changeTypeMaskArrayToUint8)
+
+            min_diff_max = "min != max"
+            min_eg_max = "min == max"
+            gdf_to_split_filtered = gdf_to_split.query(min_diff_max)
+            gdf_to_concat = gdf_to_split.query(min_eg_max)
+
+            # Polygonize only the mini rasters that intersect with geometries
+            # Could be done for those with different min max values (+ duplicates with non-similar values), but not done here
+            # eg. gdf_to_split = gdf_to_split[['id','min','max']].drop_duplicates(subset=['id','min','max'],keep=False)
+            try:
+                explode_raster = pd.concat([item for item in polygonizeRasterThreader(gdf_to_split_filtered, individuStatSpec)]).set_index([indexRef]).apply(pd.Series.explode).reset_index()
+                print('finish polygonizeRasterThreader')
+                explode_raster = GeoDataFrame(explode_raster, geometry='geometry', crs=epsg)
+                explode_raster.sindex
+            except Exception as e:
+                print("Unexpected error in explode_raster:", e)
+                explode_raster = emptyDataframe
+                # return gpd.GeoDataFrame()
+
+            try:
+                keepListAttribut = [indexRef, 'geometry', 'min', 'max'] + keepList
+                result_minirastersplit = pd.concat([item for item in splitGeomThreader(gdf_to_split_filtered[keepListAttribut], explode_raster, spec_raster_indicateur, individuStatSpec, epsg)])
+                print("finish splitGeomThreader")
+                result_minirastersplit['id_split'] = result_minirastersplit.apply(lambda row: str(getattr(row, indexRef + "_1")) + "_" + str(row.name), axis=1)
+                result_minirastersplit[indexRef] = getattr(result_minirastersplit, indexRef + "_1")
+                result_minirastersplit[raster_classe] = result_minirastersplit['mini_raster_value']
+
+            except Exception as e:
+                print("Unexpected error in indicateur_from_raster:", e)
+                result_minirastersplit = emptyDataframe
+
+            try:
+
+                gdf_to_concat[raster_classe] = gdf_to_concat['min']
+                gdf_to_concat['id_split'] = gdf_to_concat[indexRef]
+
+                # print("result_minirastersplit[[metamodel]]",result_minirastersplit[metamodel].columns)
+                # print("gdf_to_concat[metamodel]",gdf_to_concat[metamodel].columns)
+                final_indicateur = pd.concat([result_minirastersplit[metamodel], gdf_to_concat[metamodel]])
+
+            except Exception as e:
+                print("Unexpected error in indicateur_from_raster - concatenate step:", e)
+                final_indicateur = emptyDataframe
+
+            return final_indicateur
+    else:
+        raise ValueError(f"The geometry type {data.geometry.geometry.type} is not currently supported.")
+
+    # Returning empty dataframe for dask model
+    # column_names = listAttribut
+    return emptyDataframe
+
+
+def splitGeomThreader(gdf_to_split, explode_raster, spec_raster_indicateur, individuStatSpec, epsg):
+    """
+    Split the geometries in a GeoDataFrame using another raster GeoDataFrame.
+
+    Args:
+        gdf_to_split (GeoDataFrame): The GeoDataFrame containing the geometries to be split.
+        explode_raster (GeoDataFrame): The raster GeoDataFrame used for splitting the geometries.
+        spec_raster_indicateur (dict): A dictionary specifying the raster indicator.
+        individuStatSpec (dict): A dictionary specifying the individual statistics.
+        epsg (int): The EPSG code for the coordinate reference system.
+
+    Returns:
+        list: A list of GeoDataFrames containing the split geometries.
+    """
+    
+    print("""splitGeomThreader""")
+
+    indexRef = individuStatSpec.get('indexRef', None)
+    num_workers = 12
+    result = []
+    n = 100  # chunk row size
+    idx = 0
+
+    overlayHow = spec_raster_indicateur.get("overlayHow", None)
+
+    def process(gdf_to_split):
+        crs = gdf_to_split.crs
+        try:
+            for index, row in gdf_to_split.iterrows():
+                splitGeoms = splitGeomByAnother(row, explode_raster[getattr(explode_raster, indexRef).isin([row[indexRef]])], overlayHow=overlayHow, keep_geom_type=False, epsg=epsg)
+                splitGeoms.index.name = 'uid'
+                splitGeoms.reset_index(level=0, inplace=True)
+                result.append(splitGeoms)
+        except Exception as e:
+            print("Unexpected error in splitGeomThreader:", e)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+        list_df = [gdf_to_split[i:i+n] for i in range(0, gdf_to_split.shape[0], n)]
+        executor.map(process, list_df)
+        executor.shutdown()
+
+    return result
+
+@deprecated("don't use")
+def BboxIndicateur(yamlFile, typData="vecteur"):
+    """
+    Calculate the bounding box of the indicator based on the given YAML file.
+
+    Parameters:
+    - yamlFile (str): The name of the YAML file.
+    - typData (str): The type of data, either "raster" or "vecteur". Default is "vecteur".
+
+    Returns:
+    - bbox_ind (list): The bounding box coordinates [xmin, ymin, xmax, ymax].
+    
+    """
+    
+    if typData == "raster":
+        with open(f'{project_dir}indicator_config_files/{yamlFile}.yaml', 'r') as file:        
+            individuStatSpec = yaml.load(file, Loader=yaml.Loader)
+            confRaster = individuStatSpec.get('confRaster',None)
+            width = confRaster.get('windows_width', None)
+            height = confRaster.get('windows_height', None)
+            raster = confRaster.get('uri_image',None)
+            with rasterio.open(raster) as src:
+                    blocks = list(block_shapes(src,width,height))
+                    print(src.profile)
+                    count = 0
+                    read_lock = threading.Lock()
+                    def process(window):
+                            with read_lock:
+                                    xmin, ymin, xmax, ymax = src.window_bounds(window)
+                                    bbox_ind = [xmin,ymin,xmax,ymax]
+            print("BBOX raster:",bbox_ind)
+    elif typData == "vecteur":
+        with open(f'{project_dir}indicator_config_files/{yamlFile}.yaml', 'r') as file:        
+            individuStatSpec = yaml.load(file, Loader=yaml.Loader)
+            dataName = individuStatSpec.get('dataName',None)
+            catalogUri = individuStatSpec.get('catalogUri',None)
+            indic = getattr(open_catalog(f'{data_catalog_dir}{catalogUri}'),dataName)
+            xmin, ymin, xmax, ymax = indic.read().geometry.total_bounds
+            bbox_ind = [xmin, ymin, xmax, ymax]
+            print("BBOX vecteur:",bbox_ind)
+    return bbox_ind    

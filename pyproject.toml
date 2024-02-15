@@ -8,8 +8,9 @@ license = "CC SA"  # Ajoutez ici votre licence, si applicable
 homepage = "https://dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages"
 classifiers = ["Programming Language :: Python :: 3",]
 packages = [
-    { include = "generate_indicator" },
-    { include = "utils" }
+    { include = "oeilnc_geoindicator" },
+    { include = "oeilnc_utils" },
+     { include = "oeilnc_config" }
 ]
 
 

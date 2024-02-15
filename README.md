@@ -9,12 +9,16 @@ Il se découpe selon plusieurs packages :
 
 Les scripts spécifiques à chaque projet seront par conséquent de taille très réduite car l'ensemble des traitements utilisera ces packages.
 
+Variable d'environnement utilisées dans certaines méthodes
+
+`"SCHEDULER_IP"` 
+
 ## Contribuer
 
-### Pipenv
+### Poetry
 
-Pour contribuer au package vous pouvez utiliser l'environnement virtuel créé par pipenv.
-Pour installer pipenv, il suffit de faire :
+Pour contribuer au package vous pouvez utiliser l'environnement virtuel créé par poetry.
+Pour installer poetry, il suffit de faire :
 ```powershell
 # installer d'abord pipenv
 pip install pipenv
@@ -26,7 +30,7 @@ Dans le prompt vous verrez le nom de l'environnement virtuel créé (bilbo_packa
 
 ### Conda
 
-Pour contribuer au package, il faut installer les packages suivants dans votre envrionnement Conda :
+Pour contribuer au package, il faut installer les packages suivants dans votre environnement Conda :
 ```bash
 conda install -c conda-forge earthengine-api numpy geemap rasterstats geopandas rasterio matplotlib plotly
 ```
@@ -35,12 +39,12 @@ Différents exemples illustrent son utilisation dans le dossier `examples`.
 
 ## Utiliser
 
-Pour utiliser ce package dans votre projet, il suffit de l'installer via le répo Git.
+Pour utiliser ce package dans votre projet, il suffit de l'installer via le repo Git.
 ```bash
 pip install git+https://Oeilnc@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages
 ```
 
-Cependant, cette installation n'inclus pas les dépdendances pourtant spécifiées dans le fichier `setup.py`. 
+Cependant, cette installation n'inclus pas les dépendances pourtant spécifiées dans le fichier `setup.py`. 
 Tant qu'une solution n'a pas été trouvée pour automatiquement installer les dépendances, ces dernières devront être installées manuellement :
 ```bash
 conda install -c conda-forge earthengine-api numpy geemap rasterstats geopandas
@@ -52,3 +56,6 @@ Une fois installées, on peut utiliser le package :
 from generate_indicator import gee
 gee.extract_data()
 ```
+
+
+
