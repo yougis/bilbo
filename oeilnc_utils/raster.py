@@ -31,3 +31,7 @@ def block_shapes(src, rows, cols):
 
 def changeTypeMaskArrayToUint8(x):
     return x.astype(np.uint8)
+
+
+def changeTypeMaskArrayToUint16(x):
+    return x.astype(np.uint16)

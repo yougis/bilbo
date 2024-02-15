@@ -12,11 +12,15 @@ import concurrent.futures
 from geopandas import GeoDataFrame
 from shapely.geometry import shape
 
-from oeilnc_utils.raster import block_shapes, changeTypeMaskArrayToUint8
+from oeilnc_utils.raster import block_shapes, changeTypeMaskArrayToUint8, changeTypeMaskArrayToUint16
 from oeilnc_utils.connection import fixOsPath, fixpath
 from oeilnc_utils.geometry import checkGeomType, splitGeomByAnother
+from oeilnc_geoindicator import gee
 import numpy as np
 import pandas as pd
+from dask.distributed import get_worker
+
+
 
 commun_path = getenv("COMMUN_PATH")
 project_dir = getenv("PROJECT_PATH")
@@ -185,103 +189,149 @@ def indicateur_from_raster(data, iterables):
         ValueError: If the geometry type of the input data is not supported.
 
     """
-    print("indicateur_from_raster Data loaded ", data)
-    indicateurSpec, individuStatSpec, epsg, metamodel = iterables
-    spec_raster_indicateur = indicateurSpec.get('confRaster', {})
-    uri_image = f"{spec_raster_indicateur.get('uri_image', None)}"
+    indicateurSpec, individuStatSpec, epsg , metamodel= iterables
+    spec_raster_indicateur = indicateurSpec.get('confRaster',{})
+    uri_image = f"{spec_raster_indicateur.get('uri_image',None)}"
     if os.name == 'nt':
         replace = commun_path
         print('fix path:', commun_path)
-        uri_image = fixpath(uri_image, replace)
-        # print('New uri_image for Windows',uri_image)
+        uri_image = fixpath(uri_image,replace)
+         #print('New uri_image for Windows',uri_image)
 
-    indexRef = individuStatSpec.get('indexRef', None)
-    keepList = individuStatSpec.get('keepList', [])
+    indexRef = individuStatSpec.get('indexRef',None)
+    keepList = individuStatSpec.get('keepList',[]) + indicateurSpec.get('keepList',[])[1:]
 
-    # By default, the value from the raster will be stored in a field named after the first item in the keepList of the spec
-    raster_classe = indicateurSpec.get('keepList', [])[0]
+    # par defaut la valeur issue du raster sera stocké dans un champ nommé comme le premier de la Keeplist des spec 
+    raster_classe = indicateurSpec.get('keepList',[])[0]
 
-    # Check if we are dealing with temporal data, in which case an attribute needs to be created to integrate the corresponding date or year value.
-    # The confTemporal property of indicateurSpec defines how the attribute is named (to match the model if the table already exists),
-    # indicates if the value is fixed or if it will be drawn from the pixel value, in which case the raster_classe field becomes colName.
-    spec_temporal_indicateur = indicateurSpec.get('confTemporal', {})
-    fromPixel = spec_temporal_indicateur.get('valuefromPixel', False)
-    colDate = spec_temporal_indicateur.get('colName', raster_classe)
+    # on voit si on traite une donnée temporelle, auquelle cas un attribut doit être créé pour intégrer la valeur de date ou d'année correspondante.
+    # la proprieté confTemporal de indicateurSpec permet de définir comment l'attribut est nommé (afin d'être raccord au modèle si la table existe déjà), 
+    # indique si la valeur est fixe ou si elle sera tirée de la valeur du pixel auquel cas le champs raster classe devient colName
+    spec_temporal_indicateur = indicateurSpec.get('confTemporal',{})
+    fromPixel = spec_temporal_indicateur.get('valuefromPixel',False)
+    colDate = spec_temporal_indicateur.get('colName',raster_classe)
 
     if fromPixel:
         raster_classe = colDate
     else:
-        data[colDate] = spec_temporal_indicateur.get('value', np.nan)
+        data[colDate] = spec_temporal_indicateur.get('value',np.nan)
 
-    emptyDataframe = GeoDataFrame(columns=metamodel)
-
-    # Fetch the indicators from the raster based on the geometries of the individual data
-    # Method varies depending on the type of input geometry
-    print(checkGeomType(data))
+    emptyDataframe =  GeoDataFrame(columns = metamodel, crs=data.crs)    
+    # on va chercher les indicateurs dans le raster à partir des géometries des données individuStat
+    # Methode variable selon le type de géometry en entrée :
+    #print(checkGeomType(data))
     if checkGeomType(data) == 'Point':
-
+        
         with rasterio.open(uri_image) as src:
-            coord_list = [(x, y) for x, y in zip(data['geometry'].x, data['geometry'].y)]
+            coord_list = [(x,y) for x,y in zip(data['geometry'].x , data['geometry'].y)]
             data[raster_classe] = [x for x in src.sample(coord_list)]
             data['id_split'] = 'None'
-            data = data[metamodel]
+            data= data[metamodel]
         return data
-    elif checkGeomType(data) == 'Polygon':
-        gdf_to_split = createRasterIndicateur(data, uri_image, spec_raster_indicateur, epsg)
+    elif  checkGeomType(data) == 'Polygon':
 
-        # Check
+        if spec_raster_indicateur.get('api',None) == 'GEE':
+            logging.info(get_worker().name , "->  Google Earth Engine API !")
+            try:
+                try:
+                    gee.initialize()
+                except Exception as e:
+                    print("gee.initialize execption :", e)
+                gdf_to_split = gee.extract_data(indicateurSpec,data)
+        
+            except Exception as e:
+                logging.info(get_worker().name , "-> Unexpected error in gee.extract_data:", e)
+                print("trying to reimport for Initialze again")
+                from oeilnc_geoindicator import gee as gee_
+                gdf_to_split = gee_.extract_data(indicateurSpec,data)
+        else:
+            gdf_to_split = createRasterIndicateur(data,uri_image, spec_raster_indicateur, epsg)
+
+        # on regarde
         if gdf_to_split.shape[0] > 0:
-            gdf_to_split["mini_raster_array"] = gdf_to_split["mini_raster_array"].apply(changeTypeMaskArrayToUint8)
+            if gdf_to_split['max'].max()< 255 :
+                gdf_to_split["mini_raster_array"] = gdf_to_split["mini_raster_array"].apply(changeTypeMaskArrayToUint8)
+            else:
+                gdf_to_split["mini_raster_array"] = gdf_to_split["mini_raster_array"].apply(changeTypeMaskArrayToUint16)
 
-            min_diff_max = "min != max"
-            min_eg_max = "min == max"
-            gdf_to_split_filtered = gdf_to_split.query(min_diff_max)
-            gdf_to_concat = gdf_to_split.query(min_eg_max)
 
-            # Polygonize only the mini rasters that intersect with geometries
-            # Could be done for those with different min max values (+ duplicates with non-similar values), but not done here
-            # eg. gdf_to_split = gdf_to_split[['id','min','max']].drop_duplicates(subset=['id','min','max'],keep=False)
-            try:
-                explode_raster = pd.concat([item for item in polygonizeRasterThreader(gdf_to_split_filtered, individuStatSpec)]).set_index([indexRef]).apply(pd.Series.explode).reset_index()
-                print('finish polygonizeRasterThreader')
-                explode_raster = GeoDataFrame(explode_raster, geometry='geometry', crs=epsg)
-                explode_raster.sindex
-            except Exception as e:
-                print("Unexpected error in explode_raster:", e)
-                explode_raster = emptyDataframe
-                # return gpd.GeoDataFrame()
+            min_diff_max= "min != max"
+            min_eg_max= "min == max"
+            without_nodata= "nodata < 1"
+            with_nodata = "nodata > 0"
+            gdf_to_split_filtered = gdf_to_split.query(f"{min_diff_max} or {with_nodata}")
+            #print('gdf_to_split_filtered : ', gdf_to_split_filtered)
+            gdf_to_concat = gdf_to_split.query(f"{min_eg_max} and {without_nodata}")
 
-            try:
-                keepListAttribut = [indexRef, 'geometry', 'min', 'max'] + keepList
-                result_minirastersplit = pd.concat([item for item in splitGeomThreader(gdf_to_split_filtered[keepListAttribut], explode_raster, spec_raster_indicateur, individuStatSpec, epsg)])
-                print("finish splitGeomThreader")
-                result_minirastersplit['id_split'] = result_minirastersplit.apply(lambda row: str(getattr(row, indexRef + "_1")) + "_" + str(row.name), axis=1)
-                result_minirastersplit[indexRef] = getattr(result_minirastersplit, indexRef + "_1")
-                result_minirastersplit[raster_classe] = result_minirastersplit['mini_raster_value']
-
-            except Exception as e:
-                print("Unexpected error in indicateur_from_raster:", e)
+            if gdf_to_split_filtered.shape[0] == 0:
+                gdf_to_split_filtered = emptyDataframe
                 result_minirastersplit = emptyDataframe
 
+            else:
+                # on polygonize uniquement les mini rasters qui intersectent des géometries 
+                # on pourrait le faire pour ceux ayant des min max différents (+ les doublons avec des valeurs non similaires) mais on le fait pas ici
+                # eg . gdf_to_split = gdf_to_split[['id','min','max']].drop_duplicates(subset=['id','min','max'],keep=False)
+                try:
+                    explode_raster = pd.concat([ item for item in polygonizeRasterThreader(gdf_to_split_filtered,individuStatSpec)]).set_index([indexRef]).apply(pd.Series.explode).reset_index()
+                    print('finish polygonizeRasterThreader ')
+                    explode_raster = GeoDataFrame(explode_raster, geometry='geometry',crs=epsg)
+                    explode_raster.sindex
+                except Exception as e:
+                    print("Unexpected error in explode_raster:", e)
+                    explode_raster= emptyDataframe
+                    #return gpd.GeoDataFrame()
+
+                try:
+                    keepListAttribut = [indexRef,'geometry','min','max']+keepList
+                    result_minirastersplit = pd.concat([ item for item in splitGeomThreader(gdf_to_split_filtered[keepListAttribut],explode_raster,spec_raster_indicateur,individuStatSpec, epsg)])
+                    print("finish splitGeomThreader result_minirastersplit")
+                    result_minirastersplit['id_split'] = result_minirastersplit.apply(lambda row :  str(getattr(row, indexRef + "_1")) + "_" +  str(row.name), axis=1)
+                    result_minirastersplit[indexRef] = getattr(result_minirastersplit, indexRef + "_1")
+                    result_minirastersplit[raster_classe]=result_minirastersplit['mini_raster_value']
+                    if result_minirastersplit.crs is None:
+                        result_minirastersplit.set_crs(epsg, inplace=True)
+                        result_minirastersplit.to_crs(data.crs, inplace=True)
+                    else:
+                        result_minirastersplit.to_crs(data.crs, inplace=True)
+
+                except Exception as e:
+                    print("Unexpected error in indicateur_from_raster:", e)
+                    result_minirastersplit=emptyDataframe
+                    result_minirastersplit.to_crs(data.crs, inplace=True)
+
             try:
+                if gdf_to_concat.shape[0] > 0 :
+                    print("Size gdf_to_concat :",gdf_to_concat.shape )  
+                    gdf_to_concat[raster_classe] = gdf_to_concat['min']
+                    gdf_to_concat['id_split'] = gdf_to_concat[indexRef]
+                    if gdf_to_concat.crs is None:
+                        gdf_to_concat.set_crs(epsg, inplace=True)
+                        gdf_to_concat.to_crs(data.crs, inplace=True)
+                    else:
+                        gdf_to_concat.to_crs(data.crs, inplace=True)
+                else :
+                    gdf_to_concat = emptyDataframe
+                    gdf_to_concat.to_crs(data.crs, inplace=True)
 
-                gdf_to_concat[raster_classe] = gdf_to_concat['min']
-                gdf_to_concat['id_split'] = gdf_to_concat[indexRef]
+                #print("result_minirastersplit[[metamodel]]",result_minirastersplit[metamodel].columns)
+                #print("gdf_to_concat[metamodel]",gdf_to_concat[metamodel].columns)
+                final_indicateur = pd.concat([result_minirastersplit[metamodel],gdf_to_concat[metamodel]])
 
-                # print("result_minirastersplit[[metamodel]]",result_minirastersplit[metamodel].columns)
-                # print("gdf_to_concat[metamodel]",gdf_to_concat[metamodel].columns)
-                final_indicateur = pd.concat([result_minirastersplit[metamodel], gdf_to_concat[metamodel]])
 
             except Exception as e:
                 print("Unexpected error in indicateur_from_raster - concatenate step:", e)
                 final_indicateur = emptyDataframe
 
             return final_indicateur
+        else:
+            print(f"Pas de géometrie à créer")
+            return emptyDataframe
     else:
-        raise ValueError(f"The geometry type {data.geometry.geometry.type} is not currently supported.")
-
-    # Returning empty dataframe for dask model
-    # column_names = listAttribut
+        print(f"le type de géometrie {checkGeomType(data)} en entrée n'est pas pris en charge pour l'instant")
+    
+    
+    # returning empty dataframe for dask model
+   # column_names = listAttribut
     return emptyDataframe
 
 
