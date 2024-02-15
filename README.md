@@ -3,15 +3,39 @@
 ## Objectifs
 
 Ce package a pour ambition de regrouper l'ensemble des fonctions utiles au traitement de la donnée au sein de l'Oeil.
-Il se découpe selon plusieurs packages :
-- generate_indicator : permet de récupérer de la donnée à partir d'une source définie (Google Earth Engine, ...)
-- ...
+Il se découpe selon plusieurs packages préfixé `oeilnc_` pour les retrouver ensemble si on liste les package d'un environnement:
+- **oeilnc_config**
+  Ce package contient la configuration globale de l'application, incluant le chargement des variables d'environnement et des paramètres de configuration nécessaires au bon fonctionnement de l'ensemble des composants.
+  - `__init__.py`: Fichier nécessaire pour faire du dossier un package Python.
+  - `settings.py`: Contient les configurations et les variables d'environnement utilisées par l'application.
+
+- **oeilnc_geoindicator**
+  Ce package est dédié à la création, au calcul, et à la manipulation des indicateurs géospatiaux. Il englobe tout ce qui est nécessaire pour traiter des données géographiques et générer des indicateurs.
+  - `__init__.py`: Fichier nécessaire pour faire du dossier un package Python.
+  - `calculation.py`: Fournit des fonctions pour calculer des indicateurs basés sur des données géospatiales.
+  - `distribution.py`: Contient des méthodes pour distribuer le calcul des indicateurs sur différents nœuds ou processus.
+  - `gee_credentials.json`: Contient les credentials pour accéder à Google Earth Engine.
+  - `gee.py`: Intègre les fonctionnalités de Google Earth Engine pour le traitement d'images satellites et la génération d'indicateurs.
+  - `geometry.py`: Offre des fonctions pour la manipulation et le traitement de données géométriques.
+  - `interpolation.py`: Fournit des méthodes pour interpoler les valeurs entre les points de données spatiales.
+  - `raster.py`: Contient des fonctions pour manipuler des données raster, y compris la lecture, l'écriture et le traitement de ces données.
+
+- **oeilnc_utils**
+  Regroupe un ensemble de fonctions utilitaires qui peuvent être utilisées à travers le projet pour des tâches communes comme la connexion à des bases de données, la manipulation de dataframes, etc.
+  - `__init__.py`: Fichier nécessaire pour faire du dossier un package Python.
+  - `connection.py`: Gère les connexions aux bases de données.
+  - `dataframe.py`: Offre des fonctions pour manipuler des dataframes, notamment pour leur nettoyage, leur transformation, et leur agrégation.
+  - `geometry.py`: Propose des outils pour la manipulation de données géométriques, souvent complémentaires à ceux dans `oeilnc_geoindicator`.
+  - `raster.py`: Fournit des outils pour la manipulation de données raster, pouvant inclure des fonctionnalités telles que le re-échantillonnage ou le calcul de statistiques sur des images raster.
 
 Les scripts spécifiques à chaque projet seront par conséquent de taille très réduite car l'ensemble des traitements utilisera ces packages.
 
-Variable d'environnement utilisées dans certaines méthodes
+Variables d'environnement utilisées dans certaines méthodes
+
 
 `"SCHEDULER_IP"` 
+
+
 
 ## Contribuer
 
