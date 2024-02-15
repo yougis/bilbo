@@ -1,5 +1,8 @@
 from sqlalchemy import create_engine
 
+
+print("Utils - Connection Imported")
+
 def getEngine(user='usr', pswd='pswd', host='host', port='port', dbase='db_traitement'):
     """
     Returns a SQLAlchemy engine object for connecting to a PostgreSQL database.
