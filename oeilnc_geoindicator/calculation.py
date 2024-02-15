@@ -6,7 +6,6 @@ from dask_geopandas import from_geopandas as ddg_from_geopandas, GeoDataFrame as
 from os import getenv
 import logging
 
-from oeilnc_geoindicator.calculation import daskSplitGeomByAnother
 from oeilnc_geoindicator.interpolation import indicateur_from_pre_interpolation, indicateur_from_interpolation
 from oeilnc_geoindicator.distribution import parallelize_DaskDataFrame_From_Intake_Source, generateIndicateur_parallel_v2, generateIndicateur_parallel
 from oeilnc_geoindicator.raster import indicateur_from_raster
