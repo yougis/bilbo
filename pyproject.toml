@@ -24,6 +24,7 @@ geemap = "*"
 rasterstats = "*"
 geopandas = "*"
 plotly = "*"
+tobler = "^0.11.2"
 
 
 
