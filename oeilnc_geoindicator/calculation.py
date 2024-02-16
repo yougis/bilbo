@@ -3,11 +3,7 @@ import logging
 import pandas as pd
 from geopandas import sjoin as gpd_sjoin
 from geopandas import GeoDataFrame
-from dask.distributed import Client
 from dask_geopandas import from_geopandas as ddg_from_geopandas, GeoDataFrame as DaskGeoDataFrame
-from os import getenv
-
-
 from oeilnc_geoindicator.interpolation import indicateur_from_pre_interpolation, indicateur_from_interpolation
 from oeilnc_geoindicator.distribution import parallelize_DaskDataFrame_From_Intake_Source, generateIndicateur_parallel_v2, generateIndicateur_parallel
 from oeilnc_geoindicator.raster import indicateur_from_raster
@@ -15,6 +11,7 @@ from oeilnc_utils.connection import getSqlWhereClauseBbox, fixOsPath, persistGDF
 
 from intake import open_catalog
 
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
 logging.info("GeoIndicator - Calculation Imported")
 

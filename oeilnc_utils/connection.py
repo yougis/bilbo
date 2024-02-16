@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, Engine
 from geopandas import GeoDataFrame
 from shapely.geometry import Polygon,MultiPolygon
 
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
 logging.info("Utils - Connection Imported")
 

@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 from dask.distributed import get_worker
 
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
 logging.info("GeoIndicator - Raster Imported")
 

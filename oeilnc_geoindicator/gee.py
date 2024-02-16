@@ -10,6 +10,10 @@ from datetime import datetime, timedelta
 import pandas as pd
 import logging
 
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
+
+logging.info("GeoIndicator - Gee Imported")
+
 _ee_crs = "EPSG:4326"
 _band_name_key = 'confRaster.bandName'
 _mask_key = 'confRaster.masque'
@@ -24,7 +28,6 @@ _scale = 'confRaster.scale'
 _temporality = 'confRaster.temporality'
 
 
-logging.info("GeoIndicator - Gee Imported")
 
 
 def initialize():

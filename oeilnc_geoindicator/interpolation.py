@@ -2,6 +2,9 @@ from tobler.area_weighted import area_interpolate, area_join
 import logging
 #from warnings import deprecated
 from oeilnc_config import settings
+
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
+
 logging.info("Utils - Interpolation Imported")
 
 #@deprecated('Methode non fonctionnelle')

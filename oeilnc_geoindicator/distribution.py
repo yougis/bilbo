@@ -10,6 +10,7 @@ from pandas import concat as pd_concat
 from oeilnc_utils import connection
 from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps
 
+logging.info("GeoIndicator - Distribution Imported")
 
 
 def parallelize_DaskDataFrame(df, func, paramsTuples, nbchuncks=20):
