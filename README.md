@@ -44,13 +44,24 @@ Variables d'environnement utilisées dans certaines méthodes
 Pour contribuer au package vous pouvez utiliser l'environnement virtuel créé par poetry.
 Pour installer poetry, il suffit de faire :
 ```powershell
-# installer d'abord pipenv
-pip install pipenv
+# installer 
+curl -sSL https://install.python-poetry.org | python3 -
 
-# création de l'environnement virtuel (depuis la racine du projet)
-python -m pipenv install
 ```
-Dans le prompt vous verrez le nom de l'environnement virtuel créé (bilbo_packages_<sha>). Vous pourrez directement l'utiliser comme Kernel Jupyter dans VSCode.
+#### Commande utiles
+
+
+```
+poetry add ${package-name}
+```
+
+```
+poetry update
+```
+
+```
+poetry lock
+```
 
 ### Conda
 
