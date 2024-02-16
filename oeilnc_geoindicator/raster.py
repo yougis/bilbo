@@ -1,5 +1,5 @@
 import logging
-from warnings import deprecated
+#from warnings import deprecated
 
 from os import getenv
 import os
@@ -378,7 +378,7 @@ def splitGeomThreader(gdf_to_split, explode_raster, spec_raster_indicateur, indi
 
     return result
 
-@deprecated("don't use")
+#@deprecated("don't use")
 def BboxIndicateur(yamlFile, typData="vecteur"):
     """
     Calculate the bounding box of the indicator based on the given YAML file.

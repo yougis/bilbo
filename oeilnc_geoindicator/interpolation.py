@@ -1,8 +1,8 @@
 from tobler.area_weighted import area_interpolate, area_join
 import logging
-from warnings import deprecated
+#from warnings import deprecated
 
-@deprecated('Methode non fonctionnelle')
+#@deprecated('Methode non fonctionnelle')
 def indicateur_from_interpolation(ddf,iterables):
     # A refaire 
     # Deprecated
