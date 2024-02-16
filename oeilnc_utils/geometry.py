@@ -6,8 +6,11 @@ from pandas import  concat as pd_concat
 from dask.dataframe import concat as dd_concat
 import numpy as np
 
+from oeilnc_config import settings
 
-print("Utils - Geometry Imported")
+import logging
+
+logging.info("Utils - Geometry Imported")
 
 
 def checkGeomType(gdf: GeoDataFrame) -> str:

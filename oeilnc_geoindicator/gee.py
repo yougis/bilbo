@@ -8,6 +8,7 @@ import ee
 import numpy as np
 from datetime import datetime, timedelta
 import pandas as pd
+import logging
 
 _ee_crs = "EPSG:4326"
 _band_name_key = 'confRaster.bandName'
@@ -22,7 +23,9 @@ _date_end = 'confRaster.date_end'
 _scale = 'confRaster.scale'
 _temporality = 'confRaster.temporality'
 
-print("gee Imported")
+
+logging.info("GeoIndicator - Gee Imported")
+
 
 def initialize():
     _credentials = ee.ServiceAccountCredentials(_service_account, os.path.dirname(__file__) + '/gee_credentials.json')

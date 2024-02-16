@@ -1,6 +1,10 @@
 from rasterio.windows import Window
-
+import logging
 import numpy as np
+from oeilnc_config import settings
+
+logging.info("Utils - Raster Imported")
+
 
 def block_shapes(src, rows, cols):
     """

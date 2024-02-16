@@ -1,9 +1,13 @@
+import os
+import logging
+from oeilnc_config import settings
+
 from sqlalchemy import create_engine, Engine
 from geopandas import GeoDataFrame
 from shapely.geometry import Polygon,MultiPolygon
-import os
 
-print("Utils - Connection Imported")
+
+logging.info("Utils - Connection Imported")
 
 def getEngine(user='usr', pswd='pswd', host='host', port='port', dbase='db_traitement') -> Engine:
     """

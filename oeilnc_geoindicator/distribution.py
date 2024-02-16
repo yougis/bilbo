@@ -12,7 +12,7 @@ from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps
 
 schedulerIp = getenv("SCHEDULER_IP")
 
-client = Client(schedulerIp)
+#client = Client(schedulerIp)
 
 
 commun_path = getenv("COMMUN_PATH")

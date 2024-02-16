@@ -1,10 +1,13 @@
+import logging
+
+
 import pandas as pd
 from geopandas import sjoin as gpd_sjoin
 from geopandas import GeoDataFrame
 from dask.distributed import Client
 from dask_geopandas import from_geopandas as ddg_from_geopandas, GeoDataFrame as DaskGeoDataFrame
 from os import getenv
-import logging
+
 
 from oeilnc_geoindicator.interpolation import indicateur_from_pre_interpolation, indicateur_from_interpolation
 from oeilnc_geoindicator.distribution import parallelize_DaskDataFrame_From_Intake_Source, generateIndicateur_parallel_v2, generateIndicateur_parallel
@@ -13,48 +16,10 @@ from oeilnc_utils.connection import getSqlWhereClauseBbox, fixOsPath, persistGDF
 
 from intake import open_catalog
 
-usr = getenv("DB_USER")
-pswd = getenv("DB_PWD")
-host = getenv("DB_HOST")
-port = getenv("DB_PORT")
 
-home = getenv("HOME_PATH")
-db_traitement = getenv("DB_WORKSPACE")
-db_ref = getenv("DB_REF")
-db_externe = getenv("DB_EXT")
-
-commun_path = getenv("COMMUN_PATH")
-project_dir = getenv("PROJECT_PATH")
-data_catalog_dir = getenv("DATA_CATALOG_DIR")
-data_output_dir = getenv("DATA_OUTPUT_DIR")
-sig_data_path = getenv("SIG_DATA_PATH")
-project_db_schema = getenv("PROJECT_DB_SCHEMA")
-
-null_variables = []
-if commun_path is None:
-    null_variables.append("commun_path")
-if project_dir is None:
-    null_variables.append("project_dir")
-if data_catalog_dir is None:
-    null_variables.append("data_catalog_dir")
-if data_output_dir is None:
-    null_variables.append("data_output_dir")
-if sig_data_path is None:
-    null_variables.append("sig_data_path")
-if project_db_schema is None:
-    null_variables.append("project_db_schema")
-
-if null_variables:
-    logging.warning("The following variables are null: {}".format(", ".join(null_variables)))
+logging.info("GeoIndicator - Calculation Imported")
 
 
-
-schedulerIp = getenv("SCHEDULER_IP")
-
-if schedulerIp is None:
-    logging.CRITICAL("La variable d'environnement SCHEDULER_IP doit être renseignée pour effectuer les traitements de manière distribuée")
-
-client=Client(schedulerIp)
 
 
 def calculateMesures(gdf, mesures):
