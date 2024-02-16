@@ -1,6 +1,5 @@
 import logging
 
-
 import pandas as pd
 from geopandas import sjoin as gpd_sjoin
 from geopandas import GeoDataFrame

@@ -3,6 +3,7 @@ from os import getenv
 import logging
 from intake import open_catalog
 import yaml
+from dask.distributed import Client
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
@@ -48,7 +49,9 @@ schedulerIp = getenv("SCHEDULER_IP")
 
 if schedulerIp is None:
     logging.critical(f"La variable d'environnement SCHEDULER_IP doit être renseignée pour effectuer les traitements de manière distribuée")
+    schedulerIp = "172.20.12.13:9786"
 
+client = Client(schedulerIp)
 
 def initializeBilboProject():
 
