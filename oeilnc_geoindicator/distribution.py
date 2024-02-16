@@ -10,6 +10,8 @@ from pandas import concat as pd_concat
 from oeilnc_utils import connection
 from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps
 
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
+
 logging.info("GeoIndicator - Distribution Imported")
 
 
