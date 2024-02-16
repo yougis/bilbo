@@ -78,6 +78,7 @@ class _GeeExtractor:
         scale_temporal = self._get_spec_value(_temporality)
 
         if scale_temporal == 'Annual' :
+            
             print("Annual Image collection")
             date_start = self._get_spec_value(_date_start)
             date_end = self._get_spec_value(_date_end)
@@ -194,7 +195,27 @@ class _GeeExtractor:
         return spec_value
 
     def _apply_mask_on_image(self, output_value: str, image: ee.Image) -> ee.Image:
-        """Applique un masque à l'image GEE à partir des spécifications."""
+        """Applique un masque à l'image GEE à partir des spécifications.
+        
+        [`output_value`] égal à 'classifie' & masque [1, 2, 3, 4, 5]: 
+
+        Si vous utilisez la fonction [`_apply_mask_on_image`] avec [`output_value`] égal à 'classifie' et un masque contenant les valeurs [1, 2, 3, 4, 5], votre raster en sortie aura des valeurs allant de 1 à 5.
+
+        En effet, la fonction va classer les pixels de l'image en fonction des plages de valeurs spécifiées dans le masque. Chaque plage de valeurs est associée à un indice, et tous les pixels dont la valeur tombe dans cette plage sont remplacés par cet indice. 
+
+        Dans votre cas, les plages de valeurs seront les suivantes :
+
+        - Les pixels avec des valeurs dans l'intervalle [1,2[ seront remplacés par 1
+        - Les pixels avec des valeurs dans l'intervalle [2,3[ seront remplacés par 2
+        - Les pixels avec des valeurs dans l'intervalle [3,4[ seront remplacés par 3
+        - Les pixels avec des valeurs dans l'intervalle [4,5[ seront remplacés par 4
+        - Les pixels avec des valeurs dans l'intervalle [5,5] (c'est-à-dire égales à 5) seront remplacés par 5
+
+        Donc, votre raster en sortie aura des valeurs allant de 1 à 5.
+        """
+
+
+
         mask_ranges = self._get_spec_value(_mask_key, raise_err_if_not_found=False)
         if mask_ranges is None:
             return image

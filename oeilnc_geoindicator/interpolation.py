@@ -1,8 +1,12 @@
 from tobler.area_weighted import area_interpolate, area_join
+import logging
+from warnings import deprecated
 
+@deprecated('Methode non fonctionnelle')
 def indicateur_from_interpolation(ddf,iterables):
     # A refaire 
     # Deprecated
+    data_to_interpolate, intensive_variables, extensive_variables = iterables
     interpolation = area_interpolate(source_df=data_to_interpolate, target_df=ddf, intensive_variables=intensive_variables, extensive_variables=extensive_variables,allocate_total=allocate_total)
 
     return interpolation
@@ -27,7 +31,7 @@ def indicateur_from_pre_interpolation(source_df, target_df, intensive_variables,
     """
     pre_interpolation = area_interpolate(source_df=source_df, target_df=target_df, intensive_variables=intensive_variables, extensive_variables=extensive_variables, allocate_total=allocate_total)
     columns = keepList + [indexRef]
-    print("join...", pre_interpolation.columns)
+    logging.info(f"Les colonnes de pré-interpolation sont : {pre_interpolation.columns}")
     pre_interpolation = area_join(target_df, pre_interpolation, columns)
     pre_interpolation.set_index(indexRef, inplace=True, drop=False)
     pre_interpolation.rename(columns={indexRef: f'{indexRef}_interpolation'}, inplace=True)
