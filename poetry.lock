@@ -619,13 +619,13 @@ files = [
 
 [[package]]
 name = "geemap"
-version = "0.30.4"
+version = "0.31.0"
 description = "A Python package for interactive mapping using Google Earth Engine and ipyleaflet"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "geemap-0.30.4-py2.py3-none-any.whl", hash = "sha256:0d2e9136376c0f5e8489e0f78bc52b8012b2d2c926619c5320ab6667f528f86e"},
-    {file = "geemap-0.30.4.tar.gz", hash = "sha256:24ec6301c85cf276120336ed7d7a7d89ce918cfdaeebec7d61fa24eb467b6186"},
+    {file = "geemap-0.31.0-py2.py3-none-any.whl", hash = "sha256:4f99631c90fe80953034cb147f19b12c9135161886fecd6cbfb36483c83835cc"},
+    {file = "geemap-0.31.0.tar.gz", hash = "sha256:d9f714b0f456af3770144ea574337ea2e463b3f16ee266882c766d70bbd334d6"},
 ]
 
 [package.dependencies]
@@ -654,7 +654,7 @@ apps = ["gradio", "solara", "streamlit-folium", "voila"]
 backends = ["keplergl", "plotly", "pydeck"]
 extra = ["datapane", "ee-extra (>=0.0.15)", "ffmpeg-python", "gdown", "geeadd (>=0.5.1)", "geojson", "geopandas", "ipynb-py-convert", "jupyterlab (>=3)", "mapclassify (>=2.4.0)", "mss", "oeel", "owslib", "palettable", "pycrs", "sankee (>=0.1.0)", "whiteboxgui (>=0.6.0)", "xee"]
 lidar = ["ipygany", "ipyvtklink", "laspy[lazrs]", "panel", "pyntcloud[las]", "pyvista", "pyvista-xarray", "rioxarray"]
-raster = ["geedim", "localtileserver", "netcdf4", "pyvista-xarray", "rio-cogeo", "rioxarray"]
+raster = ["geedim", "localtileserver (>=0.10.1)", "netcdf4", "pyvista-xarray", "rio-cogeo", "rioxarray"]
 sql = ["psycopg2", "sqlalchemy"]
 vector = ["geopandas", "osmnx"]
 workshop = ["ffmpeg-python", "gdown", "geedim", "geopandas"]
@@ -737,13 +737,13 @@ uritemplate = ">=3.0.1,<5"
 
 [[package]]
 name = "google-auth"
-version = "2.27.0"
+version = "2.28.0"
 description = "Google Authentication Library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-auth-2.27.0.tar.gz", hash = "sha256:e863a56ccc2d8efa83df7a80272601e43487fa9a728a376205c86c26aaefa821"},
-    {file = "google_auth-2.27.0-py2.py3-none-any.whl", hash = "sha256:8e4bad367015430ff253fe49d500fdc3396c1a434db5740828c728e45bcce245"},
+    {file = "google-auth-2.28.0.tar.gz", hash = "sha256:3cfc1b6e4e64797584fb53fc9bd0b7afa9b7c0dba2004fa7dcc9349e58cc3195"},
+    {file = "google_auth-2.28.0-py2.py3-none-any.whl", hash = "sha256:7634d29dcd1e101f5226a23cbc4a0c6cda6394253bf80e281d9c5c6797869c53"},
 ]
 
 [package.dependencies]
@@ -1718,13 +1718,13 @@ test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.4.3)", "pytest-
 
 [[package]]
 name = "plotly"
-version = "5.18.0"
+version = "5.19.0"
 description = "An open-source, interactive data visualization library for Python"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 files = [
-    {file = "plotly-5.18.0-py3-none-any.whl", hash = "sha256:23aa8ea2f4fb364a20d34ad38235524bd9d691bf5299e800bca608c31e8db8de"},
-    {file = "plotly-5.18.0.tar.gz", hash = "sha256:360a31e6fbb49d12b007036eb6929521343d6bee2236f8459915821baefa2cbb"},
+    {file = "plotly-5.19.0-py3-none-any.whl", hash = "sha256:906abcc5f15945765328c5d47edaa884bc99f5985fbc61e8cd4dc361f4ff8f5a"},
+    {file = "plotly-5.19.0.tar.gz", hash = "sha256:5ea91a56571292ade3e3bc9bf712eba0b95a1fb0a941375d978cc79432e055f4"},
 ]
 
 [package.dependencies]
