@@ -11,7 +11,7 @@ logging.info("Utils - Interpolation Imported")
 def indicateur_from_interpolation(ddf,iterables):
     # A refaire 
     # Deprecated
-    data_to_interpolate, intensive_variables, extensive_variables = iterables
+    data_to_interpolate, intensive_variables, extensive_variables, allocate_total = iterables
     interpolation = area_interpolate(source_df=data_to_interpolate, target_df=ddf, intensive_variables=intensive_variables, extensive_variables=extensive_variables,allocate_total=allocate_total)
 
     return interpolation

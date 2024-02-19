@@ -1443,16 +1443,6 @@ docs = ["mkdocs-jupyter", "myst-parser", "nbsphinx", "numpydoc", "pandoc", "sphi
 tests = ["black", "codecov", "coverage", "geodatasets", "geopandas", "matplotlib", "pyarrow", "pytest", "pytest-cov", "pytest-mpl", "pytest-xdist", "watermark"]
 
 [[package]]
-name = "logging"
-version = "0.4.9.6"
-description = "A logging module for Python"
-optional = false
-python-versions = "*"
-files = [
-    {file = "logging-0.4.9.6.tar.gz", hash = "sha256:26f6b50773f085042d301085bd1bf5d9f3735704db9f37c1ce6d8b85c38f2417"},
-]
-
-[[package]]
 name = "markupsafe"
 version = "2.1.5"
 description = "Safely add untrusted strings to HTML/XML markup."
@@ -2917,4 +2907,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "917a9d62e1628ac65ec93e66bf876d5f20106481781b70fb80c1fa97ee3010e2"
+content-hash = "43c5e65e207b6452c3a71778437b4dfe9465eac26326b7840b977e9a3f6c932c"

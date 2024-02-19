@@ -28,7 +28,6 @@ plotly = "*"
 tobler = "^0.11.2"
 intake = "^2.0.1"
 sqlalchemy = "^2.0.27"
-logging = "^0.4.9.6"
 
 
 
