@@ -118,7 +118,7 @@ def splitGeomByDimSpatial(gdf_to_split, by_geoms):
 
 # Dask processing
     
-def daskSplitGeomByAnother(gdf_to_split: GeoDataFrame ,iterables: tuple):
+def daskSplitGeomByAnother(gdf_to_split, iterables: tuple):
     '''
     Split a GeoDataFrame by intersecting it with another set of geometries.
 
@@ -139,7 +139,9 @@ def daskSplitGeomByAnother(gdf_to_split: GeoDataFrame ,iterables: tuple):
 
     '''
     logging.info(f"daskSplitGeomByAnother ...")
+    logging.debug(f"daskSplitGeomByAnother gdf type {type(gdf_to_split)}")
     logging.debug(f"daskSplitGeomByAnother gdf {gdf_to_split}")
+
     logging.debug(f"daskSplitGeomByAnother iterables {iterables}")
 
     by_geoms, overlayHow = iterables

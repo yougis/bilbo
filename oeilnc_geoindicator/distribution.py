@@ -11,7 +11,7 @@ from oeilnc_config import settings
 from oeilnc_utils import connection
 from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.DEBUG)
 
 logging.info("GeoIndicator - Distribution Imported")
 
@@ -71,7 +71,7 @@ def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: Catalog.entry, fu
         logging.debug("Load data in memory {df.shape}")
         logging.debug("converting to dask with chunksize {nbchuncks}")
         data = ddg_from_geopandas(df,nbchuncks)
-        logging.debug("data", data)
+        logging.debug("data {data}")
         try:
             df2 = data.map_partitions(func, iterables=paramsTuples, meta=df_meta)
         except Exception as e:

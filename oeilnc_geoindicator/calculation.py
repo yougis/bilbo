@@ -12,7 +12,7 @@ from oeilnc_utils.geometry import daskSplitGeomByAnother
 from oeilnc_config.settings import getPaths, getDbConnection, getDaskClient
 from intake import open_catalog
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.DEBUG)
 
 logging.info("GeoIndicator - Calculation Imported")
 
@@ -261,8 +261,8 @@ def generateValueBydims(data, iterables):
         DataFrame: The generated values.
 
     """
-    logging.info("DASK calculate Value By dims... ")
- 
+    logging.info(f"DASK calculate Value By dims... ")
+    logging.debug(f"DASK calculate Value By dims data type {type(data)} {data}")
     client = getDaskClient()
 
     individuSpec, indicateurSpec, dim_spatial, dim_mesure, model ,nbchuncks = iterables
@@ -283,16 +283,16 @@ def generateValueBydims(data, iterables):
     confDb = indicateurSpec.get('confDb',None)
 
     dfMeta = GeoDataFrame(columns = model)
-    logging.info("model : {model}")
-    logging.info("dfMeta.columns {dfMeta.columns}")
-    logging.info("data.columns {data.columns}")
+    logging.info(f"model : {model}")
+    logging.info(f"dfMeta.columns {dfMeta.columns}")
+    logging.info(f"data.columns {data.columns}")
     if confDims is not None:
         isin_id_spatial = confDims.get('isin_id_spatial',None)
         isin_id_mesure = confDims.get('isin_id_mesure',None)
         if isin_id_spatial is not None:
             
             if isin_id_spatial == '*':
-                logging.info("isin_id_spatial == '*' /// Compute all spatials dimension  ")
+                logging.info(f"isin_id_spatial == '*' /// Compute all spatials dimension  ")
                 pass
             else:
                 spatials = spatials[spatials.id_spatial.isin(isin_id_spatial)]            
@@ -318,17 +318,17 @@ def generateValueBydims(data, iterables):
 
             
         else:
-            logging.info("aucun id spatial n'est renseigné dans isin_id_spatial")
+            logging.info(f"aucun id spatial n'est renseigné dans isin_id_spatial")
 
     
         if isin_id_mesure is not None:
-            logging.info("mesures")
+            logging.info(f"mesures")
             mesures = mesures[mesures.id_mesure.isin(isin_id_mesure)]         
             result = daskCalculateMesures(data,(mesures,individuSpec,indicateurSpec,nbchuncks))
             result = client.persist(result)
             return result
         else:
-            logging.info("isin_id_mesure est None")
+            logging.info(f"isin_id_mesure est None")
             return data.compute()
 
     return dfMeta
@@ -344,7 +344,7 @@ def createBboxList(individuStatSpec, indicateurSpec):
     catalog = f"{data_catalog_dir}{individuStatSpec.get('catalogUri',None)}"
     dataName = individuStatSpec.get('dataName',None)
     ext_table_name = individuStatSpec.get('theme',None)
-    logging.info("dataname",dataName)
+    logging.info(f"dataname {dataName}")
 
     dataCatalog = getattr(open_catalog(catalog),dataName)
     geom = dataCatalog.describe().get('args').get('geopandas_kwargs').get('geom_col')
@@ -362,11 +362,11 @@ def createBboxList(individuStatSpec, indicateurSpec):
         sql = f'select {index} as index, ST_Envelope(ST_UNION({geom})) as geometry from {table} where "{index}" = {i} group by "index"'
         dataCatalog = getattr(open_catalog(catalog),dataName)(sql_expr=sql)
         df = dataCatalog.read().set_index("index")
-        logging.info(df.columns)
+        logging.debug(f"df.columns {df.columns}")
         xmin, ymin, xmax, ymax = df.geometry.total_bounds
         bbox = [(xmin, ymin), (xmax, ymax)]
         sqlWhereBBOX = f"{getSqlWhereClauseBbox(bbox, geom,'3163','3163')} and {index} = '{i}'"
-        logging.info("sqlWhereBBOX", sqlWhereBBOX)
+        logging.debug(f"sqlWhereBBOX {sqlWhereBBOX}")
         df["sql"] = sqlWhereBBOX    
     
     return df
