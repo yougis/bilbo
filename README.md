@@ -32,10 +32,37 @@ Les scripts spécifiques à chaque projet seront par conséquent de taille très
 
 Variables d'environnement utilisées dans certaines méthodes
 
+```bash
 
-`"SCHEDULER_IP"` 
+'SCHEDULER_IP' = "172.20.12.13:9787"
+'COMMUN_PATH' = "/media/commun/commun/"
+'ARCHIVE_PATH' = "media/archive/"
+'PATH_INFOCENTRE_APP' = ${COMMUN_PATH}Informatique/SIG/Application/Jupyterhub/
+'PROJECT_PATH' = ${PATH_INFOCENTRE_APP}projets/${PROJECT_ID}/
+'DATA_CATALOG_DIR' = ${PATH_INFOCENTRE_APP}projets/catalogFiles/ 
+'DATA_CONFIG_DIR' = ${DATA_CATALOG_DIR}data_config_files/
+'DATA_OUTPUT_DIR' = ${PROJECT_PATH}output/
+'SIG_DATA_PATH' = ${COMMUN_PATH}Informatique/SIG/Donnees/
+'STAC_CATALOG_PATH' =  ${ARCHIVE_PATH}STAC/
+'DIM_CATALOG_DIR' = ${PATH_INFOCENTRE_APP}projets/catalogFiles/
+
+```
 
 
+## Déployer
+
+
+Déployer une branche du repot git sur le scheduler : remplacer [nom_de_la_branche]
+
+`conda run --name gis311_base pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@[nom_de_la_branche]"`
+
+le déploiement se fait en mode --quiet
+pour voir ce qui se passe activer l'environnement conda 
+`conda activate gis311_base`
+
+Lancer 
+
+`pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@[nom_de_la_branche]`
 
 ## Contribuer
 
