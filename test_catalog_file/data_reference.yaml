@@ -1,0 +1,697 @@
+sources:  
+  mos_2014:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: select objectid, c_2014_n1, c_2014_n2, c_2014_n3, l_2014_n1, l_2014_n2, l_2014_n3, ST_Force2D(shape) as shape  from mos.mos2014_pn_ps_pi 
+      table: mos.mos2014_pn_ps_pi
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Mode d'occupation du sol 2014
+    driver: intake_geopandas.geopandas.PostGISSource
+  mos_formation_vegetale_2014:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: select objectid, c_2014_n1, c_2014_n2, c_2014_n3, l_2014_n1, l_2014_n2, l_2014_n3, ST_Force2D(shape) as shape from mos.mos2014_pn_ps_pi where c_2014_n2 in ('31', '32')
+      table: mos.mos2014_pn_ps_pi
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: formation vegetale du Mode d'occupation du sol 2014
+    driver: intake_geopandas.geopandas.PostGISSource
+  mos_formation_arboree_2014:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: select objectid, c_2014_n1, c_2014_n2, c_2014_n3, l_2014_n1, l_2014_n2, l_2014_n3, ST_Force2D(shape) as shape from mos.mos2014_pn_ps_pi where c_2014_n3 = 311
+      table: mos.mos2014_pn_ps_pi
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: formation arboree du Mode d'occupation du sol 2014
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  mos_arbustif_2014:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: select objectid, c_2014_n1, c_2014_n2, c_2014_n3, l_2014_n1, l_2014_n2, l_2014_n3, ST_Force2D(shape) as shape from mos.mos2014_pn_ps_pi where c_2014_n3 = 321
+      table: mos.mos2014_pn_ps_pi
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: formation arbustive du Mode d'occupation du sol 2014
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  mos_formation_herbacee_2014:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: select objectid, c_2014_n1, c_2014_n2, c_2014_n3, l_2014_n1, l_2014_n2, l_2014_n3, ST_Force2D(shape) as shape from mos.mos2014_pn_ps_pi where c_2014_n3 = 322
+      table: mos.mos2014_pn_ps_pi
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: formation herbacée du Mode d'occupation du sol 2014
+    driver: intake_geopandas.geopandas.PostGISSource
+    
+  bdagglo:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select objectid, type, bati_cmpt, bati_surf, ST_Force2D(st_curvetoline(shape)) as geometry from bdagglonc."agglo_zone_s"
+      table: bdagglonc."agglo_zone_s"
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Agglomeration
+    driver: intake_geopandas.geopandas.PostGISSource
+    
+  geol_50:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: select code, legende, shape from bdgeol."surfacegeologique_50000_vbeta" 
+      #sql_expr: select code, legende, ST_Envelope(shape) as shape from bdgeol."surfacegeologique_50000_vbeta"
+
+      table: bdgeol.surfacegeologique_50000_vbeta
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: ''
+    driver: intake_geopandas.geopandas.PostGISSource
+  pentes_4_cl:
+    args:
+      urlpath: '/Informatique/SIG/Donnees/Oeil/Traitement_Donnees/EROSION/pente_classification_geol.tif'
+    description: "4 classes de pente réalisée à partir du MNT 10 metres du gouvernement" 
+    driver: rasterio
+        
+  PluvioAnnuelRaster:
+    args:
+      urlpath: '{{env("SIG_DATA_PATH")}}Collectivite/Gouv/DAVAR/PluviometrieEstimee/PA_estimee.tif'
+    description: "Pluviometrie gouvernement" 
+    driver: rasterio
+
+  PluvioAnnuelClassifyRaster:
+    args:
+      urlpath: '{{env("SIG_DATA_PATH")}}Collectivite/Gouv/DAVAR/PluviometrieEstimee/PA_estimee_reclass.tif'
+    description: "Pluviometrie gouvernement en 14 classes" 
+    driver: rasterio
+
+  PluvioAnnuelEstime:
+    args:
+      geopandas_kwargs:
+        geom_col: geom
+        crs: 3163
+      sql_expr: select id, geom, gridcode from pression_eau."pa_estime_classification"
+      table: pression_eau."pa_estime_classification"
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_WORKSPACE")}}
+    description: "Pluviometrie gouvernement" 
+    driver: intake_geopandas.geopandas.PostGISSource
+  aires_protegees_provinciales:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.vue_aires_protegees_provinciales
+      table: bdenvironnement.vue_aires_protegees_provinciales
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: aires protegees provinciales
+    driver: intake_geopandas.geopandas.PostGISSource
+  ISEE:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select dis19, hab, shape, maison, appart rprin, rsec , ST_Force2D(shape) as geometry from isee."districts_rp_2019"
+      table: isee."districts_rp_2019"
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: isee
+    driver: intake_geopandas.geopandas.PostGISSource
+  perimetre_incendie:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select cid, ids_in_cluster, source_in_cluster, begining, ending, row_count, cluster_geom as geometry from pression_eau.incendie_fusion
+      table: pression_eau.incendie_fusion
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_WORKSPACE")}}
+    description: perimetre incendie
+    driver: intake_geopandas.geopandas.PostGISSource
+  VIIRS:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_WORKSPACE")}}
+      sql_expr: select  debut, source,  shape  from feux.INCENDIE where source = 'VIIRS S-NPP' or source = 'VIIRS NOAA-20'
+      table : feux.INCENDIE
+    description: alerte incendie
+    driver: intake_geopandas.geopandas.PostGISSource
+  VIIRS_MSSQL:
+    args:
+      uri: mssql://{{env("DB_USER_VULCAIN")}}:{{env("DB_PWD_VULCAIN")}}@{{env("DB_HOST_VULCAIN")}}:{{env("DB_PORT_VULCAIN")}}/{{env("DB_VULCAIN_PROD")}}
+      sql_expr: select * from dbo."INCENDIE"
+    description: alerte incendie 
+    driver: intake_odbc.intake_odbc.ODBCSource
+
+  POINT_CHAUD_VIIRS_SNPP:
+    args:
+      uri: mssql://{{env("DB_USER_VULCAIN")}}:{{env("DB_PWD_VULCAIN")}}@{{env("DB_HOST_VULCAIN")}}:{{env("DB_PORT_VULCAIN")}}/{{env("DB_VULCAIN_PROD")}}
+      sql_expr: select * from dbo."POINT_CHAUD_VIIRS_SNPP"
+    description: point chaud VIIRS SUOMI NPP alerte incendie 
+    driver: intake_odbc.intake_odbc.ODBCSource
+  POINT_CHAUD_VIIRS_NOAA20:
+    args:
+      uri: mssql://{{env("DB_USER_VULCAIN")}}:{{env("DB_PWD_VULCAIN")}}@{{env("DB_HOST_VULCAIN")}}:{{env("DB_PORT_VULCAIN")}}/{{env("DB_VULCAIN_PROD")}}
+      sql_expr: select * from dbo."POINT_CHAUD_VIIRS_NOAA20"
+    description: point chaud VIIRS NOAA20 alerte incendie 
+    driver: intake_odbc.intake_odbc.ODBCSource
+  POINT_CHAUD_MODIS:
+    args:
+      uri: mssql://{{env("DB_USER_VULCAIN")}}:{{env("DB_PWD_VULCAIN")}}@{{env("DB_HOST_VULCAIN")}}:{{env("DB_PORT_VULCAIN")}}/{{env("DB_VULCAIN_PROD")}}
+      sql_expr: select * from dbo."POINT_CHAUD_MODIS"
+    description: point chaud MODIS alerte incendie 
+    driver: intake_odbc.intake_odbc.ODBCSource  
+
+  erosion_2018:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_WORKSPACE")}}
+      sql_expr: select id, code_n3, libele_n3 ,wkb_geometry as geometry from erosion."2019_niv3_insight" where "code_n2" > '4' order by id
+     # sql_expr: select id, code_n3, libele_n3 ,  ST_Envelope(wkb_geometry) as wkb_geometry from erosion."2019_niv3_insight" where "code_n2" > '4' order by id 
+      table : erosion."2019_niv3_insight"
+    description: données erosion spot 5 2018
+    driver: intake_geopandas.geopandas.PostGISSource
+  exploitation_miniere:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select massif_minier, site_minier, titulaire, tacheron, type_autorisation, num_arrete, date_arrete,num_arre_autorisation_2, date_arr_autorisation_2, duree, titulaire_acronyme,ST_Force2D(st_curvetoline(geom)) as geometry from industrie_mine.exploitation_miniere
+      table: industrie_mine.exploitation_miniere
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: exploitation_miniere
+    driver: intake_geopandas.geopandas.PostGISSource
+  carriere_autorisees:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select exploitant, site, volume_max, arrete_aut, date_autor, fin_autori, ST_Force2D(st_curvetoline(geom)) as geometry from industrie_mine."carrieres_autorisees"
+      table: industrie_mine."carriere_autorisees"
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: carriere_autorisees
+    driver: intake_geopandas.geopandas.PostGISSource
+  icpe:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select id_icpe, classement, activite_principale, ST_Force2D(st_curvetoline(geom)) as geometry from industrie_mine.icpe
+      table: industrie_mine.icpe
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: ICPE
+    driver: intake_geopandas.geopandas.PostGISSource
+  atya_sde:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select ORE_ATYA, IDENTIFICATION,TYPE,NATURE, AEP,DATE_DEBUT,DATE_FIN,NB_PRELEVEMENTS,geom as geometry from davar."DONNEES_SDE_202111 Metadonnees_ATYA"
+      table: davar."DONNEES_SDE_202111 Metadonnees_ATYA"
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: prelevement atya
+    driver: intake_geopandas.geopandas.PostGISSource
+  zones_minieres_interdites:
+    args:
+      geopandas_kwargs:
+        geom_col: geom
+        crs: 3163
+      sql_expr: select * from bdenvironnement.zones_minieres_interdites
+      table: bdenvironnement.zones_minieres_interdites
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: zones labelisées
+    driver: intake_geopandas.geopandas.PostGISSource
+  perimetre_alerte_especes_menacees:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select cid, array_agg, ids_in_cluster, row_count, cluster_geom as geometry from bdenvironnement.perimetre_espece_menacees_fusion
+      table: bdenvironnement.perimetre_espece_menacees_fusion
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: perimetre_alerte_especes_menacees
+    driver: intake_geopandas.geopandas.PostGISSource
+  perimetre_especes_endemia:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select ogc_fid, geometry, idoccurenc, regne, nomtaxon, categoriee,  province, commune, anneeobser, moisobserv, jourobserv, surface_ha, date_maj from bdenvironnement.vue_especes_menacees_endemia_geometrie
+      table: bdenvironnement.vue_especes_menacees_endemia_geometrie
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Perimetres des alertes sur les especes menacees sans doublon mais non fusionne et filtre sur les enregistrements avec geometries
+    driver: intake_geopandas.geopandas.PostGISSource
+  kba:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.kba
+      table: bdenvironnement.kba
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: kba
+    driver: intake_geopandas.geopandas.PostGISSource
+  zico:
+    args:
+      geopandas_kwargs:
+        geom_col: geom
+        crs: 3163
+      sql_expr: select * from bdenvironnement.zico
+      table: bdenvironnement.zico
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: zico
+    driver: intake_geopandas.geopandas.PostGISSource
+  zones_vigilance_forets_seches:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.vue_zones_vigilance_forets_seches
+      table: bdenvironnement.vue_zones_vigilance_forets_seches
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: vue_zones_vigilance_forets_seches
+    driver: intake_geopandas.geopandas.PostGISSource
+    
+  mangrove:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.mangrove
+      table: bdenvironnement.mangrove
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: mangrove
+    driver: intake_geopandas.geopandas.PostGISSource
+    
+  microendemisme:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.zone_fort_microendemisme_vegetal
+      table: bdenvironnement.zone_fort_microendemisme_vegetal
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: zone_fort_microendemisme_vegetal
+    driver: intake_geopandas.geopandas.PostGISSource
+  
+  corridor_moyenne_distance_fs:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.corridor_moyenne_distance_foret_seche
+      table : bdenvironnement.corridor_moyenne_distance_foret_seche
+    description: source de données georep corridor_moyenne_distance_foret_seche
+    driver: intake_geopandas.geopandas.PostGISSource
+          
+  corridor_courte_distance_fs:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.corridor_courte_distance_foret_seche
+      table : bdenvironnement.corridor_courte_distance_foret_seche
+    description: source de données georep corridor_courte_distance_foret_s
+    driver: intake_geopandas.geopandas.PostGISSource
+          
+  vulnerabilite_foret_seche:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.vulnerabilite_foret_seche
+      table : bdenvironnement.vulnerabilite_foret_seche
+    description: source de données georep vulnerabilite_foret_seche
+    driver: intake_geopandas.geopandas.PostGISSource
+          
+  recifs:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.recifs where rb_depth_c = '6' or  rb_depth_c = '7'
+      table : bdenvironnement.recifs
+    description: source de données georep recifs
+    driver: intake_geopandas.geopandas.PostGISSource
+          
+  observation_nidification:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.observation_nidification
+      table : bdenvironnement.observation_nidification
+    description: source de données SCO observation_nidification
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  herbier:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.vue_herbier
+      table : bdenvironnement.vue_herbier
+    description: source de données herbier ADECAL
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  forets_province_nord:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.forets_province_nord
+      table : bdenvironnement.forets_province_nord
+    description: Cartographie des forêts de la Province Nord
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  unesco_zones_terrestres:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.unesco_tampons_terre_nc
+      table : bdenvironnement.unesco_tampons_terre_nc
+    description: Zones tampons terrestres des zones inscrites au patrimoine de l'UNESCO
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  unesco_zones_marines:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.unesco_tampons_marines_nc
+      table : bdenvironnement.unesco_tampons_marines_nc
+    description: Zones tampons marines des zones inscrites au patrimoine de l'UNESCO
+    driver: intake_geopandas.geopandas.PostGISSource
+    
+  unesco_zones_inscrites:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.unesco_zones_inscrites_nc
+      table : bdenvironnement.unesco_zones_inscrites_nc
+    description: Zones inscrites au patrimoine de l'UNESCO
+    driver: intake_geopandas.geopandas.PostGISSource
+    
+  unesco_emprises:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.unesco_emprises_nc
+      table : bdenvironnement.unesco_emprises_nc
+    description: Emprises globales des zones inscrites au patrimoine de l'UNESCO
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  ramsar:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.perimetre_ramsar
+      table : bdenvironnement.unesco_emprises_nc
+    description: Emprises globales des zones inscrites au patrimoine de lUNESCO
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  substrat_geol_50:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdgeol.vue_surfacegeologique_50000_substrats
+      table: bdgeol.vue_surfacegeologique_50000_substrats
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Surface geologique avec l'information sur les grands types de substrats
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  foudre_meteo_tampon400m:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdmeteo.vue_impacts_foudre_tampon400m
+      table: bdmeteo.vue_impacts_foudre_tampon400m
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: ''
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  milieux_naturels_province_sud:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.milieux_naturels_province_sud
+      table: bdenvironnement.milieux_naturels_province_sud
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: 'Cartographie des milieux naturels de la Province Sud'
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  milieu_nat_essentiel_psud:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.milieux_naturels_province_sud where typologie = 3
+      table: bdenvironnement.milieux_naturels_province_sud
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: 'Cartographie des milieux naturels de la Province Sud'
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  milieu_nat_important_psud:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.milieux_naturels_province_sud where typologie = 2
+      table: bdenvironnement.milieux_naturels_province_sud
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: 'Cartographie des milieux naturels de la Province Sud'
+    driver: intake_geopandas.geopandas.PostGISSource     
+
+  especes_sensibles_province_sud:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.vue_especes_sensibles_psud
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: 'Vue sur les especes sensibles de la Province Sud'
+    driver: intake_geopandas.geopandas.PostGISSource     
+
+  bv_producteurs_eau_potable:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from davar.bassins_versants_producteurs_eau_potable
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: 'Bassins versants producteurs d''eau potable fournis par la DAVAR remis à l''OEIL en 2018'
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  perimetres_protection_eau:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from pression_eau.vue_pp_list_geom
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_WORKSPACE")}}
+    description: 'Perimetre de protection des eaux'
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  perimetres_protection_eau_fusion:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from pression_eau.pp_fusion
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_WORKSPACE")}}
+    description: 'Perimetre de protection des eaux fusionnes'
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  surfaces_agricoles:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from mos.vue_agriculture
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: 'Surfaces agricoles issues du MOS 2014 et de la BD AGRIBASE Province Sud'
+    driver: intake_geopandas.geopandas.PostGISSource
+ 
+  foncier:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdfoncier.type_foncier
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: 'Répartition des grandes classes foncières en Nouvelle-Calédonie'
+    driver: intake_geopandas.geopandas.PostGISSource
+    
+  recifs_reels:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+      sql_expr: select * from bdenvironnement.recifs where reef = 1
+      table : bdenvironnement.recifs
+    description: source de données georep recifs
+    driver: intake_geopandas.geopandas.PostGISSource
+ 
+  observation_nidification_tortue_grosse_tete:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.observation_nidification_tortue_grosse_tete
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: 'Localisation des observations de nidification des tortues à grosse tête'
+    driver: intake_geopandas.geopandas.PostGISSource
+ 
+  observation_nidification_tortue_verte:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.observation_nidification_tortue_verte
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: 'Localisation des observations de nidification des tortues vertes'
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  mangrove_carnama:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.mangrove_carnama
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: 'Mangrove issue du projet CARNAMA pour le compte de l''IFRECOR en 2020'
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  aires_protegees_prov_terre:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.vue_aires_protegees_provinciales where milieu = 'Terrestre'
+      table: bdenvironnement.vue_aires_protegees_provinciales
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: aires protegees provinciales
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  aires_protegees_prov_mer:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.vue_aires_protegees_provinciales where milieu = 'Marine'
+      table: bdenvironnement.vue_aires_protegees_provinciales
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: aires protegees provinciales
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  foret_seche_prioritaire:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.foret_seche_prioritaire
+      table: bdenvironnement.foret_seche_prioritaire
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Foret seche prioritaire - donnees non diffusables
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  luminance_nc_2021_vecteur:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_WORKSPACE")}}
+      sql_expr: select * from pollution_lumineuse.luminance_2021_reclassify_reproj
+      table : pollution_lumineuse.luminance_2021_reclassify_reproj
+    description: Luminance 2021 reprojetée en RGNC 1991-1993 NC, reclassifiée et vectorisée
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  unesco:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select * from bdenvironnement.vue_unesco
+      table: bdenvironnement.vue_unesco
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Zones unesco avec zones inscrites et les zones tampons mer et terre
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  mos_formation_vegetale_2008:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: select objectid, gridcode, classe,  ST_Force2D(shape) as shape from mos.mos2008_pn_ps_pi where gridcode in (14, 13, 4, 5, 12, 8, 7, 11, 10, 9)
+      table: mos.mos2008_pn_ps_pi
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: formation vegetale du Mode d'occupation du sol 2008
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  mos_2008:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: select objectid, gridcode, classe,  ST_Force2D(shape) as shape from mos.mos2008_pn_ps_pi
+      table: mos.mos2008_pn_ps_pi
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Mode d'occupation du sol 2008
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  voierie:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select objectid, type, type_acq, date_acq, gestion, num_route, nom_usuel, class_fonc, select_50m, globalid, ST_Force2D(st_curvetoline(shape)) as geometry from bdtoponc.voi_voirie_l
+      table: bdtoponc.voi_voirie_l
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Voierie de la BD TOPO DITTT
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  construction_s_bdtopo:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select objectid, type, type_acq, date_acq, categorie, nature, libelle, libel_abr, globalid, ST_Force2D(st_curvetoline(shape)) as geometry from bdtoponc.edi_construction_s
+      table: bdtoponc.edi_construction_s
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Bati de la BD TOPO DITTT
+    driver: intake_geopandas.geopandas.PostGISSource
+
+
+
+
+
+         

@@ -8,7 +8,8 @@ from oeilnc_geoindicator.interpolation import indicateur_from_pre_interpolation,
 from oeilnc_geoindicator.distribution import parallelize_DaskDataFrame_From_Intake_Source, generateIndicateur_parallel_v2, generateIndicateur_parallel
 from oeilnc_geoindicator.raster import indicateur_from_raster
 from oeilnc_utils.connection import getSqlWhereClauseBbox, fixOsPath, persistGDF, AjoutClePrimaire
-
+from oeilnc_utils.geometry import daskSplitGeomByAnother
+from oeilnc_config.settings import getPaths, getDbConnection, getDaskClient
 from intake import open_catalog
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
@@ -17,6 +18,8 @@ logging.info("GeoIndicator - Calculation Imported")
 
 
 
+# on doit initialiser le projet pour disposer des variables globales utilisées dans les méthodes
+# settings.initializeBilboProject(dotenvPath)
 
 def calculateMesures(gdf, mesures):
     """
@@ -201,6 +204,7 @@ def daskCalculateMesures(ddf, iterables):
     Returns:
         Dask DataFrame: The calculated Dask DataFrame.
     '''
+    client = getDaskClient()
     mesures, individuSpec, indicateurSpec, nbchuncks = iterables
     indexRef = individuSpec.get('indexRef', None)
     print("daskCalculateMesures")
@@ -257,9 +261,10 @@ def generateValueBydims(data, iterables):
         DataFrame: The generated values.
 
     """
-    print("DASK calculate Value By dims... ")
+    logging.info("DASK calculate Value By dims... ")
  
-  
+    client = getDaskClient()
+
     individuSpec, indicateurSpec, dim_spatial, dim_mesure, model ,nbchuncks = iterables
     #print("data", data.columns, data.shape)
     spatials = dim_spatial.read()
@@ -278,16 +283,16 @@ def generateValueBydims(data, iterables):
     confDb = indicateurSpec.get('confDb',None)
 
     dfMeta = GeoDataFrame(columns = model)
-    print("model",model)
-    print("dfMeta.columns",dfMeta.columns)
-    print("data.columns",data.columns)
+    logging.info("model",model)
+    logging.info("dfMeta.columns",dfMeta.columns)
+    logging.info("data.columns",data.columns)
     if confDims is not None:
         isin_id_spatial = confDims.get('isin_id_spatial',None)
         isin_id_mesure = confDims.get('isin_id_mesure',None)
         if isin_id_spatial is not None:
             
             if isin_id_spatial == '*':
-                print("isin_id_spatial == '*' /// Compute all spatials dimension  ")
+                logging.info("isin_id_spatial == '*' /// Compute all spatials dimension  ")
                 pass
             else:
                 spatials = spatials[spatials.id_spatial.isin(isin_id_spatial)]            
@@ -313,30 +318,33 @@ def generateValueBydims(data, iterables):
 
             
         else:
-            print("aucun id spatial n'est renseigné dans isin_id_spatial")
+            logging.info("aucun id spatial n'est renseigné dans isin_id_spatial")
 
     
         if isin_id_mesure is not None:
-            print("mesures")
+            logging.info("mesures")
             mesures = mesures[mesures.id_mesure.isin(isin_id_mesure)]         
             result = daskCalculateMesures(data,(mesures,individuSpec,indicateurSpec,nbchuncks))
             result = client.persist(result)
             return result
         else:
-            print("passage ici data.compute()")
+            logging.info("isin_id_mesure est None")
             return data.compute()
 
     return dfMeta
 
 
 def createBboxList(individuStatSpec, indicateurSpec):
+
+    data_catalog_dir = getPaths().get('data_catalog_dir')
+
     index = individuStatSpec.get('indexRef',None)
     confDb =  indicateurSpec.get('confDb',None)
     #catalog = f"{data_catalog_dir}indicateurs_nc.yaml"
     catalog = f"{data_catalog_dir}{individuStatSpec.get('catalogUri',None)}"
     dataName = individuStatSpec.get('dataName',None)
     ext_table_name = individuStatSpec.get('theme',None)
-    print("dataname",dataName)
+    logging.info("dataname",dataName)
 
     dataCatalog = getattr(open_catalog(catalog),dataName)
     geom = dataCatalog.describe().get('args').get('geopandas_kwargs').get('geom_col')
@@ -354,11 +362,11 @@ def createBboxList(individuStatSpec, indicateurSpec):
         sql = f'select {index} as index, ST_Envelope(ST_UNION({geom})) as geometry from {table} where "{index}" = {i} group by "index"'
         dataCatalog = getattr(open_catalog(catalog),dataName)(sql_expr=sql)
         df = dataCatalog.read().set_index("index")
-        print(df.columns)
+        logging.info(df.columns)
         xmin, ymin, xmax, ymax = df.geometry.total_bounds
         bbox = [(xmin, ymin), (xmax, ymax)]
         sqlWhereBBOX = f"{getSqlWhereClauseBbox(bbox, geom,'3163','3163')} and {index} = '{i}'"
-        print("sqlWhereBBOX", sqlWhereBBOX)
+        logging.info("sqlWhereBBOX", sqlWhereBBOX)
         df["sql"] = sqlWhereBBOX    
     
     return df
@@ -387,7 +395,21 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
     # Step 1 (facultatif si la donnée indicateur est déjà créée) : créer la données indicateur. Croisement donnée individu source/indicateur
     # Step 2 (facultatif l'étape 1 est faite) : appliquer les dimensions spatiales et mesures.
     # Step 3 (facultatif) : persister les données en base Postgis.
-    
+    client = getDaskClient()
+    logging.info(f"Dask client : {client}")
+
+    paths = getPaths()
+
+
+    data_catalog_dir = paths.get('data_catalog_dir')
+    commun_path  = paths.get('commun_path')
+    user = getDbConnection().get('user')
+    pswd = getDbConnection().get('pswd')
+    host  = getDbConnection().get('host')
+    db_traitement = getDbConnection().get('db_traitement')
+
+
+
     indexRef = individuStatSpec.get('indexRef',None)
     nbchuncks = individuStatSpec.get('nbchuncks',None)
     keepList = individuStatSpec.get('keepList',[]) + indicateurSpec.get('keepList',[])
@@ -411,7 +433,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
     dim_spatial,dim_mesure = dims
     
     if 1 not in stepList:
-        print("create_indicator: Pas d'etape 1")
+        logging.info("create_indicator: Pas d'etape 1")
         #print(f"{data_catalog_dir}indicateurs_nc.yaml")
         catalog = f"{data_catalog_dir}indicateurs_nc.yaml"
         dataName = f"{tableName}_{ext_table_name}"
@@ -437,7 +459,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             pass
 
         else:
-            print("create_indicator: Pas d'etape 1 et pas de bbox")
+            logging.info("create_indicator: Pas d'etape 1 et pas de bbox")
             #print("data",data)
             indicateur = data.read()
             
@@ -456,7 +478,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
         
     else:
         # spec data
-        print("create_indicator: Etape 1")
+        logging.info("create_indicator: Etape 1")
         catalog = f"{data_catalog_dir}{individuStatSpec.get('catalogUri',None)}"
         catalogInd = f"{data_catalog_dir}{indicateurSpec.get('catalogUri',None)}"
         dataName = individuStatSpec.get('dataName',None)
@@ -470,7 +492,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
         schema = confDb.get('schema',None)
 
         if bbox is not None:
-            print("create_indicator: Etape 1 avec bbox")
+            logging.info("create_indicator: Etape 1 avec bbox")
             #bbox ,  index = bbox
             xmin, ymin, xmax, ymax = bbox
             bbox = [(xmin, ymin), (xmax, ymax)]
@@ -483,7 +505,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             data = entryCatalog(sql_expr=sql)
             
         else:
-            print("create_indicator: Etape 1 sans bbox")
+            logging.info("create_indicator: Etape 1 sans bbox")
             if selectString is not None or offset:
                 if whereString is not None:
                     sql = f'{selectString} where {whereString}'
@@ -495,7 +517,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                 data = entryCatalog()
         ###Ajout JFNGVS 24/02/2023 traitement simplement par point
         if sourceType == 'Point':
-            print("create_indicator: Etape 1: indicateur = 'Point'")
+            logging.info("create_indicator: Etape 1: indicateur = 'Point'")
             dataName = indicateurSpec.get('dataName',None)
             data_indicateur = getattr(open_catalog(catalogInd),dataName)
             data =  data_indicateur.read()
@@ -509,10 +531,10 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             
         else:
             if indicateurSpec.get('catalogUri') and indicateurSpec.get('dataName') is not None:
-                print("create_indicator: Etape 1 --> indicateurSpec.get('catalogUri') and indicateurSpec.get('dataName') is not None")
+                logging.info("create_indicator: Etape 1 --> indicateurSpec.get('catalogUri') and indicateurSpec.get('dataName') is not None")
                 metaModelList =  [indexRef] + keepList + ['geometry','id_split']
                 
-                print("create_indicator: Etape 1 --> sourceType",sourceType)
+                logging.info(f"create_indicator: Etape 1 --> sourceType : {sourceType}")
                 if sourceTypeInd == "Interpolation":
                 
                     confInterpolation = indicateurSpec.get('confInterpolation',None)
@@ -572,33 +594,32 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                         pass
                         
                 elif sourceTypeInd == "Raster":
-                    print("Raster keepList",keepList)
-                    print("Raster metaModelList",metaModelList)            
+                    logging.info(f"Raster keepList {keepList}")
+                    logging.info(f"Raster metaModelList {metaModelList}")            
                     indicateur = parallelize_DaskDataFrame_From_Intake_Source(
                         data,indicateur_from_raster,
                         (indicateurSpec,individuStatSpec,epsg,metaModelList),
                         (tableName,ext_table_name),
                         metaModelList,
                         nbchuncks=nbchuncks)
-                    print("indicateur ici", indicateur)                      
                     if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame))  :
-                        print('indicateur Raster done. Indexing.....')
-                        print("indicateur_generateIndicateur_Parallel", indicateur)
+                        logging.info('indicateur Raster done. Indexing.....')
+                        logging.info(f"indicateur_generateIndicateur_Parallel {indicateur}")
                     else:
                         stepList = []
-                        print("No data to process")
+                        logging.info("No data to process")
                         pass
                 
                 else:
-                    print("source Type OTHER : ex . VECTOR ")
+                    logging.info("source Type OTHER : ex . VECTOR ")
                     catalog = f"{data_catalog_dir}{indicateurSpec.get('catalogUri',None)}"
                     dataName = indicateurSpec.get('dataName',None)
                     data_indicateur = getattr(open_catalog(catalog),dataName)
                     data_indicator_geom = data_indicateur.describe().get('args').get('geopandas_kwargs').get('geom_col')
                     if not indicateur_sql_flow:
-                        print('Loading indicateur dataset ...')
+                        logging.info('Loading indicateur dataset ...')
                         data_indicateur = data_indicateur.read()
-                        print(data_indicateur.shape[0], 'entities',)
+                        logging.info(f"{data_indicateur.shape[0]} entitées")
 
                     if sourceTypeInd == "Point":
                         metaModelList =  [indexRef] + keepList + ['geometry','id_split'] + ['nb']
@@ -611,10 +632,10 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                             nbchuncks=nbchuncks
                         )
                     else :
-                        print('calculation ...')
+                        logging.info('Calculation ...')
                         try:
                             if daskComputation:
-                                print('with Dask', 'metaModelList', metaModelList)
+                                logging.info(f"with Dask - metaModelList : ' {metaModelList}")
                                 indicateur = parallelize_DaskDataFrame_From_Intake_Source(
                                     data,
                                     generateIndicateur_parallel_v2,
@@ -630,23 +651,23 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                                 pass
                             else:
                                 stepList = []
-                                print("No data to process")
+                                logging.info("No data to process")
                                 pass
                         except Exception as e:
-                            print("calculation error:", e)
+                            logging.info(f"calculation error: {e}")
                 
                 
             else:
                 # l'indicateur est la donnée individu source directement
                 indicateur = data.read()
-                print("indicateur au niveau 1",indicateur)
+                logging.info(f"indicateur au niveau 1  {indicateur}")
                 if indicateur :
                     #indicateur.rename_geometry('geometry', inplace=True)
                     indicateur['id_split'] = indicateur[indexRef]
                 else:
                     stepList = []
                         
-                    print("No data to process")
+                    logging.info("No data to process")
                     pass
     
     
@@ -654,10 +675,10 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
     if 2 not in stepList:
         pass
     else:
-        print("create_indicator: Etape 2")
-        print("indexListIndicator",indexListIndicator)
+        logging.info("create_indicator: Etape 2")
+        logging.info(f"indexListIndicator {indexListIndicator}")
         if indexListIndicator:
-            print("create_indicator: Etape 2 --> indexListIndicator")
+            logging.info("create_indicator: Etape 2 --> indexListIndicator")
             for indexIndicator in indexListIndicator :
 
                 #print("indexRef",indexRef," indexIndicator",indexIndicator)
@@ -679,8 +700,8 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                 keepList =  [c for c in keepList if c not in [indexRef,'id_split','id_spatial','level','upper_libelle','geometry']]
                 #print("keepList",keepList)
                 metaModelList =  [indexRef] + keepList +  ['id_split','id_spatial','level','upper_libelle','geometry']
-                print("Etape 2: metaModelList",metaModelList)
-                print("Warning ajouter +['id_split','geometry'] si indicateur a ces champs...")
+                logging.info(f"Etape 2: metaModelList {metaModelList}")
+                logging.info(f"Warning ajouter +['id_split','geometry'] si indicateur a ces champs...")
                 indicateur = chunk_dataframe[[indexRef] + keepList]
                 indicateurDask = ddg_from_geopandas(indicateur,nbchuncks)
                 indicateurDask = generateValueBydims(indicateurDask,(individuStatSpec,indicateurSpec,dim_spatial,dim_mesure, metaModelList, nbchuncks))
@@ -690,14 +711,14 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                 if 3 in stepList:
                     stepList.remove(3)
         else:
-            print("create_indicator: Etape 2 --> pas de indexListIndicator")
+            logging.info("create_indicator: Etape 2 --> pas de indexListIndicator")
             #indicateur = client.submit(spatial_partitions, indicateur)
             fromIntake = True
             # spec indicateur
-            print("indicateurSpec", indicateurSpec)
+            logging.info(f"indicateurSpec {indicateurSpec}")
             confRatio = indicateurSpec.get('confRatio',None)
             metaModelList =  [indexRef] + keepList +  ['id_split','id_spatial','level','upper_libelle','geometry']
-            print("create_indicator: Etape 2 --> metaModelList", metaModelList)
+            logging.info("create_indicator: Etape 2 --> metaModelList {metaModelList}")
             try:
                 indicateur = generateValueBydims(indicateur,(individuStatSpec,indicateurSpec,dim_spatial,dim_mesure, metaModelList, nbchuncks))
             #client.submit(distributed_to_parquet,indicateur,(fileName,dim_spatial))
@@ -705,14 +726,14 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                 indicateur = client.persist(indicateur)
             
             except Exception as e:
-                print("generateValueBydims error:", e)      
+                logging.info(f"generateValueBydims error: {e}")      
 
     if 3 not in stepList:
         return True
         pass
     else:
-        print("create_indicator: Etape 3 --> persisting in database")
-        print("create_indicator: Etape 3 --> persisting in database: confDb ... ",confDb)
+        logging.info(f"create_indicator: Etape 3 --> persisting in database")
+        logging.info(f"create_indicator: Etape 3 --> persisting in database: confDb {confDb}")
         try:
             
             #indicateur = client.gather(client.compute(indicateur))
@@ -720,8 +741,8 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg)).result()
             #Ajout JFNGVS 09/02/2023
             ext_table_name = individuStatSpec.get('dataName',None)
-            AjoutClePrimaire(schema,usr,pswd, host, db_traitement, f"{tableName}_{ext_table_name}")
+            AjoutClePrimaire(schema,user,pswd, host, db_traitement, f"{tableName}_{ext_table_name}")
             return f"{tableName}_{ext_table_name}"
         except Exception as e:
-            print("persistGDF error:", e)
+            logging.info("persistGDF error:", e)
             return 0

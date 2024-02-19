@@ -1,2 +1,2 @@
 # geoindicatorproject/db/__init__.py
-from .connection import getEngine
+from .  import connection, catalog, dataframe, geometry, raster

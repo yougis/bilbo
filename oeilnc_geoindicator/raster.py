@@ -16,6 +16,8 @@ from shapely.geometry import shape
 from oeilnc_utils.raster import block_shapes, changeTypeMaskArrayToUint8, changeTypeMaskArrayToUint16
 from oeilnc_utils.connection import fixOsPath, fixpath
 from oeilnc_utils.geometry import checkGeomType, splitGeomByAnother
+from oeilnc_config.settings import getPaths, getDbConnection, getDaskClient
+
 from oeilnc_geoindicator import gee
 import numpy as np
 import pandas as pd
@@ -60,20 +62,20 @@ def getStatMultiThread(gdf,width=512, height=512,raster="full_masked.tif"):
     return geoprocess
 
 
-def createRasterMasked(rasterDataset, features, identifiant):
+# def createRasterMasked(rasterDataset, features, identifiant):
 
-    # Deprecated
-    out_img, out_transform = rasterio.mask(data, shapes=getFeatures(features), crop=True,filled=False)
-    out_meta = data.meta.copy()
-    out_meta.update({"driver": "GTiff",
-                     "height": out_img.shape[1],
-                     "width": out_img.shape[2],
-                     "transform": out_transform,
-                     "nodata":0,
-                     "dtype": rasterio.ubyte})
+#     # Deprecated
+#     out_img, out_transform = rasterio.mask(data, shapes=getFeatures(features), crop=True,filled=False)
+#     out_meta = data.meta.copy()
+#     out_meta.update({"driver": "GTiff",
+#                      "height": out_img.shape[1],
+#                      "width": out_img.shape[2],
+#                      "transform": out_transform,
+#                      "nodata":0,
+#                      "dtype": rasterio.ubyte})
 
-    with rasterio.open(f"tmp/{identifiant}_masked.tif", "w", **out_meta) as dest:
-        dest.write(out_img)
+#     with rasterio.open(f"tmp/{identifiant}_masked.tif", "w", **out_meta) as dest:
+#         dest.write(out_img)
 
 
 
@@ -169,6 +171,12 @@ def indicateur_from_raster(data, iterables):
         ValueError: If the geometry type of the input data is not supported.
 
     """
+    paths = getPaths()
+
+
+    data_catalog_dir = paths.get('data_catalog_dir')
+    commun_path  = paths.get('commun_path')
+
     indicateurSpec, individuStatSpec, epsg , metamodel= iterables
     spec_raster_indicateur = indicateurSpec.get('confRaster',{})
     uri_image = f"{spec_raster_indicateur.get('uri_image',None)}"
@@ -372,8 +380,14 @@ def BboxIndicateur(yamlFile, typData="vecteur"):
     
     """
     
+    paths = getPaths()
+
+    data_config_dir = paths.get('data_config_dir')
+
+    data_catalog_dir = paths.get('data_catalog_dir')
+
     if typData == "raster":
-        with open(f'{project_dir}indicator_config_files/{yamlFile}.yaml', 'r') as file:        
+        with open(f'{data_config_dir}{yamlFile}.yaml', 'r') as file:        
             individuStatSpec = yaml.load(file, Loader=yaml.Loader)
             confRaster = individuStatSpec.get('confRaster',None)
             width = confRaster.get('windows_width', None)
@@ -390,7 +404,7 @@ def BboxIndicateur(yamlFile, typData="vecteur"):
                                     bbox_ind = [xmin,ymin,xmax,ymax]
             print("BBOX raster:",bbox_ind)
     elif typData == "vecteur":
-        with open(f'{project_dir}indicator_config_files/{yamlFile}.yaml', 'r') as file:        
+        with open(f'{data_config_dir}{yamlFile}.yaml', 'r') as file:        
             individuStatSpec = yaml.load(file, Loader=yaml.Loader)
             dataName = individuStatSpec.get('dataName',None)
             catalogUri = individuStatSpec.get('catalogUri',None)

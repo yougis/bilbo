@@ -1,0 +1,28 @@
+adaptingDataframe:
+  renameMap: {
+ 
+  }
+
+catalogUri: h3.yaml
+confDb:
+  chunksize: 1000
+  strategy: append
+  table_name: faits_H3
+confDims:
+  isin_id_mesure:
+  - 3
+  isin_id_spatial:
+  - None
+confRatio:
+  indexList:
+  - id_spatial
+  ratioByIdSpatial:
+  - None
+  rationalizeBy: values
+dataName: h3_nc_6
+indexRef: hex_id
+nbchuncks: 300
+limit: 100
+offset: 600
+epsg: EPSG:3163
+overlayHow: intersection

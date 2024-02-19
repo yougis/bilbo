@@ -1,12 +1,8 @@
-from os import getenv
-
 from geopandas import GeoDataFrame
 from shapely.geometry import Polygon,MultiPolygon
 from pandas import  concat as pd_concat
 from dask.dataframe import concat as dd_concat
 import numpy as np
-
-from oeilnc_config import settings
 
 import logging
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
@@ -24,7 +20,8 @@ def checkGeomType(gdf: GeoDataFrame) -> str:
     Returns:
     str: The geometry type ('Point', 'Polygon', 'Line') if found, otherwise 'Geom type UNKNOWN'.
     """
-    print("checkGeomType")
+    
+    logging.info("checkGeomType")
     points = gdf.loc[(gdf.geometry.geometry.type=='Point') | (gdf.geometry.geometry.type=='MultiPoint' )]
     polygons = gdf.loc[(gdf.geometry.geometry.type=='Polygon') | (gdf.geometry.geometry.type=='MultiPolygon')]
     lines = gdf.loc[(gdf.geometry.geometry.type=='LineString') | (gdf.geometry.geometry.type=='MultiLineString')]
@@ -35,7 +32,8 @@ def checkGeomType(gdf: GeoDataFrame) -> str:
         return 'Polygon'
     if lines.shape[0]>0:
         return 'Line'
-    print("Geom type UNKNOWN")
+    
+    logging.info("Geom type UNKNOWN")
 
 # Spliting Geometry
     
@@ -63,7 +61,7 @@ def splitGeom(gdf_to_split, gdf_from_raster, fp2):
     try:
         res_identity = gdf_to_split.overlay(gdf_from_raster, how='identity')
     except Exception as e:
-        print("gdf_to_split overlay error:", e)
+        logging.info(f"gdf_to_split overlay error: {e}")
     fp2.value += 1
     return res_identity
 
@@ -85,7 +83,7 @@ def splitGeomByAnother(gdf_to_split, by_geom, overlayHow="intersection", keep_ge
     '''
     try:
         if not isinstance(gdf_to_split, GeoDataFrame):
-            print("convert gdf_to_split", type(gdf_to_split))
+            logging.info(f"convert gdf_to_split: {type(gdf_to_split)}")
             gdf_to_split = GeoDataFrame([gdf_to_split], crs=epsg)
 
         gdf_to_split = gdf_to_split.explode(index_parts=True, ignore_index=True).reset_index()
@@ -93,10 +91,10 @@ def splitGeomByAnother(gdf_to_split, by_geom, overlayHow="intersection", keep_ge
         return result_intersection
 
     except Exception as e:
-        print("Unexpected error splitGeomByAnother:", e)
+        logging.info(f"Unexpected error splitGeomByAnother: {e}")
         cols = by_geom.columns.tolist() + gdf_to_split.columns.tolist()
         cols = list(dict.fromkeys(cols))  # suppresion des doublons
-        print("more details", cols)
+        logging.info(f"more details: {cols}")
         errors = gdf_to_split
 
         return errors
@@ -140,7 +138,7 @@ def daskSplitGeomByAnother(gdf_to_split: GeoDataFrame ,iterables: tuple):
     - If an error occurs during the process, an error message will be printed.
 
     '''
-    print("daskSplitGeomByAnother", gdf_to_split)
+    logging.info(f"daskSplitGeomByAnother {gdf_to_split}")
     by_geoms, overlayHow = iterables 
     result_intersection = []
     by_geoms.set_index('id_spatial', inplace = True, drop=False)
@@ -151,7 +149,7 @@ def daskSplitGeomByAnother(gdf_to_split: GeoDataFrame ,iterables: tuple):
                 by_geom = by_geoms.loc[[id_spatial]]
                 if gdf_to_split.shape[0] > 0:
                     intersection = gdf_to_split.overlay(by_geom, how=overlayHow, keep_geom_type=True)
-                    print("len intersection", len(intersection))
+                    logging.info(f"len intersection: {len(intersection)}")
                     if intersection.shape[0] > 0:
                         result_intersection.append(intersection)
                     else:
@@ -159,22 +157,22 @@ def daskSplitGeomByAnother(gdf_to_split: GeoDataFrame ,iterables: tuple):
             if len(result_intersection) > 0:
                 
                 result = pd_concat(result_intersection)
-                print("End all idSpatial", result)
+                logging.info(f"End all idSpatial {result}")
                 return result
             else:
-                print("NO result_intersection",result_intersection)
+                logging.info(f"NO result_intersection: {result_intersection}")
                 cols = gdf_to_split.columns.tolist()
                 cols.insert(len(cols)-1,"id_spatial")
                 result = GeoDataFrame(data=None, columns=cols)
                 return result
         else:
-            print("No data to intersect :",gdf_to_split.shape[0])                         
+            logging.info(f"No data to intersect: {gdf_to_split.shape[0]}")
             cols = gdf_to_split.columns.tolist()
             cols.insert(len(cols)-1,"id_spatial")
             result = GeoDataFrame(data=None, columns=cols)
             return result
     except Exception as e:
-        print("Unexpected error daskSplitGeomByAnother:", e)
+        logging.info(f"Unexpected error daskSplitGeomByAnother: {e}")
 
 
     
@@ -189,7 +187,7 @@ def overlapsGeom(ddf_to_split, by_geom):
     return: un gdf découpé par les géometries des entités by_geom avec copies des attributs 
     
     '''
-    print("OverlapsGeom  ... ")
+    logging.info("OverlapsGeom  ... ")
     overlapsList = []
     try:
        
@@ -197,9 +195,9 @@ def overlapsGeom(ddf_to_split, by_geom):
             
             byG = by_geom.geometry.simplify(1000).iloc[i]
             id_spatial = by_geom.id_spatial.iloc[i]
-            print("DASK OverlapsGeom id_spatial :", id_spatial)
+            logging.info(f"DASK OverlapsGeom id_spatial : {id_spatial}")
             set_operation = ddf_to_split.intersects(byG)
-            print("set_operation intersects",set_operation)
+            logging.info(f"set_operation intersects: {set_operation}")
 
             ddf_intersects = ddf_to_split[set_operation]
             
@@ -207,7 +205,7 @@ def overlapsGeom(ddf_to_split, by_geom):
                 pass
             else:
                 overlaps = ddf_intersects.overlaps(byG)
-                print("set_operation overlaps",overlaps)
+                logging.info(f"set_operation overlaps: {overlaps}")
                 ddf_overlaps = ddf_intersects[overlaps]
 
                 if ddf_overlaps.shape[0] > 0:
@@ -224,16 +222,16 @@ def overlapsGeom(ddf_to_split, by_geom):
 
         if len(overlapsList) > 0:
             result = dd_concat(overlapsList)
-            print("END result",result)
+            logging.info(f"END result: {result}")
             
             return result
         else:
             ddf_to_split['id_spatial']="0"
             return ddf_to_split
     except Exception as e:
-        print("Unexpected error daskGeomWhoNeedToBeCut:", e)
-        print("ddf_to_split:", ddf_to_split)
-        print("by_geom:", by_geom)
+        logging.error("Unexpected error daskGeomWhoNeedToBeCut: {e}")
+        logging.error(f"ddf_to_split: {ddf_to_split}")
+        logging.error(f"by_geom: {by_geom}")
 
     ddf_to_split['id_spatial']="0"
     return ddf_to_split
@@ -261,48 +259,39 @@ def daskOverlapsGeom(ddf_to_split, by_geom):
         - If any overlaps are found, the list is concatenated into a single Dask DataFrame and returned.
         - If no overlaps are found, the original Dask DataFrame is returned.
     '''
-    print("DASK OverlapsGeom... ")
+    logging.info("DASK OverlapsGeom... ")
     overlapsList = []
     ddf_to_split.calculate_spatial_partitions()
     try:
-        
         for i in range(by_geom.shape[0]):
-            
             byG = by_geom.geometry.simplify(1000).iloc[i]
             id_spatial = by_geom.id_spatial.iloc[i]
-            print("DASK OverlapsGeom id_spatial :", id_spatial)
+            logging.info(f"DASK OverlapsGeom id_spatial : {id_spatial}")
             set_operation = ddf_to_split.intersects(byG)
-            print("set_operation intersects",set_operation)
-
+            logging.info(f"set_operation intersects: {set_operation}")
             ddf_intersects = ddf_to_split[set_operation]
-            
             overlaps = ddf_intersects.overlaps(byG)
-            print("set_operation overlaps",overlaps)
+            logging.info(f"set_operation overlaps: {overlaps}")
             ddf_overlaps = ddf_intersects[overlaps]
-
             ddf_overlaps['overlaps'] = True
             ddf_overlaps['id_spatial'] = id_spatial
             overlapsList.append(ddf_overlaps)
-
             ddf_within = ddf_intersects[~overlaps]
-
             ddf_within['overlaps'] = False
             ddf_within['id_spatial'] = id_spatial
             overlapsList.append(ddf_within)
 
         if len(overlapsList) > 0:
             result = dd_concat(overlapsList)
-            print("END result",result)
-            
+            logging.info(f"END result: {result}")
             return result
         else:
             return ddf_to_split
     except Exception as e:
-        print("Unexpected error daskGeomWhoNeedToBeCut:", e)
-        print("ddf_to_split:", ddf_to_split)
-        print("by_geom:", by_geom)
+        logging.info(f"Unexpected error daskGeomWhoNeedToBeCut: {e}")
+        logging.info(f"ddf_to_split: {ddf_to_split}")
+        logging.info(f"by_geom: {by_geom}")
 
-    
     return ddf_to_split
 
 def cleanOverlaps(df, dissolveby):
@@ -317,8 +306,7 @@ def cleanOverlaps(df, dissolveby):
         pandas.DataFrame: The cleaned DataFrame with overlaps removed.
 
     """
-    print("cleanOverlaps")
-    #print("type_df",type(df))
+    logging.info("cleanOverlaps")
     df.reset_index(drop=True, inplace=True)
     df = df.explode(index_parts=False, ignore_index=True)
     df["geometry"] = [feature if type(feature) == Polygon or type(feature) == MultiPolygon else np.nan for feature in df["geometry"]]
@@ -328,6 +316,6 @@ def cleanOverlaps(df, dissolveby):
     
     df = df.dissolve(dissolveby).explode(index_parts=False).reset_index()
     
-    print("Netoyage terminée")      
+    logging.info(f"Nettoyage terminé. Résultat : {df}")      
 
     return df

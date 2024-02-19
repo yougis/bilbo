@@ -4,13 +4,20 @@ from oeilnc_config import settings
 
 from sqlalchemy import create_engine, Engine
 from geopandas import GeoDataFrame
+import pandas as pd 
 from shapely.geometry import Polygon,MultiPolygon
+
+from intake import entry
+from intake import open_catalog
+
+from oeilnc_utils.catalog import create_yaml_intake_catalog_from_dict
+
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
 logging.info("Utils - Connection Imported")
 
-def getEngine(user='usr', pswd='pswd', host='host', port='port', dbase='db_traitement') -> Engine:
+def getEngine(user='usr', pswd='pswd', host='host', port=5432, dbase='db_traitement') -> Engine:
     """
     Returns a SQLAlchemy engine object for connecting to a PostgreSQL database.
 
@@ -47,7 +54,7 @@ def getSqlWhereClauseBbox(bbox, geom, bbox_crs="4326", geom_crs="3163") -> str:
 
 
 def fixpath(path,replace,winDisque="C:"):
-    print("change uri to windows: Create Commun Path")
+    logging.info("change uri to windows: Create Commun Path")
     path = path.replace(replace, '/')
     path = os.path.normpath(os.path.expanduser(path))
     if path.startswith("\\"): return winDisque + path
@@ -93,15 +100,44 @@ def AjoutClePrimaire(schem, user, mdp, hote, db, tb):
     eng.connect().execute(sqlseqid)
     eng.connect().execute(sqlid)
     eng.connect().execute(sqlcontrainte)
-    print(f"cle primaire id_fait ajoutee sur", tb)
+    logging.info(f"cle primaire id_fait ajoutee sur {tb}")
     eng.dispose()
 
 
     return True
 
 
+def getNbLignes(source: entry.Catalog):
+
+
+    tableName = source.describe().get('args').get('table')
+    uri = source.describe().get('args').get('uri')
+    sql_expr = f"SELECT COUNT(*) as nb FROM {tableName};"
+    #dbConnection = settings.getDbConnection()
+    source_config = {
+        'sources': {
+            'compte_entites': {
+                'driver': 'sql',
+                'metadata': {},  # Remplacez ceci par le nom correct du driver
+                'args': {
+                    'uri': uri,
+                    'sql_expr': sql_expr,
+                },
+                'description': 'Compter le nombre d’entités sans charger les géométries',
+            }
+        }
+    }
+        
+    reader = open_catalog(create_yaml_intake_catalog_from_dict(source_config))
+    
+    df = reader.compte_entites.read()    
+    nbLignes = df.loc[0, 'nb']
+    logging.info(f"{tableName} nblignes : {nbLignes}")
+    return nbLignes
+
+
 def persistGDF(gdf,iterables):
-    print("persistGDF")
+    logging.info("persistGDF")
     confDb, adaptingDataframe,individuStatSpec,epsg = iterables
     tableName = confDb.get('tableName',None)
     ext_table_name = individuStatSpec.get('dataName',None)
@@ -132,12 +168,12 @@ def persistGDF(gdf,iterables):
             gdf['classe'] = setAllClasseValue
             
         if changeType :
-            print("changeType",changeType)
+            logging.info(f"changeType :  {changeType}")
             gdf = gdf.astype(changeType)
-            print("dtypes",gdf.dtypes)   
+            logging.info(f"dtypes : {gdf.dtypes}")   
         
         if len(renameMap.values()) > 0:
-            print('rename',renameMap)
+            logging.info(f"rename {renameMap}")
             gdf = gdf.rename(columns=renameMap)
         
 
@@ -149,19 +185,19 @@ def persistGDF(gdf,iterables):
             gdf['classe'].fillna(fillNanClasse, inplace = True)
         
         
-        print(f"{tableName} to postgis {gdf.shape[0]} entities and columns {gdf.columns}")
+        logging.info(f"{tableName} to postgis {gdf.shape[0]} entities and columns {gdf.columns}")
         
         try:
             gdf["geometry"] = [MultiPolygon([feature]) if type(feature) == Polygon else feature for feature in gdf["geometry"]]
             tableName = f'{tableName}_{ext_table_name}'
             #modification JFNGVS 08/02/2023: index gere
             gdf.to_postgis(tableName,getEngine(), schema=schema,if_exists=strategy, chunksize=chunksize)
-            print(f"import postgis finish")
+            logging.info(f"import postgis finish")
         except Exception as e:
-            print(f"{tableName}_withError to postgis",e)
+            logging.critical(f"{tableName}_withError to postgis",e)
             if not isinstance( gdf , GeoDataFrame):
-                print(f"{type(gdf)} n'est pas un GeoDataFrame ",e)
+                logging.critical(f"{type(gdf)} n'est pas un GeoDataFrame ",e)
             gdf = GeoDataFrame(gdf)
             gdf.to_postgis(f"{tableName}_withError",getEngine(), schema=schema,if_exists='replace', chunksize=chunksize)        
     else:
-        print("Il faut renseigner un nom de table dans confDb!")
+        logging.critical("Il faut renseigner un nom de table dans confDb!")

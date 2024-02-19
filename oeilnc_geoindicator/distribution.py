@@ -7,8 +7,9 @@ from os import getenv
 import logging
 from pandas import concat as pd_concat
 
+from oeilnc_config import settings
 from oeilnc_utils import connection
-from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps
+from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps, daskSplitGeomByAnother
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
@@ -53,14 +54,15 @@ def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: Catalog.entry, fu
         Exception: If an error occurs during parallelization.
 
     """
+    client = settings.getDaskClient()
 
-    print("reading intake source ... ", intakeSource)
+    logging.info(f"reading intake source  {intakeSource}...")
     df = intakeSource.read()
-    print('df',len(df.index))
+    logging.info(f"df: {len(df.index)}")
     if len(df.index) > 0:
         
         if metaModelList:
-            print("metaModelList",metaModelList)
+            logging.info(f"metaModelList {metaModelList}")
             df_meta =GeoDataFrame(columns = metaModelList)
         else:
             metaModelList = df.columns
@@ -93,6 +95,13 @@ def generateIndicateur_parallel_v2(data, iterables):
     
     '''
     print('processing generateIndicateur_parallel')
+    paths = settings.getPaths()
+
+
+    data_catalog_dir = paths.get('data_catalog_dir')
+    commun_path  = paths.get('commun_path')
+
+
     indicateurSpec, individuStatSpec, data_indicateur, keepList, data_geom, data_indicator_geom_col  = iterables
 
     result = GeoDataFrame()
@@ -169,7 +178,11 @@ def generateIndicateur_parallel(data, iterables):
     '''
     print('processing generateIndicateur_parallel')
     indicateurSpec, individuStatSpec, data_indicateur, keepList, data_geom, data_indicator_geom_col  = iterables
+    paths = settings.getPaths()
 
+
+    data_catalog_dir = paths.get('data_catalog_dir')
+    commun_path  = paths.get('commun_path')
     
     #data = data.read()
     
