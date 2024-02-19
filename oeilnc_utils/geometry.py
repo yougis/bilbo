@@ -5,7 +5,7 @@ from dask.dataframe import concat as dd_concat
 import numpy as np
 
 import logging
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.DEBUG)
 
 logging.info("Utils - Geometry Imported")
 
@@ -138,12 +138,17 @@ def daskSplitGeomByAnother(gdf_to_split: GeoDataFrame ,iterables: tuple):
     - If an error occurs during the process, an error message will be printed.
 
     '''
-    logging.info(f"daskSplitGeomByAnother {gdf_to_split}")
-    by_geoms, overlayHow = iterables 
+    logging.info(f"daskSplitGeomByAnother ...")
+    logging.debug(f"daskSplitGeomByAnother gdf {gdf_to_split}")
+    logging.debug(f"daskSplitGeomByAnother iterables {iterables}")
+
+    by_geoms, overlayHow = iterables
     result_intersection = []
     by_geoms.set_index('id_spatial', inplace = True, drop=False)
     listId_Spatial = list(dict.fromkeys(by_geoms.id_spatial.to_list()))
+
     try:
+        logging.debug(f"daskSplitGeomByAnother gdf_to_split.shape[0]>0 =  {gdf_to_split.shape[0]>0}")
         if gdf_to_split.shape[0]>0:
             for id_spatial in listId_Spatial:
                 by_geom = by_geoms.loc[[id_spatial]]
@@ -160,19 +165,19 @@ def daskSplitGeomByAnother(gdf_to_split: GeoDataFrame ,iterables: tuple):
                 logging.info(f"End all idSpatial {result}")
                 return result
             else:
-                logging.info(f"NO result_intersection: {result_intersection}")
+                logging.warning(f"NO result_intersection: {result_intersection}")
                 cols = gdf_to_split.columns.tolist()
                 cols.insert(len(cols)-1,"id_spatial")
                 result = GeoDataFrame(data=None, columns=cols)
                 return result
         else:
-            logging.info(f"No data to intersect: {gdf_to_split.shape[0]}")
+            logging.debug(f"No data to intersect: {gdf_to_split.shape[0]}")
             cols = gdf_to_split.columns.tolist()
             cols.insert(len(cols)-1,"id_spatial")
             result = GeoDataFrame(data=None, columns=cols)
             return result
     except Exception as e:
-        logging.info(f"Unexpected error daskSplitGeomByAnother: {e}")
+        logging.critical(f"Unexpected error daskSplitGeomByAnother: {e}")
 
 
     

@@ -207,7 +207,7 @@ def daskCalculateMesures(ddf, iterables):
     client = getDaskClient()
     mesures, individuSpec, indicateurSpec, nbchuncks = iterables
     indexRef = individuSpec.get('indexRef', None)
-    print("daskCalculateMesures")
+    logging.info("daskCalculateMesures")
     confRatio = individuSpec.get('confRatio', None)
     
     indexList = confRatio.get('indexList', None)
@@ -228,12 +228,12 @@ def daskCalculateMesures(ddf, iterables):
             # create a multiindexed df
             pdRef = client.submit(lambda a: a.groupby(indexList)[[rationalizeBy]].sum() * 100, client.compute(ddf))
         except Exception as e:
-            print("Unexpected error calculateRatioAfter:", e)
+            logging.info("Unexpected error calculateRatioAfter: {e}")
         
         try:
             pass
         except Exception as e:
-            print("Unexpected error calculateRatioAfter groupby:", e)
+            logging.info("Unexpected error calculateRatioAfter groupby: {e}")
         
         try:
             # dask does not support multi-indexed dfs
@@ -243,7 +243,7 @@ def daskCalculateMesures(ddf, iterables):
             ddf['ratio_id_spatial'] = ddf.map_partitions(calculateRatio, iterables=(rationalizeBy, newIndexList, pdRef), meta=('ratio_id_spatial', 'f8'))
             ddf = client.persist(ddf)
         except Exception as e:
-            print("Unexpected error calculateRatioAfter apply:", e)
+            logging.info("Unexpected error calculateRatioAfter apply: {e}")
     
     return ddf
 
@@ -283,9 +283,9 @@ def generateValueBydims(data, iterables):
     confDb = indicateurSpec.get('confDb',None)
 
     dfMeta = GeoDataFrame(columns = model)
-    logging.info("model",model)
-    logging.info("dfMeta.columns",dfMeta.columns)
-    logging.info("data.columns",data.columns)
+    logging.info("model : {model}")
+    logging.info("dfMeta.columns {dfMeta.columns}")
+    logging.info("data.columns {data.columns}")
     if confDims is not None:
         isin_id_spatial = confDims.get('isin_id_spatial',None)
         isin_id_mesure = confDims.get('isin_id_mesure',None)
@@ -744,5 +744,5 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             AjoutClePrimaire(schema,user,pswd, host, db_traitement, f"{tableName}_{ext_table_name}")
             return f"{tableName}_{ext_table_name}"
         except Exception as e:
-            logging.info("persistGDF error:", e)
+            logging.info("persistGDF error: {e}")
             return 0

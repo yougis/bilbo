@@ -9,7 +9,7 @@ from pandas import concat as pd_concat
 
 from oeilnc_config import settings
 from oeilnc_utils import connection
-from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps, daskSplitGeomByAnother
+from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
@@ -58,24 +58,24 @@ def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: Catalog.entry, fu
 
     logging.info(f"reading intake source  {intakeSource}...")
     df = intakeSource.read()
-    logging.info(f"df: {len(df.index)}")
+    logging.debug(f"df: {len(df.index)}")
     if len(df.index) > 0:
         
         if metaModelList:
-            logging.info(f"metaModelList {metaModelList}")
+            logging.debug(f"metaModelList {metaModelList}")
             df_meta =GeoDataFrame(columns = metaModelList)
         else:
             metaModelList = df.columns
             df_meta =GeoDataFrame(columns = metaModelList)
         #df.reindex(columns=columnList)
-        print("Load data in memory", df.shape)
-        print("converting to dask with chunksize ", nbchuncks)
+        logging.debug("Load data in memory {df.shape}")
+        logging.debug("converting to dask with chunksize {nbchuncks}")
         data = ddg_from_geopandas(df,nbchuncks)
-        print("data", data)
+        logging.debug("data", data)
         try:
             df2 = data.map_partitions(func, iterables=paramsTuples, meta=df_meta)
         except Exception as e:
-            print("DASk  parallelize ERROR: ", e)
+            logging.critical("DASk  parallelize ERROR: {e}")
         if client:   
             return client.persist(df2)
         return df2.compute()
@@ -113,11 +113,11 @@ def generateIndicateur_parallel_v2(data, iterables):
     indexRef = individuStatSpec.get('indexRef',None)
     
     overlayHow = indicateurSpec.get('overlayHow',None)
-    print('indicateurSpec', indicateurSpec)
-    print('indexRef', indexRef)
+    logging.debug('indicateurSpec {indicateurSpec}')
+    logging.debug('indexRef: {indexRef}' )
     indicateur_dissolve_byList = individuStatSpec.get('indicateur_dissolve_byList',[])  + indicateurSpec.get('indicateur_dissolve_byList',[]) + [indexRef]
     
-    print('data cols', data.columns)
+    logging.debug('data cols : {data.columns}' )
     
     if data_geom in data.columns and data_geom != 'geometry':
         data.rename_geometry('geometry', inplace=True)
@@ -167,7 +167,7 @@ def generateIndicateur_parallel_v2(data, iterables):
         result = result[keepList]
         return result
     else:
-        print("Result is empty")
+        logging.warning("Result is empty")
         return result
     
 
@@ -214,7 +214,7 @@ def generateIndicateur_parallel(data, iterables):
         
        # print("sql_with_where_clause", sql_with_where_clause)
         if sql_expr:
-            print(sql_expr, sql_with_where_clause)
+            logging.debug(f"{sql_expr} {sql_with_where_clause}")
             if sql_expr.find("where") >= 1 :
                 data_ind = data_indicateur(sql_expr=f'{sql_expr} and {sql_with_where_clause}')
             else:
@@ -260,7 +260,7 @@ def generateIndicateur_parallel(data, iterables):
 
         result = result[keepList]
 
-        print("Netoyage terminée")
+        logging.info("Netoyage terminée")
         # ajout suite à la regression à cause de l'indicteur à partir de raster 
         #result['id_split'] = result[indexRef].map(str) + "_" +  result.index.map(str)
 
@@ -268,4 +268,4 @@ def generateIndicateur_parallel(data, iterables):
 
         return result
     else:
-        print("Result is empty")
+        logging.warning("Result is empty")
