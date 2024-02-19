@@ -26,6 +26,7 @@ rasterstats = "*"
 geopandas = "*"
 plotly = "*"
 tobler = "^0.11.2"
+intake = "^2.0.1"
 
 
 
