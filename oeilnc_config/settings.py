@@ -153,13 +153,14 @@ def getPaths():
 def getDaskClient():
     global client
     if 'client' in globals():
+
         # La variable client existe dans l'espace de noms global
         return client
     else:
         schedulerIp = getenv("SCHEDULER_IP")
 
         if schedulerIp is None:
-            logging.critical(f"La variable d'environnement SCHEDULER_IP doit être renseignée pour effectuer les traitements de manière distribuée")
+            logging.warning(f"La variable d'environnement SCHEDULER_IP doit être renseignée pour effectuer les traitements de manière distribuée")
             schedulerIp = "172.20.12.13:9786"
             logging.info(f"on applique cette ip par défaut : {schedulerIp}")
 

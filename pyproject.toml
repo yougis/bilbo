@@ -10,7 +10,8 @@ classifiers = ["Programming Language :: Python :: 3",]
 packages = [
     { include = "oeilnc_geoindicator" },
     { include = "oeilnc_utils" },
-     { include = "oeilnc_config" }
+    { include = "oeilnc_config" },
+
 ]
 
 
