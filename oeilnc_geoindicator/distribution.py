@@ -97,7 +97,6 @@ def generateIndicateur_parallel_v2(data, iterables):
     '''
     from oeilnc_config import settings
 
-    settings.initializeBilboProject(dotenvPath='.env')
     logging.info('GenerateIndicateur_parallel_V2')
     logging.debug(f'GenerateIndicateur_parallel_V2 - {type(data)}')
     paths = settings.getPaths()
