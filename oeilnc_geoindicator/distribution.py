@@ -119,11 +119,11 @@ def generateIndicateur_parallel_v2(data, iterables):
     indexRef = individuStatSpec.get('indexRef',None)
     
     overlayHow = indicateurSpec.get('overlayHow',None)
-    logging.debug('indicateurSpec {indicateurSpec}')
-    logging.debug('indexRef: {indexRef}' )
+    logging.debug(f'indicateurSpec {indicateurSpec}')
+    logging.debug(f'indexRef: {indexRef}' )
     indicateur_dissolve_byList = individuStatSpec.get('indicateur_dissolve_byList',[])  + indicateurSpec.get('indicateur_dissolve_byList',[]) + [indexRef]
     
-    logging.debug('data cols : {data.columns}' )
+    logging.debug(f'data cols : {data.columns}' )
     
     if data_geom in data.columns and data_geom != 'geometry':
         data.rename_geometry('geometry', inplace=True)

@@ -144,10 +144,10 @@ def persistGDF(gdf,iterables):
     tableName = confDb.get('tableName',None)
     ext_table_name = individuStatSpec.get('dataName',None)
     
-    if isinstance(gdf, GeoDataFrame, GeoSeries) :
+    if isinstance(gdf, (GeoDataFrame, GeoSeries)) :
         gdf.set_crs(epsg, inplace=True)
 
-    elif isinstance(gdf, DataFrame, Series):
+    elif isinstance(gdf, (DataFrame, Series)):
         logging.warning(f"Vous essayer de persister un donnée sans géométrie: {gdf.shape[0]} -  {gdf.head()}")
 
         if gdf.shape[0] == 0:
