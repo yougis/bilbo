@@ -50,7 +50,7 @@ if null_variables:
 def initializeWorkers(dotenvPath='.env'):
 
 
-
+    
     load_dotenv(dotenv_path=dotenvPath)
 
     global commun_path

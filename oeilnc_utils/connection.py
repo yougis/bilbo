@@ -212,7 +212,7 @@ def persistGDF(gdf,iterables):
             gdf["geometry"] = [MultiPolygon([feature]) if type(feature) == Polygon else feature for feature in gdf["geometry"]]
             tableName = f'{tableName}_{ext_table_name}'
             
-            gdf.to_postgis(tableName,getEngine(user=user,pswd=pswd,host=host,dbase=dbase), schema=schema,if_exists=strategy, chunksize=chunksize)
+            gdf.to_postgis(tableName,getEngine(user=user,pswd=pswd,host=host,dbase='oeil_traitement'), schema=schema,if_exists=strategy, chunksize=chunksize)
             logging.info(f"import postgis finish")
             return gdf
         except Exception as e:
@@ -220,7 +220,7 @@ def persistGDF(gdf,iterables):
             if not isinstance( gdf , GeoDataFrame):
                 logging.critical(f"{type(gdf)} n'est pas un GeoDataFrame ",e)
             gdf = GeoDataFrame(gdf)
-            gdf.to_postgis(f"{tableName}_withError",getEngine(user=user,pswd=pswd,host=host,dbase=dbase), schema=schema,if_exists='replace', chunksize=chunksize)        
+            gdf.to_postgis(f"{tableName}_withError",getEngine(user=user,pswd=pswd,host=host,dbase="oeil_traitement"), schema=schema,if_exists='replace', chunksize=chunksize)        
             return gdf
 
     else:
