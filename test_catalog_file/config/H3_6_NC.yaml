@@ -22,7 +22,7 @@ confRatio:
 dataName: h3_nc_6
 indexRef: hex_id
 nbchuncks: 300
-limit: 100
-offset: 600
+limit: 10000
+offset: 0
 epsg: EPSG:3163
 overlayHow: intersection

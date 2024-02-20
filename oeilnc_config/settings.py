@@ -47,11 +47,7 @@ if project_db_schema is None:
 if null_variables:
     logging.warning("The following variables are null: {}".format(", ".join(null_variables)))
 
-def initializeWorkers(dotenvPath='.env'):
-
-
-    
-    load_dotenv(dotenv_path=dotenvPath)
+def initializeWorkers(config_dict: dict):
 
     global commun_path
     global data_catalog_dir 
@@ -65,48 +61,27 @@ def initializeWorkers(dotenvPath='.env'):
     global pswd
     global host
     global port
-
-    commun_path = getenv("COMMUN_PATH")
-    project_dir = getenv("PROJECT_PATH")
-    data_catalog_dir = getenv("DATA_CATALOG_DIR")
-    data_output_dir = getenv("DATA_OUTPUT_DIR")
-    sig_data_path = getenv("SIG_DATA_PATH")
-    project_db_schema = getenv("PROJECT_DB_SCHEMA")
-    data_config_file = getenv("DATA_CONFIG_DIR")
-    dimension_catalog_dir = getenv("DIM_CATALOG_DIR")
-
-
-    user = getenv("DB_USER")
-    pswd = getenv("DB_PWD")
-    host = getenv("DB_HOST")
-    port = getenv("DB_PORT")
-
-    home = getenv("HOME_PATH")
-    db_traitement = getenv("DB_WORKSPACE")
-    db_ref = getenv("DB_REF")
-    db_externe = getenv("DB_EXT")
-
-
-    config_dict = {
-        "user": user,
-        "pswd": pswd,
-        "host": host,
-        "port": port,
-        "home": home,
-        "db_traitement": db_traitement,
-        "db_ref": db_ref,
-        "db_externe": db_externe,
-        "commun_path": commun_path,
-        "project_dir": project_dir,
-        "data_catalog_dir": data_catalog_dir,
-        "data_output_dir": data_output_dir,
-        "sig_data_path": sig_data_path,
-        "project_db_schema": project_db_schema,
-        "data_config_file": data_config_file,
-        "dimension_catalog_dir": dimension_catalog_dir
-    }
-
-    logging.debug(f'Workers Settings - getPaths - config {config_dict}')
+    global home
+    global db_traitement
+    global db_ref
+    global db_externe
+ 
+    user = config_dict.get("user")
+    pswd = config_dict.get("pswd")
+    host = config_dict.get("host")
+    port = config_dict.get("port")
+    home = config_dict.get("home")
+    db_traitement = config_dict.get("db_traitement")
+    db_ref = config_dict.get("db_ref")
+    db_externe = config_dict.get("db_externe")
+    commun_path = config_dict.get("commun_path")
+    project_dir = config_dict.get("project_dir")
+    data_catalog_dir = config_dict.get("data_catalog_dir")
+    data_output_dir = config_dict.get("data_output_dir")
+    sig_data_path = config_dict.get("sig_data_path")
+    project_db_schema = config_dict.get("project_db_schema")
+    data_config_file = config_dict.get("data_config_file")
+    dimension_catalog_dir = config_dict.get("dimension_catalog_dir")
 
     return
 
