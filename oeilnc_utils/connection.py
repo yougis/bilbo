@@ -142,7 +142,8 @@ def persistGDF(gdf,iterables):
     logging.info("persistGDF")
 
     logging.debug(f"persistGDF - {type(gdf)} ")
-    confDb, adaptingDataframe,individuStatSpec,epsg = iterables
+    confDb, adaptingDataframe,individuStatSpec,epsg, dbEngineConnection = iterables
+    user, pswd, host, dbase = dbEngineConnection
     tableName = confDb.get('tableName',None)
     ext_table_name = individuStatSpec.get('dataName',None)
     
@@ -210,8 +211,8 @@ def persistGDF(gdf,iterables):
         try:
             gdf["geometry"] = [MultiPolygon([feature]) if type(feature) == Polygon else feature for feature in gdf["geometry"]]
             tableName = f'{tableName}_{ext_table_name}'
-            #modification JFNGVS 08/02/2023: index gere
-            gdf.to_postgis(tableName,getEngine(), schema=schema,if_exists=strategy, chunksize=chunksize)
+            
+            gdf.to_postgis(tableName,getEngine(user=user,pswd=pswd,host=host,dbase=dbase), schema=schema,if_exists=strategy, chunksize=chunksize)
             logging.info(f"import postgis finish")
             return gdf
         except Exception as e:
@@ -219,7 +220,7 @@ def persistGDF(gdf,iterables):
             if not isinstance( gdf , GeoDataFrame):
                 logging.critical(f"{type(gdf)} n'est pas un GeoDataFrame ",e)
             gdf = GeoDataFrame(gdf)
-            gdf.to_postgis(f"{tableName}_withError",getEngine(), schema=schema,if_exists='replace', chunksize=chunksize)        
+            gdf.to_postgis(f"{tableName}_withError",getEngine(user=user,pswd=pswd,host=host,dbase=dbase), schema=schema,if_exists='replace', chunksize=chunksize)        
             return gdf
 
     else:
