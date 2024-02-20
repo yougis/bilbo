@@ -654,7 +654,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                             
                             if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame))  :
                                 logging.info(f"Etape 1 - Result:  {type(indicateur)}")
-                                logging.info(f"Etape 1 - Result:  {client.compute(indicateur)}")
+                                #logging.info(f"Etape 1 - Result:  {client.compute(indicateur)}")
                                 pass
                             else:
                                 stepList = []
