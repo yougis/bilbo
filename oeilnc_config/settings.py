@@ -194,7 +194,8 @@ def getDbConnection():
        "user": user,
         "pswd": pswd,
         "host": host,
-        "port": port
+        "port": port,
+        "db_traitement": db_traitement
 
     }
 
