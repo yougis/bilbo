@@ -261,6 +261,7 @@ def generateValueBydims(data, iterables):
         DataFrame: The generated values.
 
     """
+    
     logging.info(f"generateValueBydims ... ")
     logging.debug(f"generateValueBydims data type {type(data)} {data}")
 
@@ -317,7 +318,7 @@ def generateValueBydims(data, iterables):
                 data_splited = data.map_partitions(daskSplitGeomByAnother, iterables=(spatials[['id_spatial','level','upper_libelle','geometry']],"intersection"),meta=dfMeta)
 
                 logging.debug(f"generateValueBydims - data_splited : {data_splited.compute()}")
-                data = client.persist(data_splited.repartition(npartitions=data.npartitions))
+                #data = client.persist(data_splited.repartition(npartitions=data.npartitions))
                 logging.debug(f"generateValueBydims - data : {data.compute()}")
             
         else:
@@ -328,7 +329,7 @@ def generateValueBydims(data, iterables):
             logging.info(f"generateValueBydims - mesures isin_id_mesure : {isin_id_mesure}")
             mesures = mesures[mesures.id_mesure.isin(isin_id_mesure)]         
             result = daskCalculateMesures(data,(mesures,individuSpec,indicateurSpec,nbchuncks))
-            result = client.persist(result)
+            #result = client.persist(result)
             logging.debug(f"generateValueBydims - mesures - result: {result.compute()}")
             return result
         else:
@@ -401,6 +402,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
     # Step 2 (facultatif l'étape 1 est faite) : appliquer les dimensions spatiales et mesures.
     # Step 3 (facultatif) : persister les données en base Postgis.
     
+    client = getDaskClient()
     #logging.info(f"Dask client : {client}")
 
     paths = getPaths()
@@ -719,7 +721,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                     stepList.remove(3)
         else:
             logging.info(f"create_indicator: Etape 2 --> pas de indexListIndicator")
-            logging.debug(f"create_indicator: Etape 2 -->  indicateur {indicateur}")
+            #logging.debug(f"create_indicator: Etape 2 -->  indicateur {indicateur}")
             #indicateur = client.submit(spatial_partitions, indicateur)
             fromIntake = True
             # spec indicateur

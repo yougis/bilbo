@@ -171,10 +171,8 @@ def persistGDF(gdf,iterables):
         toDrop = adaptingDataframe.get('toDrop',[])
         renameMap = adaptingDataframe.get('renameMap',{})
         setAllClasseValue = adaptingDataframe.get('setAllClasseValue',None)
-        fillNanClasse = adaptingDataframe.get('fillNanClasse',None)
-     
-        changeType = adaptingDataframe.get('changeType',{})
-        
+        fillNanClasse = adaptingDataframe.get('fillNanClasse',None)     
+        changeType = adaptingDataframe.get('changeType',{})        
         setValue = adaptingDataframe.get('setValue',{})
         colNameValue = setValue.get('colName',None)
         value = setValue.get('value',None)

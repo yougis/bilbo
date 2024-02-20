@@ -253,8 +253,8 @@ def getDaskClient():
             schedulerIp = "172.20.12.13:9786"
             logging.info(f"on applique cette ip par défaut : {schedulerIp}")
 
-        #client = Client()
-        client = Client(schedulerIp)
+        client = Client()
+        #client = Client(schedulerIp)
         return client
 
 
