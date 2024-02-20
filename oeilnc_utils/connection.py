@@ -3,8 +3,8 @@ import logging
 from oeilnc_config import settings
 
 from sqlalchemy import create_engine, Engine
-from geopandas import GeoDataFrame
-from pandas import DataFrame
+from geopandas import GeoDataFrame, GeoSeries
+from pandas import DataFrame, Series
 from shapely.geometry import Polygon,MultiPolygon
 
 from intake import entry
@@ -143,15 +143,17 @@ def persistGDF(gdf,iterables):
     confDb, adaptingDataframe,individuStatSpec,epsg = iterables
     tableName = confDb.get('tableName',None)
     ext_table_name = individuStatSpec.get('dataName',None)
-    if isinstance(gdf, GeoDataFrame):
+    
+    if isinstance(gdf, GeoDataFrame, GeoSeries) :
         gdf.set_crs(epsg, inplace=True)
-    elif isinstance(gdf, DataFrame):
+
+    elif isinstance(gdf, DataFrame, Series):
         logging.warning(f"Vous essayer de persister un donnée sans géométrie: {gdf.shape[0]} -  {gdf.head()}")
 
-    if gdf.shape[0] == 0:
-        logging.warning(f"Le Dataframe est vide, on passe")
-        return
-    
+        if gdf.shape[0] == 0:
+            logging.warning(f"Le Dataframe est vide, on passe")
+            return
+        
     if tableName:
         
         schema = confDb.get('schema',None)
