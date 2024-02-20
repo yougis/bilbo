@@ -68,14 +68,15 @@ def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: Catalog.entry, fu
             metaModelList = df.columns
             df_meta =GeoDataFrame(columns = metaModelList)
         #df.reindex(columns=columnList)
-        logging.debug("Load data in memory {df.shape}")
-        logging.debug("converting to dask with chunksize {nbchuncks}")
+        logging.debug(f"Load data in memory {df.shape}")
+        logging.debug(f"converting to dask with chunksize {nbchuncks}")
         data = ddg_from_geopandas(df,nbchuncks)
-        logging.debug("data {data}")
+        logging.debug(f"data : {data}")
+        logging.debug(f"func : {func}")
         try:
             df2 = data.map_partitions(func, iterables=paramsTuples, meta=df_meta)
         except Exception as e:
-            logging.critical("DASk  parallelize ERROR: {e}")
+            logging.critical(f"DASk  parallelize ERROR: {e}")
         if client:   
             return client.persist(df2)
         return df2.compute()
@@ -94,8 +95,13 @@ def generateIndicateur_parallel_v2(data, iterables):
     du fait d'un trop grand nombre ou trop grande complexité des données à intersecer (gdf_to_split)
     
     '''
-    print('processing generateIndicateur_parallel')
+    from oeilnc_config import settings
+
+    settings.initializeBilboProject(dotenvPath='.env')
+    logging.info('GenerateIndicateur_parallel_V2')
+    logging.debug(f'GenerateIndicateur_parallel_V2 - {type(data)}')
     paths = settings.getPaths()
+    logging.debug(f'Path : {paths}')
 
 
     data_catalog_dir = paths.get('data_catalog_dir')
@@ -176,7 +182,7 @@ def generateIndicateur_parallel(data, iterables):
     data : unité d'analyse
     iterables: configuration de la données indicateur à croiser avec l'unité d'analyse
     '''
-    print('processing generateIndicateur_parallel')
+    logging.info('processing generateIndicateur_parallel')
     indicateurSpec, individuStatSpec, data_indicateur, keepList, data_geom, data_indicator_geom_col  = iterables
     paths = settings.getPaths()
 

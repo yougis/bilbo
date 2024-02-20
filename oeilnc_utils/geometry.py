@@ -140,8 +140,6 @@ def daskSplitGeomByAnother(gdf_to_split, iterables: tuple):
     '''
     logging.info(f"daskSplitGeomByAnother ...")
     logging.debug(f"daskSplitGeomByAnother gdf type {type(gdf_to_split)}")
-    logging.debug(f"daskSplitGeomByAnother gdf {gdf_to_split}")
-
     logging.debug(f"daskSplitGeomByAnother iterables {iterables}")
 
     by_geoms, overlayHow = iterables

@@ -103,7 +103,7 @@ def initializeBilboProject(dotenvPath=None):
         null_variables.append("data_config_file")
 
     if null_variables:
-        logging.warning("The following variables are null: {}".format(", ".join(null_variables)))
+        logging.critical("The following variables are null: {}".format(", ".join(null_variables)))
         return
     
     config_dict = {
@@ -138,7 +138,31 @@ def getDbConnection():
     }
 
 def getPaths():
-    return {
+
+    logging.info(f'Settings - getPaths data_config_file {data_config_file} ')
+    
+    null_variables = []
+    if commun_path is None:
+        null_variables.append("commun_path")
+    if project_dir is None:
+        null_variables.append("project_dir")
+    if data_catalog_dir is None:
+        null_variables.append("data_catalog_dir")
+    if data_output_dir is None:
+        null_variables.append("data_output_dir")
+    if sig_data_path is None:
+        null_variables.append("sig_data_path")
+    if project_db_schema is None:
+        null_variables.append("project_db_schema")
+    if data_config_file is None:
+        null_variables.append("data_config_file")
+    if dimension_catalog_dir is None:
+        null_variables.append("dimension_catalog_dir")
+
+    if null_variables:
+        logging.critical("The following variables are null: {}".format(", ".join(null_variables)))
+    
+    conf = {
         "commun_path": commun_path,
         "project_dir": project_dir,
         "data_catalog_dir": data_catalog_dir,
@@ -149,9 +173,13 @@ def getPaths():
         "dimension_catalog_dir": dimension_catalog_dir
 
     }
+    logging.debug(f'Settings - getPaths - config {conf}')
+
+    return conf
 
 def getDaskClient():
     global client
+    client = Client()
     if 'client' in globals():
 
         # La variable client existe dans l'espace de noms global

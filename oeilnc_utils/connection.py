@@ -4,7 +4,7 @@ from oeilnc_config import settings
 
 from sqlalchemy import create_engine, Engine
 from geopandas import GeoDataFrame
-import pandas as pd 
+from pandas import DataFrame
 from shapely.geometry import Polygon,MultiPolygon
 
 from intake import entry
@@ -138,10 +138,20 @@ def getNbLignes(source: entry.Catalog):
 
 def persistGDF(gdf,iterables):
     logging.info("persistGDF")
+
+    logging.debug(f"persistGDF - {type(gdf)} ")
     confDb, adaptingDataframe,individuStatSpec,epsg = iterables
     tableName = confDb.get('tableName',None)
     ext_table_name = individuStatSpec.get('dataName',None)
-    gdf.set_crs(epsg, inplace=True)
+    if isinstance(gdf, GeoDataFrame):
+        gdf.set_crs(epsg, inplace=True)
+    elif isinstance(gdf, DataFrame):
+        logging.warning(f"Vous essayer de persister un donnée sans géométrie: {gdf.shape[0]} -  {gdf.head()}")
+
+    if gdf.shape[0] == 0:
+        logging.warning(f"Le Dataframe est vide, on passe")
+        return
+    
     if tableName:
         
         schema = confDb.get('schema',None)

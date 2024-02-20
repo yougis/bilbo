@@ -60,9 +60,12 @@ le déploiement se fait en mode --quiet
 pour voir ce qui se passe activer l'environnement conda 
 `conda activate gis311_base`
 
-Lancer 
+Lancer :
 
 `pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@[nom_de_la_branche]`
+
+ex sur la branche "refactoring_from_bilbo"
+`pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@refactoring_from_bilbo"`
 
 ## Contribuer
 

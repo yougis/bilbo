@@ -314,6 +314,7 @@ def generateValueBydims(data, iterables):
                 dfMeta = data_s 
             else:
                 data_splited = data.map_partitions(daskSplitGeomByAnother, iterables=(spatials[['id_spatial','level','upper_libelle','geometry']],"intersection"),meta=dfMeta)
+                #data_splited.compute()
                 data = client.persist(data_splited.repartition(npartitions=data.npartitions))
 
             
@@ -395,7 +396,12 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
     # Step 1 (facultatif si la donnée indicateur est déjà créée) : créer la données indicateur. Croisement donnée individu source/indicateur
     # Step 2 (facultatif l'étape 1 est faite) : appliquer les dimensions spatiales et mesures.
     # Step 3 (facultatif) : persister les données en base Postgis.
-    client = getDaskClient()
+    try:
+        client = getDaskClient()
+    except Exception as e:
+        logging.critical(f"Le client Dask n'a pas pu  être connecté au scheduler. Erreur : {e}")
+        pass
+    
     logging.info(f"Dask client : {client}")
 
     paths = getPaths()
