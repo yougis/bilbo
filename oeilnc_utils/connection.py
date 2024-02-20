@@ -171,7 +171,8 @@ def persistGDF(gdf,iterables):
         toDrop = adaptingDataframe.get('toDrop',[])
         renameMap = adaptingDataframe.get('renameMap',{})
         setAllClasseValue = adaptingDataframe.get('setAllClasseValue',None)
-        fillNanClasse = adaptingDataframe.get('fillNanClasse',None)     
+        fillNanClasse = adaptingDataframe.get('fillNanClasse',None)
+     
         changeType = adaptingDataframe.get('changeType',{})        
         setValue = adaptingDataframe.get('setValue',{})
         colNameValue = setValue.get('colName',None)
@@ -214,7 +215,7 @@ def persistGDF(gdf,iterables):
             logging.info(f"import postgis finish")
             return gdf
         except Exception as e:
-            logging.critical(f"{tableName}_withError to postgis",e)
+            logging.critical(f"{tableName}_withError to postgis {e}")
             if not isinstance( gdf , GeoDataFrame):
                 logging.critical(f"{type(gdf)} n'est pas un GeoDataFrame ",e)
             gdf = GeoDataFrame(gdf)
