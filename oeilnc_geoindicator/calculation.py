@@ -204,7 +204,9 @@ def daskCalculateMesures(ddf, iterables):
     Returns:
         Dask DataFrame: The calculated Dask DataFrame.
     '''
-    #client = getDaskClient()
+    from dask.distributed import get_client
+    client = get_client()
+
     mesures, individuSpec, indicateurSpec, nbchuncks = iterables
     indexRef = individuSpec.get('indexRef', None)
     logging.info("daskCalculateMesures")
@@ -402,8 +404,9 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
     # Step 2 (facultatif l'étape 1 est faite) : appliquer les dimensions spatiales et mesures.
     # Step 3 (facultatif) : persister les données en base Postgis.
     
-    client = getDaskClient()
-    #logging.info(f"Dask client : {client}")
+    from dask.distributed import get_client
+    client = get_client()
+     #logging.info(f"Dask client : {client}")
 
     paths = getPaths()
 

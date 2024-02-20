@@ -54,8 +54,8 @@ def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: Catalog.entry, fu
         Exception: If an error occurs during parallelization.
 
     """
-    #client = settings.getDaskClient()
-
+    from dask.distributed import get_client
+    client = get_client()
     logging.info(f"reading intake source  {intakeSource}...")
     df = intakeSource.read()
     logging.debug(f"df: {len(df.index)}")
@@ -95,6 +95,7 @@ def generateIndicateur_parallel_v2(data, iterables):
     du fait d'un trop grand nombre ou trop grande complexité des données à intersecer (gdf_to_split)
     
     '''
+    
     from oeilnc_config import settings
 
     logging.info('GenerateIndicateur_parallel_V2')
