@@ -179,7 +179,7 @@ def getPaths():
 
 def getDaskClient():
     global client
-    client = Client()
+    #client = Client()
     if 'client' in globals():
 
         # La variable client existe dans l'espace de noms global
