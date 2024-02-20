@@ -261,9 +261,9 @@ def generateValueBydims(data, iterables):
         DataFrame: The generated values.
 
     """
-    logging.info(f"DASK calculate Value By dims... ")
-    logging.debug(f"DASK calculate Value By dims data type {type(data)} {data}")
-    client = getDaskClient()
+    logging.info(f"generateValueBydims ... ")
+    logging.debug(f"generateValueBydims data type {type(data)} {data}")
+    
 
     individuSpec, indicateurSpec, dim_spatial, dim_mesure, model ,nbchuncks = iterables
     #print("data", data.columns, data.shape)
@@ -283,16 +283,16 @@ def generateValueBydims(data, iterables):
     confDb = indicateurSpec.get('confDb',None)
 
     dfMeta = GeoDataFrame(columns = model)
-    logging.info(f"model : {model}")
-    logging.info(f"dfMeta.columns {dfMeta.columns}")
-    logging.info(f"data.columns {data.columns}")
+    logging.info(f"generateValueBydims - model : {model}")
+    logging.info(f"generateValueBydims - dfMeta.columns {dfMeta.columns}")
+    logging.info(f"generateValueBydims - data.columns {data.columns}")
     if confDims is not None:
         isin_id_spatial = confDims.get('isin_id_spatial',None)
         isin_id_mesure = confDims.get('isin_id_mesure',None)
         if isin_id_spatial is not None:
             
             if isin_id_spatial == '*':
-                logging.info(f"isin_id_spatial == '*' /// Compute all spatials dimension  ")
+                logging.info(f"generateValueBydims - isin_id_spatial == '*' /// Compute all spatials dimension  ")
                 pass
             else:
                 spatials = spatials[spatials.id_spatial.isin(isin_id_spatial)]            
@@ -313,25 +313,29 @@ def generateValueBydims(data, iterables):
                 data = ddg_from_geopandas(data_s,npartitions=1)
                 dfMeta = data_s 
             else:
+                logging.debug(f"generateValueBydims - NNNNNNNNNNNNNNNNNNN :{type(data)} {data.compute()}")
                 data_splited = data.map_partitions(daskSplitGeomByAnother, iterables=(spatials[['id_spatial','level','upper_libelle','geometry']],"intersection"),meta=dfMeta)
-                #data_splited.compute()
-                data = client.persist(data_splited.repartition(npartitions=data.npartitions))
 
+                logging.debug(f"generateValueBydims - data_splited : {data_splited.compute()}")
+                data = client.persist(data_splited.repartition(npartitions=data.npartitions))
+                logging.debug(f"generateValueBydims - data : {data.compute()}")
             
         else:
-            logging.info(f"aucun id spatial n'est renseigné dans isin_id_spatial")
+            logging.info(f"generateValueBydims - aucun id spatial n'est renseigné dans isin_id_spatial")
 
     
         if isin_id_mesure is not None:
-            logging.info(f"mesures")
+            logging.info(f"generateValueBydims - mesures isin_id_mesure : {isin_id_mesure}")
             mesures = mesures[mesures.id_mesure.isin(isin_id_mesure)]         
             result = daskCalculateMesures(data,(mesures,individuSpec,indicateurSpec,nbchuncks))
             result = client.persist(result)
+            logging.debug(f"generateValueBydims - mesures - result: {result.compute()}")
             return result
         else:
-            logging.info(f"isin_id_mesure est None")
+            logging.info(f"generateValueBydims - isin_id_mesure est {isin_id_mesure}")
             return data.compute()
 
+    logging.warning(f'generateValueBydims - confDims: {confDims} ')
     return dfMeta
 
 
@@ -654,6 +658,8 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                                 indicateur = generateIndicateur_parallel(data.read(),(indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom))
                             
                             if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame))  :
+                                logging.info(f"Etape 1 - Result: ' {type(indicateur)}")
+                                logging.info(f"Etape 1 - Result: ' {indicateur.compute()}")
                                 pass
                             else:
                                 stepList = []
@@ -681,10 +687,10 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
     if 2 not in stepList:
         pass
     else:
-        logging.info("create_indicator: Etape 2")
+        logging.info(f"create_indicator: Etape 2")
         logging.info(f"indexListIndicator {indexListIndicator}")
         if indexListIndicator:
-            logging.info("create_indicator: Etape 2 --> indexListIndicator")
+            logging.info(f"create_indicator: Etape 2 --> indexListIndicator {indexListIndicator}")
             for indexIndicator in indexListIndicator :
 
                 #print("indexRef",indexRef," indexIndicator",indexIndicator)
@@ -717,20 +723,21 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                 if 3 in stepList:
                     stepList.remove(3)
         else:
-            logging.info("create_indicator: Etape 2 --> pas de indexListIndicator")
+            logging.info(f"create_indicator: Etape 2 --> pas de indexListIndicator")
+            logging.debug(f"create_indicator: Etape 2 -->  indicateur {indicateur}")
             #indicateur = client.submit(spatial_partitions, indicateur)
             fromIntake = True
             # spec indicateur
             logging.info(f"indicateurSpec {indicateurSpec}")
             confRatio = indicateurSpec.get('confRatio',None)
             metaModelList =  [indexRef] + keepList +  ['id_split','id_spatial','level','upper_libelle','geometry']
-            logging.info("create_indicator: Etape 2 --> metaModelList {metaModelList}")
+            logging.info(f"create_indicator: Etape 2 --> metaModelList {metaModelList}")
             try:
+                logging.info(f"indicateur : {indicateur}")
                 indicateur = generateValueBydims(indicateur,(individuStatSpec,indicateurSpec,dim_spatial,dim_mesure, metaModelList, nbchuncks))
-            #client.submit(distributed_to_parquet,indicateur,(fileName,dim_spatial))
-                #print("indicateur",indicateur)
                 indicateur = client.persist(indicateur)
-            
+                results = client.compute(indicateur).result()
+                logging.info(f"results : {results}")
             except Exception as e:
                 logging.info(f"generateValueBydims error: {e}")      
 
@@ -738,17 +745,18 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
         return True
         pass
     else:
-        logging.info(f"create_indicator: Etape 3 --> persisting in database")
         logging.info(f"create_indicator: Etape 3 --> persisting in database: confDb {confDb}")
         try:
-            
+            logging.debug(f"create_indicator: Etape 3 --> Indicateur {indicateur}")
             #indicateur = client.gather(client.compute(indicateur))
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg))
+            #client.compute(indicateur)
             results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg)).result()
             #Ajout JFNGVS 09/02/2023
+            logging.info(f"create_indicator: Etape 3 --> Resultat {results}")
             ext_table_name = individuStatSpec.get('dataName',None)
-            AjoutClePrimaire(schema,user,pswd, host, db_traitement, f"{tableName}_{ext_table_name}")
+            AjoutClePrimaire(schema,user, pswd, host, db_traitement, f"{tableName}_{ext_table_name}")
             return f"{tableName}_{ext_table_name}"
         except Exception as e:
-            logging.info("persistGDF error: {e}")
+            logging.info(f"persistGDF error: {e}")
             return 0

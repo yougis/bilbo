@@ -7,6 +7,8 @@ from geopandas import GeoDataFrame, GeoSeries
 from pandas import DataFrame, Series
 from shapely.geometry import Polygon,MultiPolygon
 
+import dask
+
 from intake import entry
 from intake import open_catalog
 
@@ -74,7 +76,7 @@ def fixOsPath(path,replace,winDisque="N:"):
     return path
 
 
-def AjoutClePrimaire(schem, user, mdp, hote, db, tb):
+def AjoutClePrimaire(schem, user, pswd, host, dbase, tb):
     """
     Adds a primary key column to a table in the specified schema.
 
@@ -93,7 +95,7 @@ def AjoutClePrimaire(schem, user, mdp, hote, db, tb):
 
     """
 
-    eng = getEngine(user,mdp,hote,db)
+    eng = getEngine(user=user,pswd=pswd,host=host,dbase=dbase)
     sqlseqid = f"create sequence if not exists {schem}.{tb}_id_seq increment 1 start 1 minvalue 1 maxvalue 2147483647 cache 1; alter sequence {schem}.{tb}_id_seq OWNER TO oeil_admin;"
     sqlid = f"alter table {schem}.{tb} add column if not exists id_fait numeric(9,0) not null default nextval('{schem}.{tb}_id_seq'::regclass)"
     sqlcontrainte = f"alter table {schem}.{tb} drop constraint if exists {tb}_pkey; alter table {schem}.{tb} add constraint {tb}_pkey primary key (id_fait);"
@@ -148,12 +150,19 @@ def persistGDF(gdf,iterables):
         gdf.set_crs(epsg, inplace=True)
 
     elif isinstance(gdf, (DataFrame, Series)):
-        logging.warning(f"Vous essayer de persister un donnée sans géométrie: {gdf.shape[0]} -  {gdf.head()}")
+        logging.warning(f"persistGDF - Vous essayer de persister un donnée sans géométrie: {gdf.shape[0]} -  {gdf}")
+        # Convertir les chaînes de caractères en tuples de clé et d'indice
+
 
         if gdf.shape[0] == 0:
-            logging.warning(f"Le Dataframe est vide, on passe")
-            return
-        
+            logging.warning(f"persistGDF - Le Dataframe est vide, on passe")
+
+        return gdf
+    
+    else :
+        logging.warning(f"persistGDF - Vous essayer de persister un donnée de type -  {type(gdf)}")
+        return gdf
+    
     if tableName:
         
         schema = confDb.get('schema',None)
@@ -205,11 +214,15 @@ def persistGDF(gdf,iterables):
             #modification JFNGVS 08/02/2023: index gere
             gdf.to_postgis(tableName,getEngine(), schema=schema,if_exists=strategy, chunksize=chunksize)
             logging.info(f"import postgis finish")
+            return gdf
         except Exception as e:
             logging.critical(f"{tableName}_withError to postgis",e)
             if not isinstance( gdf , GeoDataFrame):
                 logging.critical(f"{type(gdf)} n'est pas un GeoDataFrame ",e)
             gdf = GeoDataFrame(gdf)
             gdf.to_postgis(f"{tableName}_withError",getEngine(), schema=schema,if_exists='replace', chunksize=chunksize)        
+            return gdf
+
     else:
         logging.critical("Il faut renseigner un nom de table dans confDb!")
+        return False
