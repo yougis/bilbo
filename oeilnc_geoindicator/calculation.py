@@ -263,8 +263,8 @@ def generateValueBydims(data, iterables):
     """
     logging.info(f"generateValueBydims ... ")
     logging.debug(f"generateValueBydims data type {type(data)} {data}")
-    
 
+    client = getDaskClient()
     individuSpec, indicateurSpec, dim_spatial, dim_mesure, model ,nbchuncks = iterables
     #print("data", data.columns, data.shape)
     spatials = dim_spatial.read()
@@ -733,7 +733,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             metaModelList =  [indexRef] + keepList +  ['id_split','id_spatial','level','upper_libelle','geometry']
             logging.info(f"create_indicator: Etape 2 --> metaModelList {metaModelList}")
             try:
-                logging.info(f"indicateur : {indicateur}")
+                logging.info(f"reate_indicator: Etape 2 --> indicateur : {indicateur.compute()}")
                 indicateur = generateValueBydims(indicateur,(individuStatSpec,indicateurSpec,dim_spatial,dim_mesure, metaModelList, nbchuncks))
                 indicateur = client.persist(indicateur)
                 results = client.compute(indicateur).result()
