@@ -47,7 +47,68 @@ if project_db_schema is None:
 if null_variables:
     logging.warning("The following variables are null: {}".format(", ".join(null_variables)))
 
+def initializeWorkers(dotenvPath='.env'):
 
+
+
+    load_dotenv(dotenv_path=dotenvPath)
+
+    global commun_path
+    global data_catalog_dir 
+    global project_dir
+    global data_output_dir
+    global sig_data_path
+    global project_db_schema
+    global data_config_file
+    global dimension_catalog_dir
+    global user
+    global pswd
+    global host
+    global port
+
+    commun_path = getenv("COMMUN_PATH")
+    project_dir = getenv("PROJECT_PATH")
+    data_catalog_dir = getenv("DATA_CATALOG_DIR")
+    data_output_dir = getenv("DATA_OUTPUT_DIR")
+    sig_data_path = getenv("SIG_DATA_PATH")
+    project_db_schema = getenv("PROJECT_DB_SCHEMA")
+    data_config_file = getenv("DATA_CONFIG_DIR")
+    dimension_catalog_dir = getenv("DIM_CATALOG_DIR")
+
+
+    user = getenv("DB_USER")
+    pswd = getenv("DB_PWD")
+    host = getenv("DB_HOST")
+    port = getenv("DB_PORT")
+
+    home = getenv("HOME_PATH")
+    db_traitement = getenv("DB_WORKSPACE")
+    db_ref = getenv("DB_REF")
+    db_externe = getenv("DB_EXT")
+
+
+    config_dict = {
+        "user": user,
+        "pswd": pswd,
+        "host": host,
+        "port": port,
+        "home": home,
+        "db_traitement": db_traitement,
+        "db_ref": db_ref,
+        "db_externe": db_externe,
+        "commun_path": commun_path,
+        "project_dir": project_dir,
+        "data_catalog_dir": data_catalog_dir,
+        "data_output_dir": data_output_dir,
+        "sig_data_path": sig_data_path,
+        "project_db_schema": project_db_schema,
+        "data_config_file": data_config_file,
+        "dimension_catalog_dir": dimension_catalog_dir
+    }
+
+    logging.debug(f'Workers Settings - getPaths - config {config_dict}')
+
+    return
 
 def initializeBilboProject(dotenvPath=None):
     load_dotenv(dotenv_path=dotenvPath)

@@ -204,7 +204,7 @@ def daskCalculateMesures(ddf, iterables):
     Returns:
         Dask DataFrame: The calculated Dask DataFrame.
     '''
-    client = getDaskClient()
+    #client = getDaskClient()
     mesures, individuSpec, indicateurSpec, nbchuncks = iterables
     indexRef = individuSpec.get('indexRef', None)
     logging.info("daskCalculateMesures")
@@ -264,7 +264,7 @@ def generateValueBydims(data, iterables):
     logging.info(f"generateValueBydims ... ")
     logging.debug(f"generateValueBydims data type {type(data)} {data}")
 
-    client = getDaskClient()
+ 
     individuSpec, indicateurSpec, dim_spatial, dim_mesure, model ,nbchuncks = iterables
     #print("data", data.columns, data.shape)
     spatials = dim_spatial.read()
@@ -400,13 +400,8 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
     # Step 1 (facultatif si la donnée indicateur est déjà créée) : créer la données indicateur. Croisement donnée individu source/indicateur
     # Step 2 (facultatif l'étape 1 est faite) : appliquer les dimensions spatiales et mesures.
     # Step 3 (facultatif) : persister les données en base Postgis.
-    try:
-        client = getDaskClient()
-    except Exception as e:
-        logging.critical(f"Le client Dask n'a pas pu  être connecté au scheduler. Erreur : {e}")
-        pass
     
-    logging.info(f"Dask client : {client}")
+    #logging.info(f"Dask client : {client}")
 
     paths = getPaths()
 
@@ -658,8 +653,8 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                                 indicateur = generateIndicateur_parallel(data.read(),(indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom))
                             
                             if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame))  :
-                                logging.info(f"Etape 1 - Result: ' {type(indicateur)}")
-                                logging.info(f"Etape 1 - Result: ' {indicateur.compute()}")
+                                logging.info(f"Etape 1 - Result:  {type(indicateur)}")
+                                logging.info(f"Etape 1 - Result:  {client.compute(indicateur)}")
                                 pass
                             else:
                                 stepList = []

@@ -54,7 +54,7 @@ def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: Catalog.entry, fu
         Exception: If an error occurs during parallelization.
 
     """
-    client = settings.getDaskClient()
+    #client = settings.getDaskClient()
 
     logging.info(f"reading intake source  {intakeSource}...")
     df = intakeSource.read()
