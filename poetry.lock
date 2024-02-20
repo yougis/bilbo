@@ -1209,6 +1209,41 @@ fsspec = ">=2023.0.0"
 pyyaml = "*"
 
 [[package]]
+name = "intake-geopandas"
+version = "0.4.0"
+description = "Geopandas plugin for Intake"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "intake_geopandas-0.4.0-py3-none-any.whl", hash = "sha256:3bc5280eb6166750d11650dd0db0d5460bdf86439417449bf5163b7527c5e28c"},
+    {file = "intake_geopandas-0.4.0.tar.gz", hash = "sha256:2a228fb8ff8d52bb0eb93d87d305dfa1c70875ea76f603dd7ba5b7b54c4dd884"},
+]
+
+[package.dependencies]
+geopandas = "*"
+intake = "*"
+
+[package.extras]
+arrow = ["pyarrow"]
+regionmask = ["regionmask"]
+
+[[package]]
+name = "intake-sql"
+version = "0.4.0"
+description = "SQL plugin for Intake"
+optional = false
+python-versions = "*"
+files = [
+    {file = "intake-sql-0.4.0.tar.gz", hash = "sha256:c79b0f7d484d569d990f32067cb01a5ef565522a657955d264b316a1b0c0d4c6"},
+    {file = "intake_sql-0.4.0-py3-none-any.whl", hash = "sha256:4d5e612bddb09e63135a2cdcea9ea65325800acef80596d009a2154dcf840cc7"},
+]
+
+[package.dependencies]
+intake = "*"
+pandas = "*"
+sqlalchemy = ">2"
+
+[[package]]
 name = "ipyevents"
 version = "2.0.2"
 description = "A custom widget for returning mouse and keyboard events to Python"
@@ -3178,4 +3213,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "a519ad0464b431e51309ee587ca47fa5ddf2adf8efefd4a4bfd78f5f587eb3c9"
+content-hash = "e501b6cae324487f9f925b8d5630a6911adfeb41df7d6ad49e5c53575788032f"

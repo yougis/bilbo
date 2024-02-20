@@ -331,7 +331,6 @@ def generateValueBydims(data, iterables):
             logging.info(f"generateValueBydims - mesures isin_id_mesure : {isin_id_mesure}")
             mesures = mesures[mesures.id_mesure.isin(isin_id_mesure)]         
             result = daskCalculateMesures(data,(mesures,individuSpec,indicateurSpec,nbchuncks))
-            #result = client.persist(result)
             logging.debug(f"generateValueBydims - mesures - result: {result.compute()}")
             return result
         else:
@@ -724,7 +723,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                     stepList.remove(3)
         else:
             logging.info(f"create_indicator: Etape 2 --> pas de indexListIndicator")
-            #logging.debug(f"create_indicator: Etape 2 -->  indicateur {indicateur}")
+            logging.debug(f"create_indicator: Etape 2 -->  indicateur {indicateur.compute()}")
             #indicateur = client.submit(spatial_partitions, indicateur)
             fromIntake = True
             # spec indicateur
@@ -733,7 +732,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             metaModelList =  [indexRef] + keepList +  ['id_split','id_spatial','level','upper_libelle','geometry']
             logging.info(f"create_indicator: Etape 2 --> metaModelList {metaModelList}")
             try:
-                logging.info(f"reate_indicator: Etape 2 --> indicateur : {indicateur.compute()}")
+                logging.info(f"reate_indicator: Etape 2 --> indicateur : {indicateur.result()}")
                 indicateur = generateValueBydims(indicateur,(individuStatSpec,indicateurSpec,dim_spatial,dim_mesure, metaModelList, nbchuncks))
                 indicateur = client.persist(indicateur)
                 results = client.compute(indicateur).result()
