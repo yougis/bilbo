@@ -1,16 +1,40 @@
-[project]
-name = "generate_indicator"
-version = "0.2.1"
-authors = [
-  { name="Clément Niot", email="clement.niot@oeil.nc" },
-]
+[tool.poetry]
+name = "bilbo-packages"
+version = "0.0.2"
 description = "Package permettant de générer des indicateurs à partir de différentes sources de données (Google Earth Engine, ...)."
+authors = ["Clément Niot <clement.niot@oeil.nc>", "Hugo Roussaffa <hugo.roussaffa@oeil.nc>"]
 readme = "README.md"
-requires-python = ">=3.9"
-classifiers = [
-    "Programming Language :: Python :: 3",
+license = "CC SA"  # Ajoutez ici votre licence, si applicable
+homepage = "https://dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages"
+classifiers = ["Programming Language :: Python :: 3",]
+packages = [
+    { include = "oeilnc_geoindicator" },
+    { include = "oeilnc_utils" },
+    { include = "oeilnc_config" },
+
 ]
 
+
+
+
+[tool.poetry.dependencies]
+python = "^3.9"
+earthengine-api = "*"
+numpy = "*"
+geemap = "*"
+rasterstats = "*"
+geopandas = "*"
+plotly = "*"
+tobler = "^0.11.2"
+intake = "^2.0.1"
+sqlalchemy = "^2.0.27"
+dask-geopandas = "^0.3.1"
+intake-geopandas = "^0.4.0"
+intake-sql = "^0.4.0"
+geoalchemy2 = "^0.14.4"
+
+
+
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

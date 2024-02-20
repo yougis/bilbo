@@ -1,0 +1,45 @@
+adaptingDataframe:
+  renameMap: {
+    'level':'type_spatial',
+    'upper_libelle':'dimension_spatiale',
+    'objectid':'id_thematique'
+  }
+adaptingDataframe:
+  changeType: {}
+  renameMap: {}
+  setValue:
+    colName: id_indicateur
+    value: ??
+  toDrop: []
+catalogUri: None
+confDb:
+  chunksize: 1000
+  schema: surfor
+  strategy: append
+  tableName: TEST_GFC_gain
+confDims:
+  isin_id_mesure:
+  - 3
+  - 100
+  isin_id_spatial: 
+  - None
+confRaster:
+  api: GEE
+  bandName : 'gain'
+  masque : [1,2]
+  overlayHow: intersection
+  outputValue : 'classifie'
+  defaultValue: 255
+  uri_image: 'UMD/hansen/global_forest_change_2021_v1_9'
+confTemporal:
+  colName: Annee
+  value: 2012
+  valuefromPixel: false
+  
+dataName: gfc_gain
+epsg: EPSG:4326
+keepList:
+- classe
+- Annee
+overlayHow: intersection
+sourceType: Raster

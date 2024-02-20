@@ -1,0 +1,38 @@
+
+PROJECT_ID="stac"
+
+
+COMMUN_PATH = "/media/commun/commun/"
+ARCHIVE_PATH = "media/archive/"
+
+DATA_CATALOG_DIR = ../test_catalog_file/
+DATA_CONFIG_DIR = ../test_catalog_file/config/
+DATA_OUTPUT_DIR = ../target/
+
+
+PATH_INFOCENTRE_APP = ${COMMUN_PATH}Informatique/SIG/Application/Jupyterhub/
+PROJECT_PATH = ${PATH_INFOCENTRE_APP}projets/${PROJECT_ID}/
+SIG_DATA_PATH = ${COMMUN_PATH}Informatique/SIG/Donnees/
+STAC_CATALOG_PATH =  ${ARCHIVE_PATH}STAC/
+DIM_CATALOG_DIR = ${PATH_INFOCENTRE_APP}projets/catalogFiles/
+
+DIM_CATALOG_DIR = ${PATH_INFOCENTRE_APP}projets/catalogFiles/
+
+
+DB_USER="hroussaffa"
+DB_PWD="mcot"
+DB_HOST=172.20.12.13
+DB_PORT=5432
+
+DB_WORKSPACE="oeil_traitement"
+DB_REF="oeil_reference"
+DB_EXT="data_externe"
+DB_SCHEMA = "feux"
+
+DB_USER_VULCAIN=""
+DB_PWD_VULCAIN=""
+DB_HOST_VULCAIN=*****
+DB_PORT_VULCAIN=****
+DB_VULCAIN_PROD=****
+
+PROJECT_DB_SCHEMA="bilbo"

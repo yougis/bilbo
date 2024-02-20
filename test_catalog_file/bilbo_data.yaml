@@ -1,0 +1,55 @@
+sources:
+  incendies_Sentinel:
+    args:
+      geopandas_kwargs:
+        geom_col: geom
+        crs: 3163
+      sql_expr: SELECT * FROM feux."incendies_Sentinel"
+      table:  feux."incendies_Sentinel"
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_REF")}}
+    description: Données répertoriant les incendies survenus en Nouvelle-Calédonie.
+    driver: intake_geopandas.geopandas.PostGISSource
+    
+  dim_date:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: SELECT * FROM bilbo."dim_date"
+      table:  bilbo."dim_date"
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_WORKSPACE")}}
+    description: Dates
+    driver: intake_geopandas.geopandas.PostGISSource
+    
+  communes:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: SELECT * FROM bdadminnc."communes"
+      table:  bdadminnc."communes"
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Communes de NC.
+    driver: intake_geopandas.geopandas.PostGISSource
+
+  provinces:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: SELECT * FROM bdadminnc."provinces"
+      table:  bdadminnc."provinces"
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Provinces de NC.
+    driver: intake_geopandas.geopandas.PostGISSource
+    
+  mos2014:
+    args:
+      geopandas_kwargs:
+        geom_col: shape
+        crs: 3163
+      sql_expr: SELECT * FROM mos."mos2014_pn_ps_pi"
+      table:  mos."mos2014_pn_ps_pi"
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/{{env("DB_EXT")}}
+    description: Modes d'occupation du sol en Nouvelle-Calédonie
+    driver: intake_geopandas.geopandas.PostGISSource
