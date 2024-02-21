@@ -6,8 +6,14 @@ import yaml
 from dask.distributed import Client
 from dotenv import load_dotenv
 from dask.distributed import Client
+from datetime import datetime
+import os
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.DEBUG)
+
+current_date = datetime.now().strftime("%Y-%m-%d_%H-%M")
+current_directory = os.getcwd()
+log_filename = os.path.join(current_directory, f"{current_date}-bilbo-processing.log")
+logging.basicConfig( filename= f"{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.DEBUG)
 
 logging.info("Config - Settings Imported")
 

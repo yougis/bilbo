@@ -11,7 +11,6 @@ from oeilnc_config import settings
 from oeilnc_utils import connection
 from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.DEBUG)
 
 logging.info("GeoIndicator - Distribution Imported")
 
