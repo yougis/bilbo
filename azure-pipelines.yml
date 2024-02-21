@@ -16,7 +16,7 @@ trigger:
 
 variables:
   hosts_qual: "172.20.10.113,172.20.10.112"
-  hosts_prod: "172.20.10.113,172.20.10.112,$(clustersIPS)"
+  hosts_prod: "$(clustersIPS)"
   packages: "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages"
 
 steps:
