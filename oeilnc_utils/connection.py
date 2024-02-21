@@ -15,8 +15,6 @@ from intake import open_catalog
 from oeilnc_utils.catalog import create_yaml_intake_catalog_from_dict
 
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.DEBUG)
-
 logging.info("Utils - Connection Imported")
 
 def getEngine(user='usr', pswd='pswd', host='host', port=5432, dbase='db_traitement') -> Engine:
