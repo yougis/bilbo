@@ -128,12 +128,6 @@ Pour utiliser ce package dans votre projet, il suffit de l'installer via le repo
 pip install git+https://Oeilnc@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages
 ```
 
-Cependant, cette installation n'inclus pas les dépendances pourtant spécifiées dans le fichier `setup.py`. 
-Tant qu'une solution n'a pas été trouvée pour automatiquement installer les dépendances, ces dernières devront être installées manuellement :
-```bash
-conda install -c conda-forge earthengine-api numpy geemap rasterstats geopandas
-```
-
 Une fois installées, on peut utiliser le package :
 
 ```python

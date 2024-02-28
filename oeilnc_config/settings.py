@@ -89,7 +89,7 @@ def initializeWorkers(config_dict: dict):
     data_config_file = config_dict.get("data_config_file")
     dimension_catalog_dir = config_dict.get("dimension_catalog_dir")
 
-    return
+    return True
 
 def initializeBilboProject(dotenvPath=None):
     load_dotenv(dotenv_path=dotenvPath)
@@ -171,6 +171,7 @@ def initializeBilboProject(dotenvPath=None):
 
 def getDbConnection():
 
+    logging.info(f"getDbConnection - {user} {host} {port} {db_traitement}")
     return {
        "user": user,
         "pswd": pswd,
@@ -235,8 +236,8 @@ def getDaskClient():
             schedulerIp = "172.20.12.13:9786"
             logging.info(f"on applique cette ip par défaut : {schedulerIp}")
 
-        #client = Client()
-        client = Client(schedulerIp)
+        client = Client()
+        #client = Client(schedulerIp)
         return client
 
 
@@ -291,5 +292,5 @@ def checkConfig(indicateurSpec,individuStatSpec):
         logging.warning(f"le nom de la table sur postgis est trop long. Veuillez reduire le nom de la table de faits: {tb_name_with_error}")
         return True
     else:
-        logging.info(f"le nom de la table de faits en base de donnée en sortie de traitement répond au pré-requis : faits_{tableName}_{dataName}")
+        logging.info(f"le nom de la table de faits en base de donnée en sortie de traitement répond au pré-requis : {tableName}_{dataName}")
         return True

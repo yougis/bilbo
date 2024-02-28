@@ -731,13 +731,13 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             metaModelList =  [indexRef] + keepList +  ['id_split','id_spatial','level','upper_libelle','geometry']
             logging.info(f"create_indicator: Etape 2 --> metaModelList {metaModelList}")
             try:
-                logging.info(f"reate_indicator: Etape 2 --> indicateur : {indicateur.result()}")
+                logging.info(f"create_indicator: Etape 2 --> indicateur : {indicateur}")
                 indicateur = generateValueBydims(indicateur,(individuStatSpec,indicateurSpec,dim_spatial,dim_mesure, metaModelList, nbchuncks))
                 indicateur = client.persist(indicateur)
                 results = client.compute(indicateur).result()
                 logging.info(f"results : {results}")
             except Exception as e:
-                logging.info(f"generateValueBydims error: {e}")      
+                logging.critical(f"generateValueBydims error more details : {e}")      
 
     if 3 not in stepList:
         return True
@@ -757,5 +757,5 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             AjoutClePrimaire(schema,user, pswd, host, db_traitement, f"{tableName}_{ext_table_name}")
             return f"{tableName}_{ext_table_name}"
         except Exception as e:
-            logging.info(f"persistGDF error: {e}")
+            logging.critical(f"persistGDF error: {e}")
             return 0
