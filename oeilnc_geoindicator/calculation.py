@@ -667,7 +667,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                                 logging.info("No data to process")
                                 pass
                         except Exception as e:
-                            logging.info(f"calculation error: {e}")
+                            logging.critical(f"calculation error: {e}")
                 
                 
             else:
