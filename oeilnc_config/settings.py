@@ -106,6 +106,7 @@ def initializeBilboProject(dotenvPath=None):
     global pswd
     global host
     global port
+    global db_traitement
 
     commun_path = getenv("COMMUN_PATH")
     project_dir = getenv("PROJECT_PATH")
