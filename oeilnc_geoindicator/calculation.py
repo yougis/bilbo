@@ -725,7 +725,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
                     stepList.remove(3)
         else:
             logging.info(f"create_indicator: Etape 2 --> pas de indexListIndicator")
-            logging.debug(f"create_indicator: Etape 2 -->  indicateur {indicateur.compute()}")
+            logging.debug(f"create_indicator: Etape 2 -->  indicateur {indicateur}")
             #indicateur = client.submit(spatial_partitions, indicateur)
             fromIntake = True
             # spec indicateur
