@@ -1,4 +1,3 @@
-
 from os import getenv
 import logging
 from intake import open_catalog
@@ -13,11 +12,9 @@ import os
 current_date = datetime.now().strftime("%Y-%m-%d_%H-%M")
 current_directory = os.getcwd()
 log_filename = os.path.join(current_directory, f"{current_date}-bilbo-processing.log")
-logging.basicConfig( filename= f"{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.DEBUG)
+logging.basicConfig( filename= f"{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
 logging.info("Config - Settings Imported")
-
-
 
 usr = getenv("DB_USER")
 pswd = getenv("DB_PWD")
@@ -295,3 +292,4 @@ def checkConfig(indicateurSpec,individuStatSpec):
     else:
         logging.info(f"le nom de la table de faits en base de donnée en sortie de traitement répond au pré-requis : {tableName}_{dataName}")
         return True
+
