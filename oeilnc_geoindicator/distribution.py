@@ -55,6 +55,7 @@ def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: Catalog.entry, fu
     """
     from dask.distributed import get_client
     client = get_client()
+    client.run(settings.initializeWorkers, config)
     logging.info(f"reading intake source  {intakeSource}...")
     df = intakeSource.read()
     logging.debug(f"df: {len(df.index)}")
