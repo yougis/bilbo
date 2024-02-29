@@ -223,7 +223,6 @@ def getPaths():
 
 def getDaskClient():
     global client
-    #client = Client()
     if 'client' in globals():
 
         # La variable client existe dans l'espace de noms global
@@ -236,8 +235,7 @@ def getDaskClient():
             schedulerIp = "172.20.12.13:9786"
             logging.info(f"on applique cette ip par défaut : {schedulerIp}")
 
-        client = Client()
-        #client = Client(schedulerIp)
+        client = Client(schedulerIp)
         return client
 
 

@@ -9,7 +9,9 @@ from oeilnc_geoindicator.distribution import parallelize_DaskDataFrame_From_Inta
 from oeilnc_geoindicator.raster import indicateur_from_raster
 from oeilnc_utils.connection import getSqlWhereClauseBbox, fixOsPath, persistGDF, AjoutClePrimaire
 from oeilnc_utils.geometry import daskSplitGeomByAnother
-from oeilnc_config.settings import getPaths, getDbConnection, getDaskClient
+from oeilnc_config.settings import getPaths, getDbConnection
+from dask.distributed import get_client
+
 from intake import open_catalog
 
 
@@ -203,7 +205,6 @@ def daskCalculateMesures(ddf, iterables):
     Returns:
         Dask DataFrame: The calculated Dask DataFrame.
     '''
-    from dask.distributed import get_client
     client = get_client()
 
     mesures, individuSpec, indicateurSpec, nbchuncks = iterables
@@ -265,7 +266,8 @@ def generateValueBydims(data, iterables):
     
     logging.info(f"generateValueBydims ... ")
     logging.debug(f"generateValueBydims data type {type(data)} {data}")
-
+    
+    client = get_client()
  
     individuSpec, indicateurSpec, dim_spatial, dim_mesure, model ,nbchuncks = iterables
     #print("data", data.columns, data.shape)
@@ -315,12 +317,12 @@ def generateValueBydims(data, iterables):
                 data = ddg_from_geopandas(data_s,npartitions=1)
                 dfMeta = data_s 
             else:
-                logging.debug(f"generateValueBydims - NNNNNNNNNNNNNNNNNNN :{type(data)} {data.compute()}")
+                logging.debug(f"generateValueBydims - DASK computation :{type(data)}")
                 data_splited = data.map_partitions(daskSplitGeomByAnother, iterables=(spatials[['id_spatial','level','upper_libelle','geometry']],"intersection"),meta=dfMeta)
 
-                logging.debug(f"generateValueBydims - data_splited : {data_splited.compute()}")
-                #data = client.persist(data_splited.repartition(npartitions=data.npartitions))
-                logging.debug(f"generateValueBydims - data : {data.compute()}")
+                #logging.debug(f"generateValueBydims - data_splited : {data_splited.compute()}")
+                data = client.persist(data_splited.repartition(npartitions=data.npartitions))
+                logging.debug(f"generateValueBydims - data : {data_splited}")
             
         else:
             logging.info(f"generateValueBydims - aucun id spatial n'est renseigné dans isin_id_spatial")
@@ -330,7 +332,7 @@ def generateValueBydims(data, iterables):
             logging.info(f"generateValueBydims - mesures isin_id_mesure : {isin_id_mesure}")
             mesures = mesures[mesures.id_mesure.isin(isin_id_mesure)]         
             result = daskCalculateMesures(data,(mesures,individuSpec,indicateurSpec,nbchuncks))
-            logging.debug(f"generateValueBydims - mesures - result: {result.compute()}")
+            #logging.debug(f"generateValueBydims - mesures - result: {result.compute()}")
             return result
         else:
             logging.info(f"generateValueBydims - isin_id_mesure est {isin_id_mesure}")
