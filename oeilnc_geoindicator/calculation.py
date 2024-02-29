@@ -209,7 +209,7 @@ def daskCalculateMesures(ddf, iterables):
 
     mesures, individuSpec, indicateurSpec, nbchuncks = iterables
     indexRef = individuSpec.get('indexRef', None)
-    logging.info("daskCalculateMesures")
+    logging.info(f"daskCalculateMesures - {type(ddf)}")
     confRatio = individuSpec.get('confRatio', None)
     
     indexList = confRatio.get('indexList', None)
@@ -224,6 +224,7 @@ def daskCalculateMesures(ddf, iterables):
             ddf['values'] = ddf.geometry.area * m.scale
     
     if calculateRatioAfter:
+        logging.info("daskCalculateMesures - calculateRatioAfter")
         ddf = client.persist(ddf)
 
         try:
@@ -734,12 +735,15 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             logging.info(f"create_indicator: Etape 2 --> metaModelList {metaModelList}")
             try:
                 logging.info(f"create_indicator: Etape 2 --> indicateur : {indicateur}")
+
                 indicateur = generateValueBydims(indicateur,(individuStatSpec,indicateurSpec,dim_spatial,dim_mesure, metaModelList, nbchuncks))
                 indicateur = client.persist(indicateur)
-                results = client.compute(indicateur).result()
-                logging.info(f"results : {results}")
+                #logging.info(f"create_indicator : computation")
+                #results = client.compute(indicateur).result()
+                #logging.info(f"results : {results}")
             except Exception as e:
-                logging.critical(f"generateValueBydims error more details : {e}")      
+                logging.critical(f"generateValueBydims error more details : {e}")
+            
 
     if 3 not in stepList:
         return True
