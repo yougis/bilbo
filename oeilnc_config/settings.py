@@ -53,7 +53,10 @@ if project_db_schema is None:
 if null_variables:
     logging.warning("The following variables are null: {}".format(", ".join(null_variables)))
 
+
 def initializeWorkers(config_dict: dict):
+
+    logging.basicConfig( filename= f"/home/administrateur/{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.DEBUG)
 
     global commun_path
     global data_catalog_dir 
