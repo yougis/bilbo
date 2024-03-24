@@ -162,6 +162,7 @@ poetry lock
 
 **Exécuter les tests**
 
+nécéssite le package pytest. 
 ```
 poetry run pytest
 ```
