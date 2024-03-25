@@ -140,7 +140,7 @@ def persistGDF(gdf,iterables):
     logging.info("persistGDF")
 
     logging.debug(f"persistGDF - {type(gdf)} ")
-    confDb, adaptingDataframe,individuStatSpec,epsg, dbEngineConnection = iterables
+    confDb, adaptingDataframe,individuStatSpec,epsg, dbEngineConnection, metadata = iterables
     user, pswd, host, dbase = dbEngineConnection
     tableName = confDb.get('tableName',None)
     ext_table_name = individuStatSpec.get('dataName',None)
@@ -212,6 +212,7 @@ def persistGDF(gdf,iterables):
             
             gdf.to_postgis(tableName,getEngine(user=user,pswd=pswd,host=host,dbase='oeil_traitement'), schema=schema,if_exists=strategy, chunksize=chunksize)
             logging.info(f"import postgis finish")
+            metadata.insert_metadata()
             return gdf
         except Exception as e:
             logging.critical(f"{tableName}_withError to postgis {e}")

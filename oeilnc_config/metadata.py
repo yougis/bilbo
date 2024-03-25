@@ -9,6 +9,7 @@ import importlib.metadata
 
 DB_META_SCHEMA = 'bilbo'
 
+
 class ProcessingMetadata:
     """
     Represents the metadata for a processing operation.
@@ -48,9 +49,21 @@ class ProcessingMetadata:
     metadata.insert_metadata()
     """
 
-    def __init__(self, output_schema, output_table_name, operator_name, zoi_config, zoi_catalog, 
-                 theme_config, theme_catalog, limit_value, offset_value, environment_variables, 
-                 dimensions_spatiales, log_file_name):
+    def __init__(
+            self, 
+            output_schema=None,
+            output_table_name=None,
+            operator_name=None,
+            zoi_config=None,
+            zoi_catalog=None,
+            theme_config=None,
+            theme_catalog=None,
+            limit_value=None,
+            offset_value=None,
+            environment_variables=None,
+            dimensions_spatiales=None,
+            log_file_name=None
+            ):
         self._id= str(uuid.uuid4())
         self._execution_date = datetime.now()
         self._output_schema = output_schema
@@ -64,13 +77,7 @@ class ProcessingMetadata:
         self._offset_value = offset_value
         self._environment_variables = environment_variables
         self._dimensions_spatiales = dimensions_spatiales
-        self._execution_time = None
         self._log_file_name = log_file_name
-        self._engine =  getEngine(
-            user = self.environment_variables.get('user'),
-            pswd = self.environment_variables.get('pswd'),
-            host = self.environment_variables.get('host')
-            )
         self._biblo_version= importlib.metadata.version('bilbo-packages')
 
     @property
@@ -163,10 +170,9 @@ class ProcessingMetadata:
     
     @property
     def environment_variables_nopwd(self):
-        nopwd= self._environment_variables
+        nopwd = self._environment_variables.copy()
         nopwd['pswd'] = "****"
         return nopwd
-    
     
 
     @environment_variables.setter
@@ -200,6 +206,18 @@ class ProcessingMetadata:
     @property
     def engine(self):
         return self._engine
+    
+    @engine.setter
+    def engine(self, env_variable:dict ):
+        self._engine = getEngine(
+            user = env_variable.get('user'),
+            pswd = env_variable.get('pswd'),
+            host = env_variable.get('host')
+            )
+
+## Methodes
+    def from_config(self, config):
+        pass
 
 
     def get_metadata_by_id(self, id):
@@ -208,7 +226,6 @@ class ProcessingMetadata:
         print(requete_sql)
         df = pd.read_sql_query(requete_sql, self.engine)
         return df
-
 
     def insert_metadata(self):
 
@@ -236,11 +253,8 @@ class ProcessingMetadata:
         # Créer un DataFrame à partir du dictionnaire
         df = pd.DataFrame([metadata])
 
-        print("df",df)
-
         # Insérer le DataFrame dans la base de données
         with pd.option_context('display.max_colwidth', None):  # Permet d'afficher des colonnes de texte longues
             df.to_sql('processing_metadata', schema=DB_META_SCHEMA, con=self.engine, if_exists='append', index=False)
-        
-        
+
         logging.info("metadata créée : ", metadata.get('id'))
