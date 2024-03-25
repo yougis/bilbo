@@ -50,10 +50,7 @@ class TestProcessingMetadata(unittest.TestCase):
 
     def test_log_file_name(self):
         self.assertEqual(self.metadata.log_file_name, 'example.log')
+    
 
-    def test_insert_metadata(self):
-        # You can write additional tests for the insert_metadata method here
-        pass
-
-if __name__ == '__main__':
-    unittest.main()
+    if __name__ == '__main__':
+        unittest.main()

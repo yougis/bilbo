@@ -17,7 +17,7 @@ from oeilnc_utils.catalog import create_yaml_intake_catalog_from_dict
 
 logging.info("Utils - Connection Imported")
 
-def getEngine(user='usr', pswd='pswd', host='host', port=5432, dbase='db_traitement') -> Engine:
+def getEngine(user='usr', pswd='pswd', host='host', port=5432, dbase='oeil_traitement') -> Engine:
     """
     Returns a SQLAlchemy engine object for connecting to a PostgreSQL database.
 

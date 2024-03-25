@@ -1,6 +1,13 @@
 import yaml
 import pandas as pd
 from datetime import datetime
+from oeilnc_utils.connection import getEngine
+import uuid
+import logging
+import json
+import importlib.metadata
+
+DB_META_SCHEMA = 'bilbo'
 
 class ProcessingMetadata:
     """
@@ -36,11 +43,15 @@ class ProcessingMetadata:
 
     # Affichage de la propriété modifiée
     print(metadata.output_schema)
+
+    # Persit des metadata en base de donnée  
+    metadata.insert_metadata()
     """
 
     def __init__(self, output_schema, output_table_name, operator_name, zoi_config, zoi_catalog, 
                  theme_config, theme_catalog, limit_value, offset_value, environment_variables, 
                  dimensions_spatiales, log_file_name):
+        self._id= str(uuid.uuid4())
         self._execution_date = datetime.now()
         self._output_schema = output_schema
         self._output_table_name = output_table_name
@@ -55,6 +66,20 @@ class ProcessingMetadata:
         self._dimensions_spatiales = dimensions_spatiales
         self._execution_time = None
         self._log_file_name = log_file_name
+        self._engine =  getEngine(
+            user = self.environment_variables.get('user'),
+            pswd = self.environment_variables.get('pswd'),
+            host = self.environment_variables.get('host')
+            )
+        self._biblo_version= importlib.metadata.version('bilbo-packages')
+
+    @property
+    def id(self):
+        return self._id
+    
+    @id.setter
+    def id(self, value):
+        self._id = value
 
     @property
     def execution_date(self):
@@ -135,6 +160,14 @@ class ProcessingMetadata:
     @property
     def environment_variables(self):
         return self._environment_variables
+    
+    @property
+    def environment_variables_nopwd(self):
+        nopwd= self._environment_variables
+        nopwd['pswd'] = "****"
+        return nopwd
+    
+    
 
     @environment_variables.setter
     def environment_variables(self, value):
@@ -164,6 +197,18 @@ class ProcessingMetadata:
     def log_file_name(self, value):
         self._log_file_name = value
 
+    @property
+    def engine(self):
+        return self._engine
+
+
+    def get_metadata_by_id(self, id):
+        table = "bilbo.processing_metadata"
+        requete_sql = f"SELECT * FROM {table} WHERE id='{id}'"
+        print(requete_sql)
+        df = pd.read_sql_query(requete_sql, self.engine)
+        return df
+
 
     def insert_metadata(self):
 
@@ -171,26 +216,31 @@ class ProcessingMetadata:
 
         # Establish a connection to the PostgreSQL database
         metadata = {
+            'id': self.id,
             'execution_date': datetime.now(),
             'output_schema': self.output_schema,
             'output_table_name': self.output_table_name,
             'operator_name': self.operator_name,
-            'zoi_config': self.zoi_config,
-            'zoi_catalog': self.zoi_catalog,
-            'theme_config': self.theme_config,
-            'theme_catalog': self.theme_catalog,
+            'zoi_config': json.dumps(self.zoi_config),
+            'zoi_catalog': json.dumps(self.zoi_catalog._yaml()),
+            'theme_config': json.dumps(self.theme_config),
+            'theme_catalog': json.dumps(self.theme_catalog._yaml()),
             'limit_value': self.limit_value,
             'offset_value': self.offset_value,
-            'environment_variables': self.environment_variables,
+            'environment_variables': json.dumps(self.environment_variables_nopwd),
             'dimensions_spatiales': self.dimensions_spatiales,
             'execution_time': self.execution_time,
-            'log_file_name': self.log_file_name
+            'log_file_name': self.log_file_name,
+            'bilbo_version': self._biblo_version
         }
-
         # Créer un DataFrame à partir du dictionnaire
         df = pd.DataFrame([metadata])
 
+        print("df",df)
+
         # Insérer le DataFrame dans la base de données
         with pd.option_context('display.max_colwidth', None):  # Permet d'afficher des colonnes de texte longues
-            df.to_sql('processing_metadata', con=self.engine, if_exists='append', index=False) 
-
+            df.to_sql('processing_metadata', schema=DB_META_SCHEMA, con=self.engine, if_exists='append', index=False)
+        
+        
+        logging.info("metadata créée : ", metadata.get('id'))
