@@ -103,8 +103,7 @@ Pour déployer les packages à partir d'une branche, il faut ajouter @ et rempla
 
 `conda run --name gis311 pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@[nom_de_la_branche]"`
 
-
-## Contribuer
+## Développer et contribuer
 
 Pour développer des packages Python avec Visual Studio Code (VSCode) à partir d'une source Git clonée localement et gérer les dépendances avec **Poetry**.
 Vous pourez ensuite lancer les tests unitaires de manière à ce que l'interpréteur Python trouve les fichiers sources locaux.
@@ -120,6 +119,29 @@ curl -sSL https://install.python-poetry.org | python3 -
 ```
 
 Une fois installé, ouvrez un terminal dans VSCode (Terminal > Nouveau terminal) et naviguez vers le dossier de votre projet si ce n'est pas déjà fait. Ensuite, configurez Poetry pour le projet :
+
+
+exemple de sortie 
+```
+hugo@RSIdebian:~/projets/bilbo-packages$ poetry shell
+Spawning shell within /home/hugo/.cache/pypoetry/virtualenvs/bilbo-packages-fNViwJlA-py3.9
+. /home/hugo/.cache/pypoetry/virtualenvs/bilbo-packages-fNViwJlA-py3.9/bin/activate
+(base) hugo@RSIdebian:~/projets/bilbo-packages$ . /home/hugo/.cache/pypoetry/virtualenvs/bilbo-packages-fNViwJlA-py3.9/bin/activate
+(bilbo-packages-py3.9) (base) hugo@RSIdebian:~/projets/bilbo-packages$ poetry install
+Installing dependencies from lock file
+
+No dependencies to install or update
+
+Installing the current project: bilbo-packages (0.0.4)
+```
+
+``` 
+poetry shell
+```
+
+ex. de retour : 
+
+hugo@RSIdebian:~/projets/bilbo-packages$ 
 
 ``` 
 poetry install
@@ -167,4 +189,33 @@ nécéssite le package pytest.
 poetry run pytest
 ```
 
+### Changer la version de Python utilisée par Poetry 
+Pour changer la version de Python utilisée par Poetry, vous pouvez suivre ces étapes :
 
+1. **Vérifier les versions de Python disponibles :**
+   Tout d'abord, vérifiez les versions de Python disponibles sur votre système en utilisant la commande :
+   ```
+   poetry env list
+   ```
+
+2. **Ajouter une nouvelle version de Python :**
+   Si la version de Python que vous souhaitez utiliser n'est pas déjà installée, vous pouvez l'ajouter avec Poetry. Par exemple, pour ajouter Python 3.9, utilisez la commande :
+   ```
+   poetry env use 3.11
+   ```
+
+3. **Changer la version de Python :**
+   Si la version que vous souhaitez utiliser est déjà installée, vous pouvez simplement basculer vers cette version en utilisant la commande :
+   ```
+   poetry env use <version>
+   ```
+   Remplacez `<version>` par la version de Python que vous souhaitez utiliser, par exemple `3.11`.
+
+4. **Mettre à jour le fichier de verrouillage des dépendances :**
+   Après avoir changé la version de Python, vous devriez mettre à jour le fichier `pyproject.toml` pour refléter la nouvelle version de Python. Cela garantira que les autres utilisateurs de votre projet ou votre système de construction utilisent la même version de Python. Assurez-vous de spécifier la nouvelle version dans la section `[tool.poetry]` du fichier `pyproject.toml`.
+
+5. **Reconstruire l'environnement :**
+   Une fois que vous avez modifié la version de Python dans votre projet Poetry, reconstruisez l'environnement virtuel avec la nouvelle version en utilisant la commande :
+   ```
+   poetry install
+   ```
