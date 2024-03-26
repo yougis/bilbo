@@ -111,7 +111,7 @@ class TestCreateIndicator(unittest.TestCase):
     configFile = settings.initializeBilboProject('.env')
 
     # Attacher le plugin au client
-    client.register_worker_plugin(CustomPlugin())
+    client.register_plugin(CustomPlugin())
 
     # Maintenant, lorsqu'un worker se connecte, la fonction start du plugin sera appelée
     # et vous pouvez exécuter votre commande personnalisée dans cette fonction

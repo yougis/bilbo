@@ -11,7 +11,7 @@ from oeilnc_utils.connection import getSqlWhereClauseBbox, fixOsPath, persistGDF
 from oeilnc_utils.geometry import daskSplitGeomByAnother
 from oeilnc_config.settings import getPaths, getDbConnection
 from dask.distributed import get_client
-
+from dask_expr import DataFrame
 from intake import open_catalog
 
 
@@ -672,7 +672,7 @@ def create_indicator(bbox,
                             else:
                                 indicateur = generateIndicateur_parallel(data.read(),(indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom))
                             
-                            if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame))  :
+                            if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame,DataFrame))  :
                                 logging.info(f"Etape 1 - Result:  {type(indicateur)}")
                                 #logging.info(f"Etape 1 - Result:  {client.compute(indicateur)}")
                                 pass
