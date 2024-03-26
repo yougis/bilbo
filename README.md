@@ -51,89 +51,205 @@ Variables d'environnement utilisées dans certaines méthodes
 
 ## Déployer
 
+considérant que le nom de l'environnement conda est **gis311** : 
 
-Déployer une branche du repot git sur le scheduler : remplacer [nom_de_la_branche]
+```
+conda run --name gis311 pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages
+```
 
-`conda run --name gis311_base pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@[nom_de_la_branche]"`
+le déploiement se fait en mode *--quiet*
+pour voir ce qui se passe activer d'abord l'environnement conda 
+`conda activate gis311`
 
-`conda run --name gis311_base pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@refactoring_from_bilbo"`
+et lancer pip directement :
 
-
-le déploiement se fait en mode --quiet
-pour voir ce qui se passe activer l'environnement conda 
-`conda activate gis311_base`
-
-Lancer :
-
-`pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@[nom_de_la_branche]`
-
-ex sur la branche "refactoring_from_bilbo"
-`pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@refactoring_from_bilbo"`
+`pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages`
 
 
-`pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@refactoring_from_bilbo#oeilnc_geoindicator"`
+### Déployer sans installer les dépendances
+
+De nombreuses dépendances sont indiquées dans le fichier .toml 
+Cela peut être utile de ne pas vouloir réinstaller toutes les dépendances à chaque déploiement. Pour cela il faut ajouter `--no-deps`
+
+`conda run --name gis311_base pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages" --no-deps`
+
+
+### Déployer un sous package uniquement
+Pour déployer uniquement un sous packages  il faut ajouter indiquer # et remplacer [nom_du_sous_package]
+
+```
+pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@refactoring_from_bilbo#[nom_du_sous_package]"
+```
+
+**Quelques exemples** 
+```
+pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@refactoring_from_bilbo#oeilnc_geoindicator"
+```
 
 `pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@refactoring_from_bilbo#oeilnc_utils"`
 
 `pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@refactoring_from_bilbo#oeilnc_config"`
 
-### Sans les dépendances
 
-cela peut être utile de ne pas avoir besoin de réinstaller toutes les dépendances:
-pour cela il faut ajouter
+### Déployer sur le **Scheduler**
+Le scheduler utilise un environnement conda "light" suffixé de  *_base*.
 
-`--no-deps`
+```
+conda run --name gis311_base pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages
+```
 
-`conda run --name gis311_base pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@refactoring_from_bilbo" --no-deps`
+## Déployer à partir d'une branche du repot git sur le scheduler
+Pour déployer les packages à partir d'une branche, il faut ajouter @ et remplacer [nom_de_la_branche]
 
-## Contribuer
+`conda run --name gis311 pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@[nom_de_la_branche]"`
 
-### Poetry
+## Développer et contribuer
+
+Pour développer des packages Python avec Visual Studio Code (VSCode) à partir d'une source Git clonée localement et gérer les dépendances avec **Poetry**.
+Vous pourez ensuite lancer les tests unitaires de manière à ce que l'interpréteur Python trouve les fichiers sources locaux.
+
+### Installer et configurer Poetry
 
 Pour contribuer au package vous pouvez utiliser l'environnement virtuel créé par poetry.
 Pour installer poetry, il suffit de faire :
-```powershell
+```shell
 # installer 
 curl -sSL https://install.python-poetry.org | python3 -
 
 ```
-#### Commande utiles
+
+Une fois installé, ouvrez un terminal dans VSCode (Terminal > Nouveau terminal) et naviguez vers le dossier de votre projet si ce n'est pas déjà fait. Ensuite, configurez Poetry pour le projet :
 
 
+exemple de sortie 
+```
+hugo@RSIdebian:~/projets/bilbo-packages$ poetry shell
+Spawning shell within /home/hugo/.cache/pypoetry/virtualenvs/bilbo-packages-fNViwJlA-py3.9
+. /home/hugo/.cache/pypoetry/virtualenvs/bilbo-packages-fNViwJlA-py3.9/bin/activate
+(base) hugo@RSIdebian:~/projets/bilbo-packages$ . /home/hugo/.cache/pypoetry/virtualenvs/bilbo-packages-fNViwJlA-py3.9/bin/activate
+(bilbo-packages-py3.9) (base) hugo@RSIdebian:~/projets/bilbo-packages$ poetry install
+Installing dependencies from lock file
+
+No dependencies to install or update
+
+Installing the current project: bilbo-packages (0.0.4)
+```
+
+``` 
+poetry shell
+```
+
+ex. de retour : 
+
+hugo@RSIdebian:~/projets/bilbo-packages$ 
+
+``` 
+poetry install
+```
+
+### Configurer l'interpréteur Python dans VSCode
+
+Assurez-vous que l'extension Python est installée dans VSCode. Ensuite, configurez VSCode pour utiliser l'interpréteur Python créé par Poetry :
+
+Ouvrez la palette de commandes `Ctrl+Shift+P`.
+Tapez "Python: Select Interpreter" et sélectionnez-le.
+Choisissez l'interpréteur qui correspond à l'environnement virtuel de votre projet Poetry. Il devrait être nommé quelque chose comme Python 3.x ('nom_du_projet-py3.x': poetry).
+
+**Vous ne trouvez pas l'interpreteur**
+
+Utilisez la commande `poetry env list`
+
+Si vous voyez que l'environnement virtuel créé par Poetry est listé et activé (comme indiqué par "Activated") mais que vous ne le voyez pas dans VSCode lorsque vous essayez de sélectionner l'interpréteur Python, voici quelques étapes supplémentaires à considérer pour résoudre ce problème :
+
+Ajoutez le chemin vers le dossier contenant les environnements virtuels de Poetry. Vous pouvez trouver ce chemin en exécutant `poetry env info -p`
+
+#### Commande Poetry utiles
+
+**Ajouter une dépendance supplémentaire au projet**
 ```
 poetry add ${package-name}
 ```
+
+**Ajouter une dépendance supplémentaire au projet**
 
 ```
 poetry update
 ```
 
+**Ajouter toutes les dépendance dans le fichier lock**
+
 ```
 poetry lock
 ```
 
-### Conda
+**Exécuter les tests**
 
-Pour contribuer au package, il faut installer les packages suivants dans votre environnement Conda :
-```bash
-conda install -c conda-forge earthengine-api numpy geemap rasterstats geopandas rasterio matplotlib plotly
+nécéssite le package pytest. 
 ```
-Le dossier `generate_indicator` contient les méthodes permettant de récupérer des données provenant de catalogue Google Earth Engine.
-Différents exemples illustrent son utilisation dans le dossier `examples`.
-
-## Utiliser
-
-Pour utiliser ce package dans votre projet, il suffit de l'installer via le repo Git.
-```bash
-pip install git+https://Oeilnc@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages
+poetry run pytest
 ```
 
-Une fois installées, on peut utiliser le package :
+### Changer la version de Python utilisée par Poetry 
+Pour changer la version de Python utilisée par Poetry, vous pouvez suivre ces étapes :
 
-```python
-from generate_indicator import gee
-gee.extract_data()
+1. **Vérifier les versions de Python disponibles :**
+   Tout d'abord, vérifiez les versions de Python disponibles sur votre système en utilisant la commande :
+   ```
+   poetry env list
+   ```
+
+2. **Ajouter une nouvelle version de Python :**
+   Si la version de Python que vous souhaitez utiliser n'est pas déjà installée, vous pouvez l'ajouter avec Poetry. Par exemple, pour ajouter Python 3.9, utilisez la commande :
+   ```
+   poetry env use 3.11
+   ```
+
+3. **Changer la version de Python :**
+   Si la version que vous souhaitez utiliser est déjà installée, vous pouvez simplement basculer vers cette version en utilisant la commande :
+   ```
+   poetry env use <version>
+   ```
+   Remplacez `<version>` par la version de Python que vous souhaitez utiliser, par exemple `3.11`.
+
+4. **Mettre à jour le fichier de verrouillage des dépendances :**
+   Après avoir changé la version de Python, vous devriez mettre à jour le fichier `pyproject.toml` pour refléter la nouvelle version de Python. Cela garantira que les autres utilisateurs de votre projet ou votre système de construction utilisent la même version de Python. Assurez-vous de spécifier la nouvelle version dans la section `[tool.poetry]` du fichier `pyproject.toml`.
+
+5. **Reconstruire l'environnement :**
+   Une fois que vous avez modifié la version de Python dans votre projet Poetry, reconstruisez l'environnement virtuel avec la nouvelle version en utilisant la commande :
+   ```
+   poetry install
+   ```
+
+Si malgrès ces étapes, python n'est pas à la version la plus récente (il peut y avoir un décalage entre les repo utilisés par poetry et conda), il faut faire ceci :
+```
+poetry shell
+```
+
+pour python 3.11.8
+```
+conda install python=3.11.8
 ```
 
 
+## Developper et évaluer sur l'infrastructure clusterisée
 
+Lorsqu'on développe un nouvelle version du package vous pourriez rencontrer des erreurs sans quelles soient veritablement explicite :
+ex : 
+
+| RuntimeError: Error during deserialization of the task graph. This frequently
+| occurs if the Scheduler and Client have different environments.
+| For more information, see
+| https://docs.dask.org/en/stable/deployment-considerations.html#consistent-software-environments
+
+Assurez vous d'avoir des environnements identiques entre les workers , le scheduler et le client.
+cela signifie que lorsque vous souhaitez tester un nouveau module sur le cluster, il faut penser à déployer les librairies de la branche en cours de développement. Pour cela le script deploy.sh va nous aider à faire ce travail dans les différents environnement (qualif et production):
+
+pour rappel, la documentation se trouve  [ici dans le projet backup](https://dev.azure.com/Oeilnc/Backup)
+
+
+ex. 
+- installer la dernière version de generate_indicator sur l'environnement de qualification sur les machines du cluster: 
+```
+./deploy.sh conda --hosts 172.20.12.14,172.20.12.15,172.20.12.16,172.20.12.17 --packages git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@[branche-name]
+
+```

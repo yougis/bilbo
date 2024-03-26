@@ -1,0 +1,36 @@
+adaptingDataframe:
+  renameMap: {
+    'level':'type_spatial',
+    'upper_libelle':'dimension_spatiale',
+    'ogc_fid':'id_thematique',
+    'objectid':'id_thematique'
+  }
+  setValue:
+    colName: id_indicateur
+    value: 800
+catalogUri: data_reference.yaml
+confDb:
+  chunksize: 1000
+  strategy: append
+  tableName: faits_foncier
+confDims:
+  isin_id_mesure:
+  - 3
+  isin_id_spatial:
+  - ZEE
+confRatio:
+  indexList:
+  - id
+  - id_spatial
+  ratioByIdSpatial:
+  - id_spatial
+  rationalizeBy: values
+dataName: foncier
+indexRef: id
+indicateur_dissolve_byList: []
+keepList:
+- proprio_ty
+nbchuncks: 100
+limit: 12000
+offset: 0
+overlayHow: intersection

@@ -381,7 +381,18 @@ def createBboxList(individuStatSpec, indicateurSpec):
     return df
 
 
-def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='geometry', stepList=[1,2,3],indexListIndicator=None, sql_pagination='',indicateur_sql_flow=False,daskComputation=True):
+def create_indicator(bbox,
+                     individuStatSpec,
+                     indicateurSpec,
+                     dims,
+                     geomfield='geometry',
+                     stepList=[1,2,3],
+                     indexListIndicator=None,
+                     sql_pagination='',
+                     indicateur_sql_flow=False,
+                     daskComputation=True,
+                     metadata=None
+                     ):
     """
     Create an indicator by performing a series of operations based on the provided configuration.
 
@@ -410,8 +421,7 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
      #logging.info(f"Dask client : {client}")
 
     paths = getPaths()
-
-
+  
     data_catalog_dir = paths.get('data_catalog_dir')
     commun_path  = paths.get('commun_path')
     user = getDbConnection().get('user')
@@ -420,6 +430,10 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
     db_traitement = getDbConnection().get('db_traitement')
 
 
+    if indicateurSpec.get('catalogUri') and indicateurSpec.get('dataName') is not None:
+        catalog = f"{data_catalog_dir}{indicateurSpec.get('catalogUri',None)}"
+        dataName = indicateurSpec.get('dataName',None)
+        metadata.theme_catalog  = getattr(open_catalog(catalog),dataName)
 
     indexRef = individuStatSpec.get('indexRef',None)
     nbchuncks = individuStatSpec.get('nbchuncks',None)
@@ -756,7 +770,8 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg))
             #client.compute(indicateur)
             dbEngineConnection = (user, pswd, host, db_traitement)
-            results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
+
+            results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur).result())),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
             #Ajout JFNGVS 09/02/2023
             logging.info(f"create_indicator: Etape 3 --> Resultat {results}")
             ext_table_name = individuStatSpec.get('dataName',None)
@@ -764,4 +779,4 @@ def create_indicator(bbox, individuStatSpec, indicateurSpec, dims, geomfield='ge
             return f"{tableName}_{ext_table_name}"
         except Exception as e:
             logging.critical(f"persistGDF error: {e}")
-            return 0
+            return f'Error: {e}'

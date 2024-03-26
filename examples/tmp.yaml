@@ -1,9 +1,0 @@
-sources:
-  compte_entites:
-    args:
-      sql_expr: SELECT COUNT(*) as nb FROM bilbo.h3_nc_6;
-      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/oeil_traitement
-    description: "Compter le nombre d\u2019entit\xE9s sans charger les g\xE9om\xE9\
-      tries"
-    driver: sql
-    metadata: {}

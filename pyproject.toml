@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bilbo-packages"
-version = "0.0.4"
+version = "0.1.0"
 description = "Package permettant de générer des indicateurs à partir de différentes sources de données (Google Earth Engine, ...)."
 authors = ["Clément Niot <clement.niot@oeil.nc>", "Hugo Roussaffa <hugo.roussaffa@oeil.nc>"]
 readme = "README.md"
@@ -18,7 +18,7 @@ packages = [
 
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.11.8"
 earthengine-api = "*"
 numpy = "*"
 geemap = "*"
@@ -32,8 +32,15 @@ dask-geopandas = "^0.3.1"
 intake-geopandas = "^0.4.0"
 intake-sql = "^0.4.0"
 geoalchemy2 = "^0.14.4"
+python-dotenv = "^1.0.1"
+psycopg2 = "^2.9.9"
+lz4 = "^4.3.3"
 
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.2"
+ipykernel = "^6.29.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

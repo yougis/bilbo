@@ -17,7 +17,7 @@ from oeilnc_utils.catalog import create_yaml_intake_catalog_from_dict
 
 logging.info("Utils - Connection Imported")
 
-def getEngine(user='usr', pswd='pswd', host='host', port=5432, dbase='db_traitement') -> Engine:
+def getEngine(user='usr', pswd='pswd', host='host', port=5432, dbase='oeil_traitement') -> Engine:
     """
     Returns a SQLAlchemy engine object for connecting to a PostgreSQL database.
 
@@ -75,6 +75,7 @@ def fixOsPath(path,replace,winDisque="N:"):
 
 
 def AjoutClePrimaire(schem, user, pswd, host, dbase, tb):
+    from sqlalchemy.sql import text
     """
     Adds a primary key column to a table in the specified schema.
 
@@ -93,15 +94,21 @@ def AjoutClePrimaire(schem, user, pswd, host, dbase, tb):
 
     """
 
-    eng = getEngine(user=user,pswd=pswd,host=host,dbase=dbase)
-    sqlseqid = f"create sequence if not exists {schem}.{tb}_id_seq increment 1 start 1 minvalue 1 maxvalue 2147483647 cache 1; alter sequence {schem}.{tb}_id_seq OWNER TO oeil_admin;"
+    engine = getEngine(user=user,pswd=pswd,host=host,dbase=dbase)
+    sqlseqid = f"create sequence if not exists {schem}.{tb}_id_seq increment 1 start 1 minvalue 1 maxvalue 2147483647 cache 1;" 
+    alter = f"alter sequence {schem}.{tb}_id_seq OWNER TO oeil_admin;"
     sqlid = f"alter table {schem}.{tb} add column if not exists id_fait numeric(9,0) not null default nextval('{schem}.{tb}_id_seq'::regclass)"
     sqlcontrainte = f"alter table {schem}.{tb} drop constraint if exists {tb}_pkey; alter table {schem}.{tb} add constraint {tb}_pkey primary key (id_fait);"
-    eng.connect().execute(sqlseqid)
-    eng.connect().execute(sqlid)
-    eng.connect().execute(sqlcontrainte)
+    
+
+    with engine.connect() as connection:
+        connection.execute(text(sqlseqid))
+        connection.execute(text(alter))
+        connection.execute(text(sqlid))
+        connection.execute(text(sqlcontrainte))
+        
+    
     logging.info(f"cle primaire id_fait ajoutee sur {tb}")
-    eng.dispose()
 
 
     return True

@@ -7,11 +7,17 @@ from dotenv import load_dotenv
 from dask.distributed import Client
 from datetime import datetime
 import os
-
+from oeilnc_config.metadata import ProcessingMetadata
 
 current_date = datetime.now().strftime("%Y-%m-%d_%H-%M")
 current_directory = os.getcwd()
 log_filename = os.path.join(current_directory, f"{current_date}-bilbo-processing.log")
+
+for handler in logging.root.handlers[:]:
+    if isinstance(handler, logging.FileHandler):
+        logging.root.removeHandler(handler)
+        handler.close()
+        
 logging.basicConfig( filename= f"{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
 logging.info("Config - Settings Imported")
@@ -53,7 +59,7 @@ if null_variables:
 
 def initializeWorkers(config_dict: dict):
 
-    logging.basicConfig( filename= f"/home/administrateur/{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.DEBUG)
+    logging.basicConfig( filename= f"/home/administrateur/{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
     global commun_path
     global data_catalog_dir 
@@ -147,7 +153,9 @@ def initializeBilboProject(dotenvPath=None):
 
     if null_variables:
         logging.critical("The following variables are null: {}".format(", ".join(null_variables)))
-        return
+        return False
+    
+    
     
     config_dict = {
         "user": user,

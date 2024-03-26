@@ -1,0 +1,31 @@
+sources:
+  h3_nc_6:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select  hex_id, geometry from bilbo.h3_nc_6
+      table: bilbo.h3_nc_6
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/oeil_traitement
+    description: 'Maille H3 niveau 6 sur les terres emergées de NC'
+    driver: intake_geopandas.geopandas.PostGISSource
+  h3_nc_6_LIMIT_10:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select  hex_id, geometry from bilbo.h3_nc_6 limit 10 offset 100 
+      table: bilbo.h3_nc_6
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/oeil_traitement
+    description: 'Maille H3 niveau 6 sur les terres emergées de NC'
+    driver: intake_geopandas.geopandas.PostGISSource
+  h3_nc_8:
+    args:
+      geopandas_kwargs:
+        geom_col: geometry
+        crs: 3163
+      sql_expr: select hex_id, geometry from "bilbo"."h3_nc_8"
+      table: bilbo.h3_nc_8
+      uri: postgresql://{{env("DB_USER")}}:{{env("DB_PWD")}}@{{env("DB_HOST")}}:{{env("DB_PORT")}}/oeil_traitement
+    description: 'Maille H3 niveau 8 sur les terres emergées de NC'
+    driver: intake_geopandas.geopandas.PostGISSource
