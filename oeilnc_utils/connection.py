@@ -75,6 +75,7 @@ def fixOsPath(path,replace,winDisque="N:"):
 
 
 def AjoutClePrimaire(schem, user, pswd, host, dbase, tb):
+    from sqlalchemy.sql import text
     """
     Adds a primary key column to a table in the specified schema.
 
@@ -93,15 +94,21 @@ def AjoutClePrimaire(schem, user, pswd, host, dbase, tb):
 
     """
 
-    eng = getEngine(user=user,pswd=pswd,host=host,dbase=dbase)
-    sqlseqid = f"create sequence if not exists {schem}.{tb}_id_seq increment 1 start 1 minvalue 1 maxvalue 2147483647 cache 1; alter sequence {schem}.{tb}_id_seq OWNER TO oeil_admin;"
+    engine = getEngine(user=user,pswd=pswd,host=host,dbase=dbase)
+    sqlseqid = f"create sequence if not exists {schem}.{tb}_id_seq increment 1 start 1 minvalue 1 maxvalue 2147483647 cache 1;" 
+    alter = f"alter sequence {schem}.{tb}_id_seq OWNER TO oeil_admin;"
     sqlid = f"alter table {schem}.{tb} add column if not exists id_fait numeric(9,0) not null default nextval('{schem}.{tb}_id_seq'::regclass)"
     sqlcontrainte = f"alter table {schem}.{tb} drop constraint if exists {tb}_pkey; alter table {schem}.{tb} add constraint {tb}_pkey primary key (id_fait);"
-    eng.connect().execute(sqlseqid)
-    eng.connect().execute(sqlid)
-    eng.connect().execute(sqlcontrainte)
+    
+
+    with engine.connect() as connection:
+        connection.execute(text(sqlseqid))
+        connection.execute(text(alter))
+        connection.execute(text(sqlid))
+        connection.execute(text(sqlcontrainte))
+        
+    
     logging.info(f"cle primaire id_fait ajoutee sur {tb}")
-    eng.dispose()
 
 
     return True
@@ -140,7 +147,7 @@ def persistGDF(gdf,iterables):
     logging.info("persistGDF")
 
     logging.debug(f"persistGDF - {type(gdf)} ")
-    confDb, adaptingDataframe,individuStatSpec,epsg, dbEngineConnection, metadata = iterables
+    confDb, adaptingDataframe,individuStatSpec,epsg, dbEngineConnection = iterables
     user, pswd, host, dbase = dbEngineConnection
     tableName = confDb.get('tableName',None)
     ext_table_name = individuStatSpec.get('dataName',None)
@@ -212,7 +219,6 @@ def persistGDF(gdf,iterables):
             
             gdf.to_postgis(tableName,getEngine(user=user,pswd=pswd,host=host,dbase='oeil_traitement'), schema=schema,if_exists=strategy, chunksize=chunksize)
             logging.info(f"import postgis finish")
-            metadata.insert_metadata()
             return gdf
         except Exception as e:
             logging.critical(f"{tableName}_withError to postgis {e}")

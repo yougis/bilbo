@@ -16,15 +16,21 @@ class TestCreateIndicator(unittest.TestCase):
     list_data_to_calculate = [
         #"H3_6_NC_non_traite",
         #"H3_6_NC_non_traite_2010",
-        "H3_6_NC"
+        #"H3_6_NC",
+        'Foncier'
     ]
 
     steplist= [1,2,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
     list_indicateur_to_calculate = [
-        "KBA",
+        #"KBA",
         #"observation_nidification"
         #"GFC_gain_2012",
         #"GFC_treecover2000"
+        #"MOS_arbore_indicateurSpec",
+        #"MOS_formation_arboree",
+        #"MOS_formation_arbustive",
+        "MOS_formation_vegetale",
+
         ]
 
     listIdSpatialNC = ["0"]
@@ -76,7 +82,6 @@ class TestCreateIndicator(unittest.TestCase):
     client = settings.getDaskClient()
     configFile = settings.initializeBilboProject('.env')
 
-    client.run(settings.initializeWorkers, configFile)
 
     metadata = ProcessingMetadata()
     metadata.environment_variables = configFile
@@ -115,8 +120,7 @@ class TestCreateIndicator(unittest.TestCase):
             limit = individuStatSpec.get("limit", -1)
             logging.info(f"Initial offset : {offset} , limit : {limit}")
 
-            metadata.offset_value = offset
-            metadata.limit_value = limit
+
             metadata.zoi_config = individuStatSpec
 
             logging.info("step list : {steplist}")
@@ -167,6 +171,8 @@ class TestCreateIndicator(unittest.TestCase):
                                     sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
                                     logging.info(f"sql_pagination : {sql_pagination}")
 
+                                    client.run(settings.initializeWorkers, configFile)
+
                                     faitsname = create_indicator(
                                         bbox=bb,
                                         individuStatSpec=individuStatSpec,
@@ -178,6 +184,12 @@ class TestCreateIndicator(unittest.TestCase):
                                         indicateur_sql_flow=indicateur_sql_flow,
                                         daskComputation=daskComputation,
                                         metadata=metadata)
+                                    
+                                    metadata.output_table_name = faitsname
+                                    metadata.offset_value = offset
+                                    metadata.limit_value = limit
+                                    metadata.insert_metadata()
+
                                     offset += limit
                         else : 
                             pass

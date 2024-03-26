@@ -52,16 +52,16 @@ class ProcessingMetadata:
     def __init__(
             self, 
             output_schema=None,
-            output_table_name=None,
-            operator_name=None,
+            output_table_name='',
+            limit_value=None,
+            offset_value=None,
+            dimensions_spatiales=None,
+            operator_name='',
             zoi_config=None,
             zoi_catalog=None,
             theme_config=None,
             theme_catalog=None,
-            limit_value=None,
-            offset_value=None,
             environment_variables=None,
-            dimensions_spatiales=None,
             log_file_name=None
             ):
         self._id= str(uuid.uuid4())
@@ -79,6 +79,7 @@ class ProcessingMetadata:
         self._dimensions_spatiales = dimensions_spatiales
         self._log_file_name = log_file_name
         self._biblo_version= importlib.metadata.version('bilbo-packages')
+        self._engine = None
 
     @property
     def id(self):
@@ -178,6 +179,10 @@ class ProcessingMetadata:
     @environment_variables.setter
     def environment_variables(self, value):
         self._environment_variables = value
+        if isinstance(value, dict):
+            # on modifie engine:
+            self.engine = self._environment_variables
+
 
     @property
     def dimensions_spatiales(self):
@@ -206,7 +211,8 @@ class ProcessingMetadata:
     @property
     def engine(self):
         return self._engine
-    
+
+
     @engine.setter
     def engine(self, env_variable:dict ):
         self._engine = getEngine(
@@ -214,6 +220,8 @@ class ProcessingMetadata:
             pswd = env_variable.get('pswd'),
             host = env_variable.get('host')
             )
+            
+
 
 ## Methodes
     def from_config(self, config):

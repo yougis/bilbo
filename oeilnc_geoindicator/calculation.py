@@ -770,7 +770,8 @@ def create_indicator(bbox,
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg))
             #client.compute(indicateur)
             dbEngineConnection = (user, pswd, host, db_traitement)
-            results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection, metadata)).result()
+
+            results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur).result())),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
             #Ajout JFNGVS 09/02/2023
             logging.info(f"create_indicator: Etape 3 --> Resultat {results}")
             ext_table_name = individuStatSpec.get('dataName',None)
@@ -778,4 +779,4 @@ def create_indicator(bbox,
             return f"{tableName}_{ext_table_name}"
         except Exception as e:
             logging.critical(f"persistGDF error: {e}")
-            return 0
+            return f'Error: {e}'
