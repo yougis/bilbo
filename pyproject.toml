@@ -35,6 +35,7 @@ geoalchemy2 = "^0.14.4"
 python-dotenv = "^1.0.1"
 psycopg2 = "^2.9.9"
 lz4 = "^4.3.3"
+dask-expr = "^1.0.5"
 
 
 
