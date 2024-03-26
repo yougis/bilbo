@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bilbo-packages"
-version = "0.0.4"
+version = "0.1.0"
 description = "Package permettant de générer des indicateurs à partir de différentes sources de données (Google Earth Engine, ...)."
 authors = ["Clément Niot <clement.niot@oeil.nc>", "Hugo Roussaffa <hugo.roussaffa@oeil.nc>"]
 readme = "README.md"
@@ -18,7 +18,7 @@ packages = [
 
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.11.8"
 earthengine-api = "*"
 numpy = "*"
 geemap = "*"
