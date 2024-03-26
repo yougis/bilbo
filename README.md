@@ -219,3 +219,37 @@ Pour changer la version de Python utilisée par Poetry, vous pouvez suivre ces �
    ```
    poetry install
    ```
+
+Si malgrès ces étapes, python n'est pas à la version la plus récente (il peut y avoir un décalage entre les repo utilisés par poetry et conda), il faut faire ceci :
+```
+poetry shell
+```
+
+pour python 3.11.8
+```
+conda install python=3.11.8
+```
+
+
+## Developper et évaluer sur l'infrastructure clusterisée
+
+Lorsqu'on développe un nouvelle version du package vous pourriez rencontrer des erreurs sans quelles soient veritablement explicite :
+ex : 
+
+| RuntimeError: Error during deserialization of the task graph. This frequently
+| occurs if the Scheduler and Client have different environments.
+| For more information, see
+| https://docs.dask.org/en/stable/deployment-considerations.html#consistent-software-environments
+
+Assurez vous d'avoir des environnements identiques entre les workers , le scheduler et le client.
+cela signifie que lorsque vous souhaitez tester un nouveau module sur le cluster, il faut penser à déployer les librairies de la branche en cours de développement. Pour cela le script deploy.sh va nous aider à faire ce travail dans les différents environnement (qualif et production):
+
+pour rappel, la documentation se trouve  [ici dans le projet backup](https://dev.azure.com/Oeilnc/Backup)
+
+
+ex. 
+- installer la dernière version de generate_indicator sur l'environnement de qualification sur les machines du cluster: 
+```
+./deploy.sh conda --hosts 172.20.12.14,172.20.12.15,172.20.12.16,172.20.12.17 --packages git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@[branche-name]
+
+```
