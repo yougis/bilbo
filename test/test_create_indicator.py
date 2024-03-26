@@ -1,5 +1,6 @@
 import unittest
-
+import  os
+from datetime import datetime
 
 from oeilnc_config import settings
 import yaml
@@ -8,9 +9,35 @@ from oeilnc_utils import connection
 from oeilnc_geoindicator.calculation import create_indicator
 from intake import open_catalog
 from oeilnc_config.metadata import ProcessingMetadata
+from distributed import Client
+
+from dask.distributed import Client, WorkerPlugin
+
+class CustomPlugin(WorkerPlugin):
+    def start(self, worker):
+        print(f"Worker {worker.address} connected to the scheduler.")
+        client = settings.getDaskClient()
+        configFile = settings.initializeBilboProject('.env')
+        client.run(settings.initializeWorkers, configFile)
+        # Insérer ici la commande que vous souhaitez exécuter sur le worker
+
+
+
 
 
 class TestCreateIndicator(unittest.TestCase):
+
+
+    current_date = datetime.now().strftime("%Y-%m-%d_%H-%M")
+    current_directory = os.getcwd()
+    log_filename = os.path.join(current_directory, f"{current_date}-bilbo-processing.log")
+
+    for handler in logging.root.handlers[:]:
+        if isinstance(handler, logging.FileHandler):
+            logging.root.removeHandler(handler)
+            handler.close()
+            
+    logging.basicConfig( filename= f"{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
 
     list_data_to_calculate = [
@@ -80,9 +107,14 @@ class TestCreateIndicator(unittest.TestCase):
 
 
     client = settings.getDaskClient()
+    #client = Client()
     configFile = settings.initializeBilboProject('.env')
 
+    # Attacher le plugin au client
+    client.register_worker_plugin(CustomPlugin())
 
+    # Maintenant, lorsqu'un worker se connecte, la fonction start du plugin sera appelée
+    # et vous pouvez exécuter votre commande personnalisée dans cette fonction
     metadata = ProcessingMetadata()
     metadata.environment_variables = configFile
     metadata.output_schema = configFile.get('project_db_schema')
@@ -170,6 +202,8 @@ class TestCreateIndicator(unittest.TestCase):
                                     
                                     sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
                                     logging.info(f"sql_pagination : {sql_pagination}")
+                                    
+                                    print("Go")
 
                                     client.run(settings.initializeWorkers, configFile)
 

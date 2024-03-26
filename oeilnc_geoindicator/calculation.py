@@ -409,7 +409,7 @@ def create_indicator(bbox,
         daskComputation (bool, optional): Flag indicating whether to use Dask for computation. Defaults to True.
 
     Returns:
-        None
+        Table name or Error value
     """
     # Function principale qui pilote l'ensemble des opérations suivante à partir des éléments de configuration fournis individuStatSpec, indicateurSpec en input
     # Step 1 (facultatif si la donnée indicateur est déjà créée) : créer la données indicateur. Croisement donnée individu source/indicateur
