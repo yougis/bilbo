@@ -11,7 +11,6 @@ from oeilnc_utils.connection import getSqlWhereClauseBbox, fixOsPath, persistGDF
 from oeilnc_utils.geometry import daskSplitGeomByAnother
 from oeilnc_config.settings import getPaths, getDbConnection
 from dask.distributed import get_client
-from dask_expr import DataFrame
 from intake import open_catalog
 
 
@@ -672,7 +671,7 @@ def create_indicator(bbox,
                             else:
                                 indicateur = generateIndicateur_parallel(data.read(),(indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom))
                             
-                            if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame,DataFrame))  :
+                            if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame))  :
                                 logging.info(f"Etape 1 - Result:  {type(indicateur)}")
                                 #logging.info(f"Etape 1 - Result:  {client.compute(indicateur)}")
                                 pass
@@ -770,8 +769,8 @@ def create_indicator(bbox,
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg))
             #client.compute(indicateur)
             dbEngineConnection = (user, pswd, host, db_traitement)
-            results = client.submit(persistGDF, client.compute(indicateur),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
-            #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur).result())),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
+            #results = client.submit(persistGDF, client.compute(indicateur),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
+            results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
             #Ajout JFNGVS 09/02/2023
             logging.info(f"create_indicator: Etape 3 --> Resultat {results}")
             ext_table_name = individuStatSpec.get('dataName',None)

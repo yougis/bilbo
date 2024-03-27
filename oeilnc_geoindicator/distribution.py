@@ -78,7 +78,7 @@ def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: Catalog.entry, fu
         except Exception as e:
             logging.critical(f"DASk  parallelize ERROR: {e}")
         if client:
-            df2 = ddg_from_daskDataframe(df2.to_dask_dataframe(),'geometry')
+            #df2 = ddg_from_daskDataframe(df2.to_dask_dataframe(),'geometry')
             return client.persist(df2)
         return df2.compute()
     else:
