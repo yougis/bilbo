@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 from geopandas import sjoin as gpd_sjoin
 from geopandas import GeoDataFrame
-from dask_geopandas import from_geopandas as ddg_from_geopandas, GeoDataFrame as DaskGeoDataFrame
+from dask_geopandas import from_geopandas as ddg_from_geopandas, from_dask_dataframe as ddg_from_daskDataframe,  GeoDataFrame as DaskGeoDataFrame
 from oeilnc_geoindicator.interpolation import indicateur_from_pre_interpolation, indicateur_from_interpolation
 from oeilnc_geoindicator.distribution import parallelize_DaskDataFrame_From_Intake_Source, generateIndicateur_parallel_v2, generateIndicateur_parallel
 from oeilnc_geoindicator.raster import indicateur_from_raster
@@ -206,7 +206,6 @@ def daskCalculateMesures(ddf, iterables):
         Dask DataFrame: The calculated Dask DataFrame.
     '''
     client = get_client()
-
     mesures, individuSpec, indicateurSpec, nbchuncks = iterables
     indexRef = individuSpec.get('indexRef', None)
     logging.info(f"daskCalculateMesures - {type(ddf)}")
@@ -323,6 +322,7 @@ def generateValueBydims(data, iterables):
 
                 #logging.debug(f"generateValueBydims - data_splited : {data_splited.compute()}")
                 data = client.persist(data_splited.repartition(npartitions=data.npartitions))
+                data = ddg_from_daskDataframe(data, geometry="geometry")
                 logging.debug(f"generateValueBydims - data : {data_splited}")
             
         else:
@@ -669,6 +669,7 @@ def create_indicator(bbox,
                                     metaModelList,
                                     nbchuncks=nbchuncks
                                 )
+                                indicateur.compute()
                             else:
                                 indicateur = generateIndicateur_parallel(data.read(),(indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom))
                             
@@ -770,8 +771,8 @@ def create_indicator(bbox,
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg))
             #client.compute(indicateur)
             dbEngineConnection = (user, pswd, host, db_traitement)
-
-            results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur).result())),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
+            results = client.submit(persistGDF, client.compute(indicateur),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
+            #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur).result())),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
             #Ajout JFNGVS 09/02/2023
             logging.info(f"create_indicator: Etape 3 --> Resultat {results}")
             ext_table_name = individuStatSpec.get('dataName',None)

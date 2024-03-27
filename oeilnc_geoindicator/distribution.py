@@ -2,6 +2,7 @@ from oeilnc_utils.connection import fixOsPath, getSqlWhereClauseBbox
 from dask_geopandas import from_geopandas as ddg_from_geopandas
 from intake import Catalog
 from geopandas import GeoDataFrame
+from dask_geopandas import from_geopandas as ddg_from_geopandas, from_dask_dataframe as ddg_from_daskDataframe
 from dask.distributed import Client
 from os import getenv
 import logging
@@ -76,7 +77,8 @@ def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: Catalog.entry, fu
             df2 = data.map_partitions(func, iterables=paramsTuples, meta=df_meta)
         except Exception as e:
             logging.critical(f"DASk  parallelize ERROR: {e}")
-        if client:   
+        if client:
+            df2 = ddg_from_daskDataframe(df2.to_dask_dataframe(),'geometry')
             return client.persist(df2)
         return df2.compute()
     else:
