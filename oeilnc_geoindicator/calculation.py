@@ -322,7 +322,7 @@ def generateValueBydims(data, iterables):
 
                 #logging.debug(f"generateValueBydims - data_splited : {data_splited.compute()}")
                 data = client.persist(data_splited.repartition(npartitions=data.npartitions))
-                data = ddg_from_daskDataframe(data, geometry="geometry")
+                #data = ddg_from_daskDataframe(data, geometry="geometry")
                 logging.debug(f"generateValueBydims - data : {data_splited}")
             
         else:
@@ -669,7 +669,6 @@ def create_indicator(bbox,
                                     metaModelList,
                                     nbchuncks=nbchuncks
                                 )
-                                indicateur.compute()
                             else:
                                 indicateur = generateIndicateur_parallel(data.read(),(indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom))
                             
