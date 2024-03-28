@@ -9,9 +9,8 @@ from oeilnc_utils import connection
 from oeilnc_geoindicator.calculation import create_indicator
 from intake import open_catalog
 from oeilnc_config.metadata import ProcessingMetadata
-from distributed import Client
 
-from dask.distributed import Client, WorkerPlugin
+from dask.distributed import WorkerPlugin
 
 class CustomPlugin(WorkerPlugin):
     def start(self, worker):

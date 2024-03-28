@@ -230,22 +230,28 @@ def getPaths():
 
     return conf
 
+
+
 def getDaskClient():
     global client
-    if 'client' in globals():
 
-        # La variable client existe dans l'espace de noms global
-        return client
-    else:
-        schedulerIp = getenv("SCHEDULER_IP")
-
-        if schedulerIp is None:
-            logging.warning(f"La variable d'environnement SCHEDULER_IP doit être renseignée pour effectuer les traitements de manière distribuée")
-            schedulerIp = "172.20.12.13:9786"
-            logging.info(f"on applique cette ip par défaut : {schedulerIp}")
-
+    def createClient(schedulerIp="172.20.12.13:9786"):
         client = Client(schedulerIp)
         return client
+
+    if 'client' in globals():   
+        if client.scheduler != None:
+        # La variable client existe dans l'espace de noms global
+            return client
+        else:
+            schedulerIp = getenv("SCHEDULER_IP")
+            client = createClient(schedulerIp)
+                
+    else:
+        schedulerIp = getenv("SCHEDULER_IP")
+        client = createClient(schedulerIp)
+    
+    return client
 
 
 def getIndexList(individuStatSpec):
