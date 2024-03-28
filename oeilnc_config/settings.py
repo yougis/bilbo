@@ -245,12 +245,18 @@ def getDaskClient():
             return client
         else:
             schedulerIp = getenv("SCHEDULER_IP")
-            client = createClient(schedulerIp)
+            if schedulerIp:
+                client = createClient(schedulerIp)
+            else:
+                client = createClient(schedulerIp)
                 
     else:
         schedulerIp = getenv("SCHEDULER_IP")
-        client = createClient(schedulerIp)
-    
+        if schedulerIp:
+            client = createClient(schedulerIp)
+        else:
+            client = createClient()
+
     return client
 
 
