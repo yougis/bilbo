@@ -43,7 +43,8 @@ class TestCreateIndicator(unittest.TestCase):
         #"H3_6_NC_non_traite",
         #"H3_6_NC_non_traite_2010",
         #"H3_6_NC",
-        'Foncier'
+        "MOS_formation_vegetale_DAFE",
+
     ]
 
     steplist= [1,2,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
@@ -55,7 +56,7 @@ class TestCreateIndicator(unittest.TestCase):
         #"MOS_arbore_indicateurSpec",
         #"MOS_formation_arboree",
         #"MOS_formation_arbustive",
-        "MOS_formation_vegetale",
+        'Foncier'
 
         ]
 
@@ -226,4 +227,7 @@ class TestCreateIndicator(unittest.TestCase):
                                     offset += limit
                         else : 
                             pass
+                        
+    if __name__ == '__main__':
+        unittest.main()
     
