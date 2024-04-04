@@ -2,7 +2,6 @@ from os import getenv
 import logging
 from intake import open_catalog
 import yaml
-from dask.distributed import Client
 from dotenv import load_dotenv
 from dask.distributed import Client
 from datetime import datetime
