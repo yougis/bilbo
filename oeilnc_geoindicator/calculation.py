@@ -774,7 +774,7 @@ def create_indicator(bbox,
             #Ajout JFNGVS 09/02/2023
             logging.info(f"create_indicator: Etape 3 --> Resultat {results}")
             ext_table_name = individuStatSpec.get('dataName',None)
-            AjoutClePrimaire(schema,user, pswd, host, db_traitement, f"{tableName}_{ext_table_name}")
+           # AjoutClePrimaire(schema,user, pswd, host, db_traitement, f"{tableName}_{ext_table_name}")
             return f"{tableName}_{ext_table_name}"
         except Exception as e:
             logging.critical(f"persistGDF error: {e}")
