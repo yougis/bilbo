@@ -1,6 +1,7 @@
 import unittest
 import  os
 from datetime import datetime
+import uuid
 
 from oeilnc_config import settings
 import yaml
@@ -19,9 +20,6 @@ class CustomPlugin(WorkerPlugin):
         configFile = settings.initializeBilboProject('.env')
         client.run(settings.initializeWorkers, configFile)
         # Insérer ici la commande que vous souhaitez exécuter sur le worker
-
-
-
 
 
 class TestCreateIndicator(unittest.TestCase):
@@ -43,7 +41,38 @@ class TestCreateIndicator(unittest.TestCase):
         #"H3_6_NC_non_traite",
         #"H3_6_NC_non_traite_2010",
         #"H3_6_NC",
-        "MOS_formation_vegetale_DAFE",
+        #"MOS_formation_vegetale_DAFE_missing",
+        #"MOS_formation_vegetale_DAFE",
+        "Foncier",
+        "Reserves_indicateurSpec",
+        "unesco_zones_terrestres",
+        "perimetres_protection_eau", # mettre jour la donnée
+        "bv_producteurs_eau_potable",
+        "Foret_Seche_zone_vigilance",
+        "Foret_Seche_corridors",
+        "Mangrove",
+        # Incendies #VIIRS et MODIS
+        "SurfacesAgricoles",
+        "exploitation_miniere", # fichier config à faire / cadastre minier ? > sur georep / cadastre_minier / couches "concessions minières" et "permis de recherche"  (pas sur la BDD SIG de l'ŒIL)
+        "Geologie_Substrat",
+        # Urbanisation à créer Dynamic world built area
+        # Cyclone à créer > sur georep / bd cyclones / historique des trajectoires
+        # Zone de réhabilitation de sites miniers > BDD RECOSYNTH et données FNI?--> A réccupérer
+        # données Sylviculture de vulcain // différe légerement du MOS 2014
+        # Sècheresse végétale : VHI/VAI annualisé ?
+
+# Fragmentation : pas de donnée
+        # Secteurs de mise en défens (FS et mine)
+
+# Fréquentation humaine :  Zone de Bati et voiries / calcul de distance ?
+# Dynamique ripisylve : > Modelisation écoulement hydro DAVAR. Les données sont accéssibles ici, je ne les ai pas trouvée sur la BD SIG de l'ŒIL: https://carto.gouv.nc/public/rest/services/modelisation_ecoulements_surface/MapServer. Il faut a mon avis considérer uniquement la couche Réseau Hydrographique / RHM seuil5km2. 
+
+        "bande_littorale_375M_individuStatSpec" #Dynamique trait de côte
+
+
+
+
+
 
     ]
 
@@ -56,7 +85,7 @@ class TestCreateIndicator(unittest.TestCase):
         #"MOS_arbore_indicateurSpec",
         #"MOS_formation_arboree",
         #"MOS_formation_arbustive",
-        'Foncier'
+        #'Foncier',
 
         ]
 
@@ -115,10 +144,7 @@ class TestCreateIndicator(unittest.TestCase):
 
     # Maintenant, lorsqu'un worker se connecte, la fonction start du plugin sera appelée
     # et vous pouvez exécuter votre commande personnalisée dans cette fonction
-    metadata = ProcessingMetadata()
-    metadata.environment_variables = configFile
-    metadata.output_schema = configFile.get('project_db_schema')
-    metadata.operator_name = configFile.get('user')
+
 
 
 
@@ -139,7 +165,7 @@ class TestCreateIndicator(unittest.TestCase):
     dim_spatial = cat_dimensions.dim_spatial
     dim_mesure= cat_dimensions.dim_mesure
 
-    metadata.log_filename = settings.log_filename
+    run_id = str(uuid.uuid4())
 
     for dataFileName in list_data_to_calculate:
         
@@ -152,9 +178,6 @@ class TestCreateIndicator(unittest.TestCase):
             limit = individuStatSpec.get("limit", -1)
             logging.info(f"Initial offset : {offset} , limit : {limit}")
 
-
-            metadata.zoi_config = individuStatSpec
-
             logging.info("step list : {steplist}")
 
             if fromIndexList:            
@@ -166,7 +189,6 @@ class TestCreateIndicator(unittest.TestCase):
 
                 individuStatSpec["confDims"]["isin_id_spatial"] = listIdSpatial            
 
-                metadata.dimensions_spatiales = listIdSpatial
                 
             if len(list_indicateur_to_calculate) > 0:
                 for indicateurFileName in list_indicateur_to_calculate:             
@@ -177,8 +199,7 @@ class TestCreateIndicator(unittest.TestCase):
                         indicateurSpec["confDb"]["schema"] = theme
 
                         logging.info(f"individu: {dataFileName} | indicateur: {indicateurFileName}")
-                        
-                        metadata.theme_config = indicateurSpec
+
 
                         if not fromIndexList:
                             indexList= None
@@ -196,7 +217,7 @@ class TestCreateIndicator(unittest.TestCase):
                                 indexRef = individuStatSpec.get('indexRef',None)
                                 nbLignes = connection.getNbLignes(entryCatalog)
 
-                                metadata.zoi_catalog = entryCatalog
+                                
 
                                 while offset < nbLignes:
                                     
@@ -206,6 +227,16 @@ class TestCreateIndicator(unittest.TestCase):
                                     print("Go")
 
                                     client.run(settings.initializeWorkers, configFile)
+
+                                    metadata = ProcessingMetadata(run_id=run_id)
+                                    metadata.environment_variables = configFile
+                                    metadata.output_schema = configFile.get('project_db_schema')
+                                    metadata.operator_name = configFile.get('user')
+                                    metadata.log_filename = settings.log_filename
+                                    metadata.zoi_config = individuStatSpec
+                                    metadata.dimensions_spatiales = listIdSpatial
+                                    metadata.theme_config = indicateurSpec
+                                    metadata.zoi_catalog = entryCatalog
 
                                     faitsname = create_indicator(
                                         bbox=bb,
