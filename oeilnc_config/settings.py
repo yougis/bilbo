@@ -1,4 +1,4 @@
-from os import getenv
+
 import logging
 from intake import open_catalog
 import yaml
@@ -8,35 +8,24 @@ from datetime import datetime
 import os
 from oeilnc_config.metadata import ProcessingMetadata
 
-current_date = datetime.now().strftime("%Y-%m-%d_%H-%M")
-current_directory = os.getcwd()
-log_filename = os.path.join(current_directory, f"{current_date}-bilbo-processing.log")
-
-for handler in logging.root.handlers[:]:
-    if isinstance(handler, logging.FileHandler):
-        logging.root.removeHandler(handler)
-        handler.close()
-        
-logging.basicConfig( filename= f"{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
-
 logging.info("Config - Settings Imported")
 
-usr = getenv("DB_USER")
-pswd = getenv("DB_PWD")
-host = getenv("DB_HOST")
-port = getenv("DB_PORT")
+usr = os.getenv("DB_USER")
+pswd = os.getenv("DB_PWD")
+host = os.getenv("DB_HOST")
+port = os.getenv("DB_PORT")
 
-home = getenv("HOME_PATH")
-db_traitement = getenv("DB_WORKSPACE")
-db_ref = getenv("DB_REF")
-db_externe = getenv("DB_EXT")
+home = os.getenv("HOME_PATH")
+db_traitement = os.getenv("DB_WORKSPACE")
+db_ref = os.getenv("DB_REF")
+db_externe = os.getenv("DB_EXT")
 
-commun_path = getenv("COMMUN_PATH")
-project_dir = getenv("PROJECT_PATH")
-data_catalog_dir = getenv("DATA_CATALOG_DIR")
-data_output_dir = getenv("DATA_OUTPUT_DIR")
-sig_data_path = getenv("SIG_DATA_PATH")
-project_db_schema = getenv("PROJECT_DB_SCHEMA")
+commun_path = os.getenv("COMMUN_PATH")
+project_dir = os.getenv("PROJECT_PATH")
+data_catalog_dir = os.getenv("DATA_CATALOG_DIR")
+data_output_dir = os.getenv("DATA_OUTPUT_DIR")
+sig_data_path = os.getenv("SIG_DATA_PATH")
+project_db_schema = os.getenv("PROJECT_DB_SCHEMA")
 
 null_variables = []
 if commun_path is None:
@@ -113,25 +102,25 @@ def initializeBilboProject(dotenvPath=None):
     global port
     global db_traitement
 
-    commun_path = getenv("COMMUN_PATH")
-    project_dir = getenv("PROJECT_PATH")
-    data_catalog_dir = getenv("DATA_CATALOG_DIR")
-    data_output_dir = getenv("DATA_OUTPUT_DIR")
-    sig_data_path = getenv("SIG_DATA_PATH")
-    project_db_schema = getenv("PROJECT_DB_SCHEMA")
-    data_config_file = getenv("DATA_CONFIG_DIR")
-    dimension_catalog_dir = getenv("DIM_CATALOG_DIR")
+    commun_path = os.getenv("COMMUN_PATH")
+    project_dir = os.getenv("PROJECT_PATH")
+    data_catalog_dir = os.getenv("DATA_CATALOG_DIR")
+    data_output_dir = os.getenv("DATA_OUTPUT_DIR")
+    sig_data_path = os.getenv("SIG_DATA_PATH")
+    project_db_schema = os.getenv("PROJECT_DB_SCHEMA")
+    data_config_file = os.getenv("DATA_CONFIG_DIR")
+    dimension_catalog_dir = os.getenv("DIM_CATALOG_DIR")
 
 
-    user = getenv("DB_USER")
-    pswd = getenv("DB_PWD")
-    host = getenv("DB_HOST")
-    port = getenv("DB_PORT")
+    user = os.getenv("DB_USER")
+    pswd = os.getenv("DB_PWD")
+    host = os.getenv("DB_HOST")
+    port = os.getenv("DB_PORT")
 
-    home = getenv("HOME_PATH")
-    db_traitement = getenv("DB_WORKSPACE")
-    db_ref = getenv("DB_REF")
-    db_externe = getenv("DB_EXT")
+    home = os.getenv("HOME_PATH")
+    db_traitement = os.getenv("DB_WORKSPACE")
+    db_ref = os.getenv("DB_REF")
+    db_externe = os.getenv("DB_EXT")
 
 
     null_variables = []
@@ -243,14 +232,14 @@ def getDaskClient():
         # La variable client existe dans l'espace de noms global
             return client
         else:
-            schedulerIp = getenv("SCHEDULER_IP")
+            schedulerIp = os.getenv("SCHEDULER_IP")
             if schedulerIp:
                 client = createClient(schedulerIp)
             else:
                 client = createClient(schedulerIp)
                 
     else:
-        schedulerIp = getenv("SCHEDULER_IP")
+        schedulerIp = os.getenv("SCHEDULER_IP")
         if schedulerIp:
             client = createClient(schedulerIp)
         else:
