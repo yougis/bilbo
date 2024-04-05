@@ -50,7 +50,8 @@ class ProcessingMetadata:
     """
 
     def __init__(
-            self, 
+            self,
+            run_id,
             output_schema=None,
             output_table_name='',
             limit_value=None,
@@ -64,7 +65,8 @@ class ProcessingMetadata:
             environment_variables=None,
             log_file_name=None
             ):
-        self._id= str(uuid.uuid4())
+        self._id = str(uuid.uuid4())
+        self._run_id = run_id
         self._execution_date = datetime.now()
         self._output_schema = output_schema
         self._output_table_name = output_table_name
@@ -88,7 +90,14 @@ class ProcessingMetadata:
     @id.setter
     def id(self, value):
         self._id = value
-
+    
+    @property
+    def run_id(self):
+        return self._run_id
+    
+    @id.setter
+    def id(self, value):
+        self._id = value
     @property
     def execution_date(self):
         return self._execution_date
@@ -227,7 +236,6 @@ class ProcessingMetadata:
     def from_config(self, config):
         pass
 
-
     def get_metadata_by_id(self, id):
         table = "bilbo.processing_metadata"
         requete_sql = f"SELECT * FROM {table} WHERE id='{id}'"
@@ -235,13 +243,24 @@ class ProcessingMetadata:
         df = pd.read_sql_query(requete_sql, self.engine)
         return df
 
-    def insert_metadata(self):
+    def get_metadata_by_run_id(self, run_id):
+        table = "bilbo.processing_metadata"
+        requete_sql = f"SELECT * FROM {table} WHERE run_id='{run_id}'"
+        print(requete_sql)
+        df = pd.read_sql_query(requete_sql, self.engine)
+        return df
 
-        self.execution_time = datetime.now() - self.execution_date
+    def insert_metadata(self):
+        if not self.engine:
+            #logging.critical("Pas d'engine dans l'objet metadata")
+            self.engine = self.environment_variables
+            
+        self.execution_time = str(datetime.now() - self.execution_date)
 
         # Establish a connection to the PostgreSQL database
         metadata = {
             'id': self.id,
+            'run_id': self.run_id,
             'execution_date': datetime.now(),
             'output_schema': self.output_schema,
             'output_table_name': self.output_table_name,
@@ -265,4 +284,4 @@ class ProcessingMetadata:
         with pd.option_context('display.max_colwidth', None):  # Permet d'afficher des colonnes de texte longues
             df.to_sql('processing_metadata', schema=DB_META_SCHEMA, con=self.engine, if_exists='append', index=False)
 
-        logging.info("metadata créée : ", metadata.get('id'))
+        logging.info("metadata ajoutée : ", metadata.get('id'))

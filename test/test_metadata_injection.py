@@ -4,10 +4,12 @@ from oeilnc_config.metadata import ProcessingMetadata
 from oeilnc_config import settings
 import yaml
 from intake import open_catalog
+import uuid
 
 
 class TestProcessingMetadataInjection(unittest.TestCase):
     def setUp(self):
+        run_id = str(uuid.uuid4())
 
         listIdSpatial = ["C", "F", "G", "B", "D", "A", "E"]
         configFile = settings.initializeBilboProject('test/.env')
@@ -37,13 +39,19 @@ class TestProcessingMetadataInjection(unittest.TestCase):
         dimensions_spatiales= listIdSpatial
         log_file_name='example.log'
 
-        self.metadata = ProcessingMetadata(output_schema, output_table_name, operator_name,
-                                           zoi_config, zoi_catalog,
-                                           theme_config, theme_catalog,
-                                           limit_value, offset_value,
-                                           environment_variables,
-                                           dimensions_spatiales,
-                                           log_file_name)
+        self.metadata = ProcessingMetadata(run_id=run_id, 
+                                           output_schema=output_schema, 
+                                           output_table_name=output_table_name, 
+                                           operator_name=operator_name,
+                                           zoi_config=zoi_config, 
+                                           zoi_catalog=zoi_catalog,
+                                           theme_config=theme_config, 
+                                           theme_catalog=theme_catalog,
+                                           limit_value=limit_value, 
+                                           offset_value=offset_value,
+                                           environment_variables=environment_variables,
+                                           dimensions_spatiales=dimensions_spatiales,
+                                           log_file_name=log_file_name)
 
     def test_execution_date(self):
         self.assertIsInstance(self.metadata.execution_date, datetime)

@@ -768,6 +768,7 @@ def create_indicator(bbox,
             #indicateur = client.gather(client.compute(indicateur))
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg))
             #client.compute(indicateur)
+            indicateur = indicateur.assign(metadata_id=metadata.id)
             dbEngineConnection = (user, pswd, host, db_traitement)
             #results = client.submit(persistGDF, client.compute(indicateur),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
             results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
