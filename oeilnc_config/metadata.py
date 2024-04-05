@@ -284,4 +284,4 @@ class ProcessingMetadata:
         with pd.option_context('display.max_colwidth', None):  # Permet d'afficher des colonnes de texte longues
             df.to_sql('processing_metadata', schema=DB_META_SCHEMA, con=self.engine, if_exists='append', index=False)
 
-        logging.info("metadata ajoutée : ", metadata.get('id'))
+        logging.info("metadata ajoutée : ", metadata.id)

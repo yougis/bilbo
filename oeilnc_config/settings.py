@@ -3,7 +3,7 @@ import logging
 from intake import open_catalog
 import yaml
 from dotenv import load_dotenv
-from dask.distributed import Client
+from dask.distributed import Client, LocalCluster
 from datetime import datetime
 import os
 from oeilnc_config.metadata import ProcessingMetadata
@@ -47,7 +47,7 @@ if null_variables:
 
 def initializeWorkers(config_dict: dict):
 
-    logging.basicConfig( filename= f"/home/administrateur/{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
+    #logging.basicConfig( filename= f"/home/administrateur/{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
     global commun_path
     global data_catalog_dir 
@@ -220,12 +220,20 @@ def getPaths():
 
 
 
-def getDaskClient():
+def getDaskClient(local=False):
     global client
 
     def createClient(schedulerIp="172.20.12.13:9786"):
         client = Client(schedulerIp)
         return client
+
+    if local :
+        # Démarrer un cluster local avec 4 cœurs
+        cluster = LocalCluster(n_workers=12)
+
+        client = Client(cluster)
+        return client
+
 
     if 'client' in globals():   
         if client.scheduler != None:

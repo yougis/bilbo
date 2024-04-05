@@ -31,7 +31,7 @@ from dask.distributed import WorkerPlugin
 class CustomPlugin(WorkerPlugin):
     def start(self, worker):
         print(f"Worker {worker.address} connected to the scheduler.")
-        client = settings.getDaskClient()
+        client = settings.getDaskClient(local=True)
         configFile = settings.initializeBilboProject('.env')
         client.run(settings.initializeWorkers, configFile)
         # Insérer ici la commande que vous souhaitez exécuter sur le worker
@@ -45,7 +45,7 @@ list_data_to_calculate = [
     #"H3_6_NC",
     #"MOS_formation_vegetale_DAFE_missing",
     #"MOS_formation_vegetale_DAFE",
-    "Foncier",
+    #"Foncier",
     "Reserves_indicateurSpec",
     "UNESCO_Zones_terrestres",
     "PerimetresProtectionEau", # mettre jour la donnée
@@ -84,6 +84,7 @@ list_indicateur_to_calculate = [
     #"MOS_formation_arboree",
     #"MOS_formation_arbustive",
     #'Foncier',
+    'Test'
 
     ]
 
@@ -176,17 +177,15 @@ for dataFileName in list_data_to_calculate:
         limit = individuStatSpec.get("limit", -1)
         logging.info(f"Initial offset : {offset} , limit : {limit}")
 
-        logging.info("step list : {steplist}")
+        logging.info(f"step list : {steplist}")
 
         if fromIndexList:            
             indexList = settings.getIndexList(individuStatSpec)
             pass
-        for listIdSpatial in listIdMulti:
-
-            logging.info(f"Id Spatial qui seront calculés : {individuStatSpec['confDims']['isin_id_spatial']}")
-
-            individuStatSpec["confDims"]["isin_id_spatial"] = listIdSpatial            
-
+        for listIdSpatial in listIdMulti:       
+            individuStatSpec["confDims"]["isin_id_spatial"] += listIdSpatial            
+        
+        logging.info(f"Id Spatial qui seront calculés : {individuStatSpec['confDims']['isin_id_spatial']}")
             
         if len(list_indicateur_to_calculate) > 0:
             for indicateurFileName in list_indicateur_to_calculate:             
@@ -230,9 +229,9 @@ for dataFileName in list_data_to_calculate:
                                 metadata.environment_variables = configFile
                                 metadata.output_schema = configFile.get('project_db_schema')
                                 metadata.operator_name = configFile.get('user')
-                                metadata.log_filename = settings.log_filename
+                                metadata.log_filename = log_filename
                                 metadata.zoi_config = individuStatSpec
-                                metadata.dimensions_spatiales = listIdSpatial
+                                metadata.dimensions_spatiales = individuStatSpec["confDims"]["isin_id_spatial"]
                                 metadata.theme_config = indicateurSpec
                                 metadata.zoi_catalog = entryCatalog
 

@@ -187,7 +187,7 @@ class TestCreateIndicator(unittest.TestCase):
 
                 logging.info(f"Id Spatial qui seront calculés : {individuStatSpec['confDims']['isin_id_spatial']}")
 
-                individuStatSpec["confDims"]["isin_id_spatial"] = listIdSpatial            
+                individuStatSpec["confDims"]["isin_id_spatial"] = listIdSpatial 
 
                 
             if len(list_indicateur_to_calculate) > 0:
