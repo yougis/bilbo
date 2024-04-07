@@ -229,7 +229,7 @@ def getDaskClient(local=False):
 
     if local :
         # Démarrer un cluster local avec 4 cœurs
-        cluster = LocalCluster(n_workers=12)
+        cluster = LocalCluster(n_workers=2)
 
         client = Client(cluster)
         return client

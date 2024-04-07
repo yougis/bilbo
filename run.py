@@ -31,7 +31,7 @@ from dask.distributed import WorkerPlugin
 class CustomPlugin(WorkerPlugin):
     def start(self, worker):
         print(f"Worker {worker.address} connected to the scheduler.")
-        client = settings.getDaskClient(local=True)
+        client = settings.getDaskClient()
         configFile = settings.initializeBilboProject('.env')
         client.run(settings.initializeWorkers, configFile)
         # Insérer ici la commande que vous souhaitez exécuter sur le worker
@@ -134,7 +134,7 @@ listbbox= [c for c in listIdSpatialCommune]
 
 
 
-client = settings.getDaskClient()
+client = settings.getDaskClient(local=False)
 #client = Client()
 configFile = settings.initializeBilboProject('.env')
 
