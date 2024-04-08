@@ -278,6 +278,7 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
 
                                 while offset < nbLignes:
 
+
                                     metadata = ProcessingMetadata(run_id=run_id)
                                     metadata.environment_variables = configFile
                                     metadata.output_schema = configFile.get('project_db_schema')
