@@ -31,7 +31,11 @@ _temporality = 'confRaster.temporality'
 
 def initialize():
     _credentials = ee.ServiceAccountCredentials(_service_account, os.path.dirname(__file__) + '/gee_credentials.json')
-    ee.Initialize(_credentials)
+    try:
+        ee.Initialize(_credentials)
+
+    except Exception as e:
+        logging.critical(f"calculation error: {e}")
 
 
 def extract_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:

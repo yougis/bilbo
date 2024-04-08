@@ -430,10 +430,12 @@ def create_indicator(bbox,
 
 
     if indicateurSpec.get('catalogUri') and indicateurSpec.get('dataName') is not None:
-        catalog = f"{data_catalog_dir}{indicateurSpec.get('catalogUri',None)}"
+        catalog = f"{data_catalog_dir}{indicateurSpec.get('catalogUri', None)}"
         dataName = indicateurSpec.get('dataName',None)
-        metadata.theme_catalog  = getattr(open_catalog(catalog),dataName)
-
+        if indicateurSpec.get('catalogUri',None) != 'None':
+            metadata.theme_catalog  = getattr(open_catalog(catalog),dataName)
+        else:
+            metadata.theme_catalog = 'source catalog not implemented yet in metadata'
     indexRef = individuStatSpec.get('indexRef',None)
     nbchuncks = individuStatSpec.get('nbchuncks',None)
     keepList = individuStatSpec.get('keepList',[]) + indicateurSpec.get('keepList',[])
@@ -449,7 +451,7 @@ def create_indicator(bbox,
         epsg = indicateurSpec.get('epsg','EPSG:3163')
 
     tableName = confDb.get('tableName',None)
-    ext_table_name = individuStatSpec.get('theme',None)
+    ext_table_name = individuStatSpec.get('dataName',None)
 
     #Ajout JFNGVS 15/02/2023 strategy 'append' obligatoire si limit
     if "limit" in sql_pagination:
@@ -510,10 +512,13 @@ def create_indicator(bbox,
         selectString = individuStatSpec.get('selectString',entryCatalog.describe().get('args').get('sql_expr'))
         whereString = individuStatSpec.get('whereString',None)
         offset = individuStatSpec.get('offset',False)
-        sourceType = indicateurSpec.get('sourceType',None)
-        sourceTypeInd = individuStatSpec.get('sourceType',None)
+        sourceType = individuStatSpec.get('sourceType',None)
+        sourceTypeInd = indicateurSpec.get('sourceType',None)
         geom = entryCatalog.describe().get('args').get('geopandas_kwargs').get('geom_col')
         schema = confDb.get('schema',None)
+        
+        metaModelList =  [indexRef] + keepList + ['geometry','id_split']
+
 
         if bbox is not None:
             logging.info("create_indicator: Etape 1 avec bbox")
@@ -539,6 +544,9 @@ def create_indicator(bbox,
                 data = entryCatalog(sql_expr=sql + ' ' + sql_pagination)
             else:
                 data = entryCatalog()
+        
+
+
         ###Ajout JFNGVS 24/02/2023 traitement simplement par point
         if sourceType == 'Point':
             logging.info("create_indicator: Etape 1: indicateur = 'Point'")
@@ -554,147 +562,155 @@ def create_indicator(bbox,
 
             
         else:
-            if indicateurSpec.get('catalogUri') and indicateurSpec.get('dataName') is not None:
-                logging.info("create_indicator: Etape 1 --> indicateurSpec.get('catalogUri') and indicateurSpec.get('dataName') is not None")
-                metaModelList =  [indexRef] + keepList + ['geometry','id_split']
+            if indicateurSpec.get('catalogUri') or indicateurSpec.get('dataName') is None:
+                logging.warning(f"""
+                                create_indicator: Etape 1 --> 
+                                indicateurSpec.get('catalogUri') = {indicateurSpec.get('catalogUri')}
+                                indicateurSpec.get('dataName') = {indicateurSpec.get('dataName')}
+                                """)
                 
-                logging.info(f"create_indicator: Etape 1 --> sourceType : {sourceType}")
-                if sourceTypeInd == "Interpolation":
                 
-                    confInterpolation = indicateurSpec.get('confInterpolation',None)
-                    interpolation = confInterpolation.get('interpolation',None)
-                    interpolation_from_pre_interpolation = interpolation.get('from_pre_interpolation',None)
-                    
-                    allocate_total = interpolation.get('allocate_total',None)
+            logging.info(f"create_indicator: Etape 1 --> sourceType : {sourceType}")
+            if sourceTypeInd == "Interpolation":
+            
+                confInterpolation = indicateurSpec.get('confInterpolation',None)
+                interpolation = confInterpolation.get('interpolation',None)
+                interpolation_from_pre_interpolation = interpolation.get('from_pre_interpolation',None)
+                
+                allocate_total = interpolation.get('allocate_total',None)
 
-                    conf_pre_interpolation = confInterpolation.get('pre_interpolation',None)
+                conf_pre_interpolation = confInterpolation.get('pre_interpolation',None)
 
-                    catalog = fixOsPath(f"{data_catalog_dir}{indicateurSpec.get('catalogUri',None)}", commun_path )
-                    dataName = indicateurSpec.get('dataName',None)
-                    
-                    intensive_variables = confInterpolation.get('intensive_variables',None)
-                    extensive_variables = confInterpolation.get('extensive_variables',None)
-                    source_df = getattr(open_catalog(catalog),dataName).read()
+                catalog = fixOsPath(f"{data_catalog_dir}{indicateurSpec.get('catalogUri',None)}", commun_path )
+                dataName = indicateurSpec.get('dataName',None)
                 
+                intensive_variables = confInterpolation.get('intensive_variables',None)
+                extensive_variables = confInterpolation.get('extensive_variables',None)
+                source_df = getattr(open_catalog(catalog),dataName).read()
+            
+                
+                if conf_pre_interpolation and interpolation_from_pre_interpolation:
+                                    
+                    pre_interpolation = confInterpolation.get('pre_interpolation',None)
+                
+                    pre_catalogUri = pre_interpolation.get('catalogUri',None)
+                    pre_interpolate_dataName = pre_interpolation.get('target_df',None)
+                    split_geometry = conf_pre_interpolation.get('split_geometry',None)
+                    pre_allocate_total = conf_pre_interpolation.get('allocate_total',None)
                     
-                    if conf_pre_interpolation and interpolation_from_pre_interpolation:
-                                        
-                        pre_interpolation = confInterpolation.get('pre_interpolation',None)
-                    
-                        pre_catalogUri = pre_interpolation.get('catalogUri',None)
-                        pre_interpolate_dataName = pre_interpolation.get('target_df',None)
-                        split_geometry = conf_pre_interpolation.get('split_geometry',None)
-                        pre_allocate_total = conf_pre_interpolation.get('allocate_total',None)
-                        
-                        pre_catalog = fixOsPath(f"{data_catalog_dir}{pre_catalogUri}", commun_path )
-                        target_entry = getattr(open_catalog(pre_catalog),pre_interpolate_dataName)
-                        target_entry_geom = pre_catalog.describe().get('args').get('geopandas_kwargs').get('geom_col')
+                    pre_catalog = fixOsPath(f"{data_catalog_dir}{pre_catalogUri}", commun_path )
+                    target_entry = getattr(open_catalog(pre_catalog),pre_interpolate_dataName)
+                    target_entry_geom = pre_catalog.describe().get('args').get('geopandas_kwargs').get('geom_col')
 
-                        target_df = target_entry.read()
-                        pre_int_keepList = pre_interpolation.get('keepList',None)
-                        
-                        pre_int_indexRef = pre_interpolation.get('indexRef',None)                    
-                        keepList = keepList + pre_int_keepList + [f'{indexRef}_interpolation']
-                        
-                        metaModelList =  [indexRef] + keepList + [target_entry_geom,'id_split']
-                        
-                        interpolation = indicateur_from_pre_interpolation(source_df, target_df, intensive_variables,extensive_variables, pre_allocate_total, pre_int_keepList, pre_int_indexRef)
-                        if split_geometry:
-                            indicateur = parallelize_DaskDataFrame_From_Intake_Source(data,generateIndicateur_parallel,(indicateurSpec,individuStatSpec, interpolation, metaModelList, geom, target_entry_geom),(tableName,ext_table_name),metaModelList,nbchuncks=nbchuncks)                       
-                        else:                        
-                            indicateur = parallelize_DaskDataFrame_From_Intake_Source(data,indicateur_from_interpolation,(interpolation, intensive_variables,extensive_variables,allocate_total),(tableName,ext_table_name),metaModelList,nbchuncks=nbchuncks)
-                    else:
-                        
-                        indicateur = parallelize_DaskDataFrame_From_Intake_Source(data,indicateur_from_interpolation,(source_df, intensive_variables,extensive_variables,allocate_total),(tableName,ext_table_name),metaModelList,nbchuncks=nbchuncks)
+                    target_df = target_entry.read()
+                    pre_int_keepList = pre_interpolation.get('keepList',None)
                     
+                    pre_int_indexRef = pre_interpolation.get('indexRef',None)                    
+                    keepList = keepList + pre_int_keepList + [f'{indexRef}_interpolation']
                     
-                    if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame)):                
-                        indicateur.set_crs(epsg, inplace=True)
-                        print('indicateur Interpolation done. Indexing.....', indicateur.columns)
-                        print("indicateur_generateIndicateur_Parallel", type(indicateur))
-                    else:
-                        stepList = []
-                        print("No data to process")
-                        pass
-                        
-                elif sourceTypeInd == "Raster":
-                    logging.info(f"Raster keepList {keepList}")
-                    logging.info(f"Raster metaModelList {metaModelList}")            
-                    indicateur = parallelize_DaskDataFrame_From_Intake_Source(
-                        data,indicateur_from_raster,
-                        (indicateurSpec,individuStatSpec,epsg,metaModelList),
-                        (tableName,ext_table_name),
-                        metaModelList,
-                        nbchuncks=nbchuncks)
-                    if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame))  :
-                        logging.info('indicateur Raster done. Indexing.....')
-                        logging.info(f"indicateur_generateIndicateur_Parallel {indicateur}")
-                    else:
-                        stepList = []
-                        logging.info("No data to process")
-                        pass
-                
+                    metaModelList =  [indexRef] + keepList + [target_entry_geom,'id_split']
+                    
+                    interpolation = indicateur_from_pre_interpolation(source_df, target_df, intensive_variables,extensive_variables, pre_allocate_total, pre_int_keepList, pre_int_indexRef)
+                    if split_geometry:
+                        indicateur = parallelize_DaskDataFrame_From_Intake_Source(data,generateIndicateur_parallel,(indicateurSpec,individuStatSpec, interpolation, metaModelList, geom, target_entry_geom),(tableName,ext_table_name),metaModelList,nbchuncks=nbchuncks)                       
+                    else:                        
+                        indicateur = parallelize_DaskDataFrame_From_Intake_Source(data,indicateur_from_interpolation,(interpolation, intensive_variables,extensive_variables,allocate_total),(tableName,ext_table_name),metaModelList,nbchuncks=nbchuncks)
                 else:
-                    logging.info("source Type OTHER : ex . VECTOR ")
-                    catalog = f"{data_catalog_dir}{indicateurSpec.get('catalogUri',None)}"
-                    dataName = indicateurSpec.get('dataName',None)
-                    data_indicateur = getattr(open_catalog(catalog),dataName)
-                    data_indicator_geom = data_indicateur.describe().get('args').get('geopandas_kwargs').get('geom_col')
-                    if not indicateur_sql_flow:
-                        logging.info('Loading indicateur dataset ...')
-                        data_indicateur = data_indicateur.read()
-                        logging.info(f"{data_indicateur.shape[0]} entitées")
-
-                    if sourceTypeInd == "Point":
-                        metaModelList =  [indexRef] + keepList + ['geometry','id_split'] + ['nb']
-                        indicateur = parallelize_DaskDataFrame_From_Intake_Source(
-                            data,
-                            generateIndicateurPoint,
-                            (indicateurSpec, individuStatSpec, data_indicateur, metaModelList),
-                            (tableName,ext_table_name),
-                            metaModelList,
-                            nbchuncks=nbchuncks
-                        )
-                    else :
-                        logging.info('Calculation ...')
-                        try:
-                            if daskComputation:
-                                logging.info(f"with Dask - metaModelList : ' {metaModelList}")
-                                indicateur = parallelize_DaskDataFrame_From_Intake_Source(
-                                    data,
-                                    generateIndicateur_parallel_v2,
-                                    (indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom),
-                                    (tableName,ext_table_name),
-                                    metaModelList,
-                                    nbchuncks=nbchuncks
-                                )
-                            else:
-                                indicateur = generateIndicateur_parallel(data.read(),(indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom))
-                            
-                            if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame))  :
-                                logging.info(f"Etape 1 - Result:  {type(indicateur)}")
-                                #logging.info(f"Etape 1 - Result:  {client.compute(indicateur)}")
-                                pass
-                            else:
-                                stepList = []
-                                logging.info("No data to process")
-                                pass
-                        except Exception as e:
-                            logging.critical(f"calculation error: {e}")
+                    
+                    indicateur = parallelize_DaskDataFrame_From_Intake_Source(data,indicateur_from_interpolation,(source_df, intensive_variables,extensive_variables,allocate_total),(tableName,ext_table_name),metaModelList,nbchuncks=nbchuncks)
                 
                 
-            else:
-                # l'indicateur est la donnée individu source directement
-                indicateur = data.read()
-                logging.info(f"indicateur au niveau 1  {indicateur}")
-                if indicateur :
-                    #indicateur.rename_geometry('geometry', inplace=True)
-                    indicateur['id_split'] = indicateur[indexRef]
+                if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame)):                
+                    indicateur.set_crs(epsg, inplace=True)
+                    print('indicateur Interpolation done. Indexing.....', indicateur.columns)
+                    print("indicateur_generateIndicateur_Parallel", type(indicateur))
                 else:
                     stepList = []
-                        
+                    print("No data to process")
+                    pass
+                    
+            elif sourceTypeInd == "Raster":
+                logging.info(f"Raster keepList {keepList}")
+                logging.info(f"Raster metaModelList {metaModelList}")            
+                indicateur = parallelize_DaskDataFrame_From_Intake_Source(
+                    data,indicateur_from_raster,
+                    (indicateurSpec,individuStatSpec,epsg,metaModelList),
+                    (tableName,ext_table_name),
+                    metaModelList,
+                    nbchuncks=nbchuncks)
+                if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame))  :
+                    logging.info('indicateur Raster done. Indexing.....')
+                    logging.info(f"indicateur_generateIndicateur_Parallel {indicateur}")
+                else:
+                    stepList = []
                     logging.info("No data to process")
                     pass
+            
+            else:
+                logging.info("source Type OTHER : ex . VECTOR ")
+                catalog = f"{data_catalog_dir}{indicateurSpec.get('catalogUri',None)}"
+                dataName = indicateurSpec.get('dataName',None)
+                data_indicateur = getattr(open_catalog(catalog),dataName)
+                data_indicator_geom = data_indicateur.describe().get('args').get('geopandas_kwargs').get('geom_col')
+                if not indicateur_sql_flow:
+                    logging.info('Loading indicateur dataset ...')
+                    data_indicateur = data_indicateur.read()
+                    logging.info(f"{data_indicateur.shape[0]} entitées")
+
+                if sourceTypeInd == "Point":
+                    metaModelList =  [indexRef] + keepList + ['geometry','id_split'] + ['nb']
+                    indicateur = parallelize_DaskDataFrame_From_Intake_Source(
+                        data,
+                        generateIndicateurPoint,
+                        (indicateurSpec, individuStatSpec, data_indicateur, metaModelList),
+                        (tableName,ext_table_name),
+                        metaModelList,
+                        nbchuncks=nbchuncks
+                    )
+                else :
+                    logging.info('Calculation ...')
+                    try:
+                        if daskComputation:
+                            logging.info(f"with Dask - metaModelList : ' {metaModelList}")
+                            indicateur = parallelize_DaskDataFrame_From_Intake_Source(
+                                data,
+                                generateIndicateur_parallel_v2,
+                                (indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom),
+                                (tableName,ext_table_name),
+                                metaModelList,
+                                nbchuncks=nbchuncks
+                            )
+                        else:
+                            indicateur = generateIndicateur_parallel(data.read(),(indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom))
+                        
+                        if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame))  :
+                            logging.info(f"Etape 1 - Result:  {type(indicateur)}")
+                            #logging.info(f"Etape 1 - Result:  {client.compute(indicateur)}")
+                            pass
+                        else:
+                            stepList = []
+                            logging.info("No data to process")
+                            pass
+                    except Exception as e:
+                        logging.critical(f"calculation error: {e}")
+                
+            
+            
+            # OLD l'indicateur est la donnée individu source directement
+            #if indicateurSpec.get('catalogUri') or indicateurSpec.get('dataName') is None:
+            #    pass
+            #else:
+            #    
+            #    indicateur = data.read()
+            #    logging.info(f"indicateur au niveau 1  {indicateur}")
+            #    if indicateur :
+            #        #indicateur.rename_geometry('geometry', inplace=True)
+            #        indicateur['id_split'] = indicateur[indexRef]
+            #    else:
+            #        stepList = []
+            #            
+            #        logging.info("No data to process")
+            #        pass
     
     
     

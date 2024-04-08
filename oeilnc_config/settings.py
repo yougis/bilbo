@@ -296,9 +296,9 @@ def checkListToCalculate(list_indicateur_to_calculate, list_data_to_calculate, l
     return True
 
 
-def checkConfig(indicateurSpec,individuStatSpec):
+def checkTableName(indicateurSpec,individuStatSpec):
     tableName = indicateurSpec.get("confDb").get("tableName")
-    dataName = individuStatSpec.get("dataName",'Unknow')
+    dataName = individuStatSpec.get("dataName",'Unknown')
     index_tb = f'idx_{tableName}_{dataName}_geometry'
     tb_name_with_error = f'faits_{tableName}_{dataName}_withError'
     if len(index_tb) > 63:
@@ -309,4 +309,54 @@ def checkConfig(indicateurSpec,individuStatSpec):
     else:
         logging.info(f"le nom de la table de faits en base de donnée en sortie de traitement répond au pré-requis : {tableName}_{dataName}")
         return True
+
+def checkConfigFiles(list_data_to_calculate, configFile, list_indicateur_to_calculate):
+    from oeilnc_utils import connection
+
+
+    for dataFileName in list_data_to_calculate:
+        logging.info(f"### {dataFileName} ####")
+        with open(f"{configFile.get('data_config_file')}{dataFileName}.yaml", 'r') as file:        
+            individuStatSpec = yaml.load(file, Loader=yaml.Loader)
+
+            offset = individuStatSpec.get("offset", -1)
+            limit = individuStatSpec.get("limit", -1)
+            logging.info(f"Initial offset : {offset} , limit : {limit}")
+                   
+            if len(list_indicateur_to_calculate) > 0:
+                for indicateurFileName in list_indicateur_to_calculate:             
+                    logging.info(f"--- {indicateurFileName} ---")
+                    
+                    try :
+                        with open(f"{configFile.get('data_config_file')}{indicateurFileName}.yaml", 'r') as file:
+                            indicateurSpec = yaml.load(file, Loader=yaml.Loader)
+                            logging.info(f"individu: {dataFileName} | indicateur: {indicateurFileName}")
+
+
+                            if checkTableName(indicateurSpec,individuStatSpec) :                                        
+                                logging.info(f"nbchuncks: {individuStatSpec.get('nbchuncks','aucun')}")
+
+                                catalog = f"{configFile.get('data_catalog_dir')}{individuStatSpec.get('catalogUri',None)}"
+
+                                dataName = individuStatSpec.get('dataName',None)
+                                entryCatalog = getattr(open_catalog(catalog),dataName)
+                                selectString = individuStatSpec.get('selectString',entryCatalog.describe().get('args').get('sql_expr'))
+                                indexRef = individuStatSpec.get('indexRef',None)
+                                nbLignes = connection.getNbLignes(entryCatalog)
+
+                                print("Go")
+
+                                if offset >= 0 or limit > 0:    
+
+                                    while offset < nbLignes:
+
+                                                                            
+                                        sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
+                                        logging.info(f"sql_pagination : {sql_pagination}")
+
+
+                                        offset += limit
+                    except Exception as e:
+                        logging.critical(e)
+
 

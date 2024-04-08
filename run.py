@@ -39,52 +39,90 @@ class CustomPlugin(WorkerPlugin):
     
 
 
-list_data_to_calculate = [
-    #"H3_6_NC_non_traite",
-    #"H3_6_NC_non_traite_2010",
-    #"H3_6_NC",
-    #"MOS_formation_vegetale_DAFE_missing",
-    #"MOS_formation_vegetale_DAFE",
-    #"Foncier",
+list_data_to_calculate  = [ # ZOI / individu
+    ## p1
+   # "H3_6_NC", # 
+    "H3_8_NC",
+    "Foncier",
     "Reserves_indicateurSpec",
-    "UNESCO_Zones_terrestres",
-    "PerimetresProtectionEau", # mettre jour la donnée
-    "BassinsVersantsProducteursEP",
+    "UNESCO_Zones_terrestres",   
+    # "cadastre_minier", # fichier config à faire / ? > sur georep / cadastre_minier / couches "concessions minières" et "permis de recherche"  (pas sur la BDD SIG de l'ŒIL)
+    # "Fréquentation_humaine" :  Zone de Bati et voiries / calcul de distance ?
+
+    ##### TRAITEMENT list_indicateur_to_calculate différent
+    # Incendies #VIIRS et MODIS
+    # Urbanisation à créer Dynamic world built area
+
+    ## p2
+
     "Foret_Seche_zone_vigilance",
     "Foret_Seche_corridors",
     "Mangrove",
-    # Incendies #VIIRS et MODIS
     "SurfacesAgricoles",
-    #"exploitation_miniere", # fichier config à faire / cadastre minier ? > sur georep / cadastre_minier / couches "concessions minières" et "permis de recherche"  (pas sur la BDD SIG de l'ŒIL)
     "Geologie_Substrat",
-    # Urbanisation à créer Dynamic world built area
-    # Cyclone à créer > sur georep / bd cyclones / historique des trajectoires
+    "bande_littorale_375M_individuStatSpec", # Dynamique trait de côte
+    "PerimetresProtectionEau", # mettre jour la donnée
+    "BassinsVersantsProducteursEP",
+
     # Zone de réhabilitation de sites miniers > BDD RECOSYNTH et données FNI?--> A réccupérer
     # données Sylviculture de vulcain // différe légerement du MOS 2014
     # Sècheresse végétale : VHI/VAI annualisé ?
-
-# Fragmentation : pas de donnée
+    # Fragmentation : pas de donnée
     # Secteurs de mise en défens (FS et mine)
+    # Dynamique ripisylve : > Modelisation écoulement hydro DAVAR. Les données sont accéssibles ici, je ne les ai pas trouvée sur la BD SIG de l'ŒIL: https://carto.gouv.nc/public/rest/services/modelisation_ecoulements_surface/MapServer. Il faut a mon avis considérer uniquement la couche Réseau Hydrographique / RHM seuil5km2. 
 
-# Fréquentation humaine :  Zone de Bati et voiries / calcul de distance ?
-# Dynamique ripisylve : > Modelisation écoulement hydro DAVAR. Les données sont accéssibles ici, je ne les ai pas trouvée sur la BD SIG de l'ŒIL: https://carto.gouv.nc/public/rest/services/modelisation_ecoulements_surface/MapServer. Il faut a mon avis considérer uniquement la couche Réseau Hydrographique / RHM seuil5km2. 
 
-    "bande_littorale_375M_individuStatSpec" #Dynamique trait de côte
-
+    ##### TRAITEMENT list_indicateur_to_calculate différent
+    # Cyclone à créer > sur georep / bd cyclones / historique des trajectoires
 
 ]
 
 steplist= [1,2,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
-list_indicateur_to_calculate = [
+list_indicateur_to_calculate = [ # thematique
     #"KBA",
     #"observation_nidification"
     #"GFC_gain_2012",
-    #"GFC_treecover2000"
-    #"MOS_arbore_indicateurSpec",
-    #"MOS_formation_arboree",
-    #"MOS_formation_arbustive",
-    #'Foncier',
-    'Test'
+    #"GFC_treecover2000",
+    
+    "TMF_transitionMap_v12022",
+    "TMF_degradationyear_v12022",
+    "TMF_DeforestationYear_v12022",
+    "GFC_gain_2020",
+    "GFC_lossyear",
+    "GFC_treecover2021", # donnée à récupérer"
+    #"TMF_annualChangeCollection_v12022_Dec_1991",
+    #"TMF_annualChangeCollection_v12022_Dec_1992",
+    #"TMF_annualChangeCollection_v12022_Dec_1993",
+    #"TMF_annualChangeCollection_v12022_Dec_1994",
+    #"TMF_annualChangeCollection_v12022_Dec_1995",
+    #"TMF_annualChangeCollection_v12022_Dec_1996",
+    #"TMF_annualChangeCollection_v12022_Dec_1997",
+    #"TMF_annualChangeCollection_v12022_Dec_1998",
+    #"TMF_annualChangeCollection_v12022_Dec_1999",
+    "TMF_annualChangeCollection_v12022_Dec_2000",
+    "TMF_annualChangeCollection_v12022_Dec_2001",
+    "TMF_annualChangeCollection_v12022_Dec_2002",
+    "TMF_annualChangeCollection_v12022_Dec_2003",
+    "TMF_annualChangeCollection_v12022_Dec_2004",
+    "TMF_annualChangeCollection_v12022_Dec_2005",
+    "TMF_annualChangeCollection_v12022_Dec_2006",
+    "TMF_annualChangeCollection_v12022_Dec_2007",
+    "TMF_annualChangeCollection_v12022_Dec_2008",
+    "TMF_annualChangeCollection_v12022_Dec_2009",
+    "TMF_annualChangeCollection_v12022_Dec_2010",
+    "TMF_annualChangeCollection_v12022_Dec_2011",
+    "TMF_annualChangeCollection_v12022_Dec_2012",
+    "TMF_annualChangeCollection_v12022_Dec_2013",
+    "TMF_annualChangeCollection_v12022_Dec_2014",
+    "TMF_annualChangeCollection_v12022_Dec_2015",
+    "TMF_annualChangeCollection_v12022_Dec_2016",
+    "TMF_annualChangeCollection_v12022_Dec_2017",
+    "TMF_annualChangeCollection_v12022_Dec_2018",
+    "TMF_annualChangeCollection_v12022_Dec_2019",
+    "TMF_annualChangeCollection_v12022_Dec_2020",
+    "TMF_annualChangeCollection_v12022_Dec_2021",
+    "TMF_annualChangeCollection_v12022_Dec_2022"
+
 
     ]
 
@@ -129,7 +167,18 @@ listIdSpatialCommuneIles = ["98814", "98815", "98820"]
 listIdSpatialCommuneMaritimeIles = ["LIFOU", "MARE", "OUVEA"]
 listIdSpatialProvinceIles = ["3"]
 listIdSpatialProvinceMaritimeIles = ["PROVINCE_DES_ILES_MAR"]
-listIdMulti=[listIdSpatialNC, listIdSpatialHER, listIdSpatialProvince, listIdSpatialCommune ]
+listIdMulti=[
+    listIdSpatialZee,
+    listIdSpatialNC, 
+    listIdSpatialHER, 
+    listIdSpatialProvince, 
+    listIdSpatialProvinceMaritime, 
+    listIdSpatialCommune,
+    listIdSpatialCommuneMaritime,
+    listIdSpatialAiresCoutumieres
+    ]
+
+
 listbbox= [c for c in listIdSpatialCommune]
 
 
@@ -158,7 +207,6 @@ daskComputation=True
 faits = list()
 theme=configFile.get('project_db_schema')
 
-
 cat_dimensions = open_catalog(f"{configFile.get('dimension_catalog_dir')}DWH_Dimensions.yaml")
 
 dim_spatial = cat_dimensions.dim_spatial
@@ -166,74 +214,110 @@ dim_mesure= cat_dimensions.dim_mesure
 
 run_id = str(uuid.uuid4())
 
-for dataFileName in list_data_to_calculate:
-    logging.info(f"### {dataFileName} ####")
-    with open(f"{configFile.get('data_config_file')}{dataFileName}.yaml", 'r') as file:        
-        individuStatSpec = yaml.load(file, Loader=yaml.Loader)
-        individuStatSpec["theme"]=theme
-        individuStatSpec["confDims"]["isin_id_spatial"] = []
+def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
 
-        offset = individuStatSpec.get("offset", -1)
-        limit = individuStatSpec.get("limit", -1)
-        logging.info(f"Initial offset : {offset} , limit : {limit}")
 
-        logging.info(f"step list : {steplist}")
+    for dataFileName in list_data_to_calculate:
+        logging.info(f"### {dataFileName} ####")
+        with open(f"{configFile.get('data_config_file')}{dataFileName}.yaml", 'r') as file:        
+            individuStatSpec = yaml.load(file, Loader=yaml.Loader)
+            individuStatSpec["theme"]=theme
+            individuStatSpec["confDims"]["isin_id_spatial"] = []
 
-        if fromIndexList:            
-            indexList = settings.getIndexList(individuStatSpec)
-            pass
-        for listIdSpatial in listIdMulti:       
-            individuStatSpec["confDims"]["isin_id_spatial"] += listIdSpatial            
-        
-        logging.info(f"Id Spatial qui seront calculés : {individuStatSpec['confDims']['isin_id_spatial']}")
+            offset = individuStatSpec.get("offset", -1)
+            limit = individuStatSpec.get("limit", -1)
+            logging.info(f"Initial offset : {offset} , limit : {limit}")
+
+            logging.info(f"step list : {steplist}")
+
+            if fromIndexList:            
+                indexList = settings.getIndexList(individuStatSpec)
+                pass
+            for listIdSpatial in listIdMulti:       
+                individuStatSpec["confDims"]["isin_id_spatial"] += listIdSpatial            
             
-        if len(list_indicateur_to_calculate) > 0:
-            for indicateurFileName in list_indicateur_to_calculate:             
-                logging.info(f"--- {indicateurFileName} ---")
+            logging.info(f"Id Spatial qui seront calculés : {individuStatSpec['confDims']['isin_id_spatial']}")
                 
-                with open(f"{configFile.get('data_config_file')}{indicateurFileName}.yaml", 'r') as file:
-                    indicateurSpec = yaml.load(file, Loader=yaml.Loader)
-                    indicateurSpec["confDb"]["schema"] = theme
+            if len(list_indicateur_to_calculate) > 0:
+                for indicateurFileName in list_indicateur_to_calculate:             
+                    logging.info(f"--- {indicateurFileName} ---")
+                    
+                    with open(f"{configFile.get('data_config_file')}{indicateurFileName}.yaml", 'r') as file:
+                        indicateurSpec = yaml.load(file, Loader=yaml.Loader)
+                        indicateurSpec["confDb"]["schema"] = theme
 
-                    logging.info(f"individu: {dataFileName} | indicateur: {indicateurFileName}")
+                        logging.info(f"individu: {dataFileName} | indicateur: {indicateurFileName}")
 
 
-                    if not fromIndexList:
-                        indexList= None
+                        if not fromIndexList:
+                            indexList= None
 
-                    if settings.checkConfig(indicateurSpec,individuStatSpec) :                                        
-                        logging.info(f"nbchuncks: {individuStatSpec.get('nbchuncks','aucun')}")
+                        if settings.checkTableName(indicateurSpec,individuStatSpec) :                                        
+                            logging.info(f"nbchuncks: {individuStatSpec.get('nbchuncks','aucun')}")
 
-                        if offset >= 0 or limit > 0:        
-                            #Ajout JFNGVS = boucle sur limit et offset
-                            catalog = f"{configFile.get('data_catalog_dir')}{individuStatSpec.get('catalogUri',None)}"
+                            if {individuStatSpec.get('catalogUri',None)}:
+                                catalog = f"{configFile.get('data_catalog_dir')}{individuStatSpec.get('catalogUri',None)}"
 
-                            dataName = individuStatSpec.get('dataName',None)
-                            entryCatalog = getattr(open_catalog(catalog),dataName)
-                            selectString = individuStatSpec.get('selectString',entryCatalog.describe().get('args').get('sql_expr'))
-                            indexRef = individuStatSpec.get('indexRef',None)
-                            nbLignes = connection.getNbLignes(entryCatalog)
+                                dataName = individuStatSpec.get('dataName',None)
+                                entryCatalog = getattr(open_catalog(catalog),dataName)
+                                selectString = individuStatSpec.get('selectString',entryCatalog.describe().get('args').get('sql_expr'))
+                                indexRef = individuStatSpec.get('indexRef',None)
+                                nbLignes = connection.getNbLignes(entryCatalog)
 
-                            
+                            print(f"GO ------------->>>>>>   individu: {dataFileName} | indicateur: {indicateurFileName}")
 
-                            while offset < nbLignes:
-                                
-                                sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
-                                logging.info(f"sql_pagination : {sql_pagination}")
-                                
-                                print("Go")
+                            client.run(settings.initializeWorkers, configFile)
 
-                                client.run(settings.initializeWorkers, configFile)
+
+                            if offset >= 0 or limit > 0:    
+
+                                while offset < nbLignes:
+
+                                    metadata = ProcessingMetadata(run_id=run_id)
+                                    metadata.environment_variables = configFile
+                                    metadata.output_schema = configFile.get('project_db_schema')
+                                    metadata.operator_name = configFile.get('user')
+                                    metadata.log_filename = log_filename
+                                    metadata.zoi_config = individuStatSpec
+                                    metadata.dimensions_spatiales = individuStatSpec["confDims"]["isin_id_spatial"]
+                                    metadata.theme_config = indicateurSpec
+                                    metadata.zoi_catalog = entryCatalog
+                                                                
+                                    sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
+                                    logging.info(f"sql_pagination : {sql_pagination}")
+
+                                    faitsname = create_indicator(
+                                        bbox=bb,
+                                        individuStatSpec=individuStatSpec,
+                                        indicateurSpec=indicateurSpec,
+                                        dims=(dim_spatial,dim_mesure),
+                                        stepList=steplist,
+                                        indexListIndicator=indexList,
+                                        sql_pagination=sql_pagination,
+                                        indicateur_sql_flow=indicateur_sql_flow,
+                                        daskComputation=daskComputation,
+                                        metadata=metadata)
+                                    
+                                    metadata.output_table_name = faitsname
+                                    metadata.offset_value = offset
+                                    metadata.limit_value = limit
+                                    metadata.insert_metadata()
+
+                                    offset += limit
+                            else:
 
                                 metadata = ProcessingMetadata(run_id=run_id)
                                 metadata.environment_variables = configFile
                                 metadata.output_schema = configFile.get('project_db_schema')
                                 metadata.operator_name = configFile.get('user')
-                                metadata.log_filename = log_filename
+                                metadata.log_file_name = log_filename
                                 metadata.zoi_config = individuStatSpec
                                 metadata.dimensions_spatiales = individuStatSpec["confDims"]["isin_id_spatial"]
                                 metadata.theme_config = indicateurSpec
                                 metadata.zoi_catalog = entryCatalog
+                                                            
+                                sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
+                                logging.info(f"sql_pagination : {sql_pagination}")
 
                                 faitsname = create_indicator(
                                     bbox=bb,
@@ -242,7 +326,6 @@ for dataFileName in list_data_to_calculate:
                                     dims=(dim_spatial,dim_mesure),
                                     stepList=steplist,
                                     indexListIndicator=indexList,
-                                    sql_pagination=sql_pagination,
                                     indicateur_sql_flow=indicateur_sql_flow,
                                     daskComputation=daskComputation,
                                     metadata=metadata)
@@ -251,10 +334,12 @@ for dataFileName in list_data_to_calculate:
                                 metadata.offset_value = offset
                                 metadata.limit_value = limit
                                 metadata.insert_metadata()
-
-                                offset += limit
-                    else : 
-                        pass
+                        else : 
+                            pass 
                     
+
+#settings.checkConfigFiles(list_data_to_calculate, configFile,list_indicateur_to_calculate)
+
+run(list_data_to_calculate, configFile,list_indicateur_to_calculate)
 
     
