@@ -257,12 +257,17 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
 
                             if {individuStatSpec.get('catalogUri',None)}:
                                 catalog = f"{configFile.get('data_catalog_dir')}{individuStatSpec.get('catalogUri',None)}"
-
                                 dataName = individuStatSpec.get('dataName',None)
                                 entryCatalog = getattr(open_catalog(catalog),dataName)
                                 selectString = individuStatSpec.get('selectString',entryCatalog.describe().get('args').get('sql_expr'))
                                 indexRef = individuStatSpec.get('indexRef',None)
                                 nbLignes = connection.getNbLignes(entryCatalog)
+                            
+                            if {indicateurSpec.get('catalogUri', None)}:
+                                themeCatalog = f"{configFile.get('data_catalog_dir')}{indicateurSpec.get('catalogUri',None)}"
+                            else:
+                                themeCatalog = ''
+
 
                             print(f"GO ------------->>>>>>   individu: {dataFileName} | indicateur: {indicateurFileName}")
 
@@ -281,6 +286,7 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                     metadata.zoi_config = individuStatSpec
                                     metadata.dimensions_spatiales = individuStatSpec["confDims"]["isin_id_spatial"]
                                     metadata.theme_config = indicateurSpec
+                                    metadata.theme_catalog = themeCatalog
                                     metadata.zoi_catalog = entryCatalog
                                                                 
                                     sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
@@ -313,7 +319,7 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                 metadata.log_file_name = log_filename
                                 metadata.zoi_config = individuStatSpec
                                 metadata.dimensions_spatiales = individuStatSpec["confDims"]["isin_id_spatial"]
-                                metadata.theme_config = indicateurSpec
+                                metadata.theme_config = themeCatalog
                                 metadata.zoi_catalog = entryCatalog
                                                             
                                 sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"

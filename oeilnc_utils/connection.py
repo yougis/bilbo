@@ -153,7 +153,8 @@ def persistGDF(gdf,iterables):
     ext_table_name = individuStatSpec.get('dataName',None)
     
     if isinstance(gdf, (GeoDataFrame, GeoSeries)) :
-        gdf.set_crs(epsg, inplace=True)
+        logging.info(f"CRS transformation from {gdf.crs} to {epsg} ?")
+        #gdf.to_crs(epsg, inplace=True)
 
     elif isinstance(gdf, (DataFrame, Series)):
         logging.warning(f"persistGDF - Vous essayer de persister un donnée sans géométrie: {gdf.shape[0]} -  {gdf}")

@@ -268,7 +268,7 @@ class ProcessingMetadata:
             'zoi_config': json.dumps(self.zoi_config),
             'zoi_catalog': json.dumps(self.zoi_catalog._yaml()),
             'theme_config': json.dumps(self.theme_config),
-            'theme_catalog': json.dumps(self.theme_catalog._yaml()),
+            #'theme_catalog': json.dumps(self.theme_catalog._yaml()),
             'limit_value': self.limit_value,
             'offset_value': self.offset_value,
             'environment_variables': json.dumps(self.environment_variables_nopwd),
