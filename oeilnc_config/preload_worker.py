@@ -1,5 +1,8 @@
+import dask.distributed
 from oeilnc_config import settings
 from distributed import Worker
+import dask
+import logging
 
 def custom_startup(worker):
     print(f"Worker {worker.address} connected to the scheduler.")
@@ -8,7 +11,4 @@ def custom_startup(worker):
     client.run(settings.initializeWorkers, configFile)
     print(f"Executing command on worker {worker.id}")
 
-worker = Worker()
-
-
-custom_startup(worker)
+logging.info("preload script for worker")
