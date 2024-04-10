@@ -91,6 +91,13 @@ pip install --force-reinstall --upgrade --exists-action=w  "git+https://informat
 `pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@refactoring_from_bilbo#oeilnc_config"`
 
 
+#### troubleshooting
+
+Sur windows la commande git n'aboutit jamais car une popup credential manager n'est pas renvoyé si la commande est faite depuis un protocole SSH. il faut lancer la commande git sur le poste et activer l'option de ne plus demander l'autorisation. 
+
+parfois, bien que SSH soit installé sur windows, il faut redemarer le protocole pour pouvoir se connecter au machine
+`Restart-Service sshd`
+
 ### Déployer sur le **Scheduler**
 Le scheduler utilise un environnement conda "light" suffixé de  *_base*.
 
