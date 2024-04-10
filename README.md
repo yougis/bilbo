@@ -260,3 +260,46 @@ ex.
 ./deploy.sh conda --hosts 172.20.12.14,172.20.12.15,172.20.12.16,172.20.12.17 --packages git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages@[branche-name]
 
 ```
+
+### Configugrer le debugeur python VSCODE 
+
+Pour débuger le traitement fait par un worker, configurer un executeur debug dans le launch.json:
+
+```
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Dask Worker PROD",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "dask.distributed.cli.dask_worker",
+            "args": [
+                "172.20.12.13:9786", // Adresse du scheduler
+                "--nthreads=1",
+                "--preload",
+                "{path-to-dev-package}/bilbo-packages/oeilnc_config/preload_worker.py"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug Dask Worker QUALIF",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "dask.distributed.cli.dask_worker",
+            "args": [
+                "172.20.12.11:8786", // Adresse du scheduler
+                "--nthreads=1",
+                "--preload",
+                "{path-to-dev-package}/bilbo-packages/oeilnc_config/preload_worker.py"
+            ],
+            "console": "integratedTerminal"
+        }
+
+
+    ]
+}
+
+       
+
+```
