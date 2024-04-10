@@ -191,9 +191,9 @@ def initializeBilboProject(dotenvPath=None):
 
 def getDbConnection():
 
-    logging.info(f"getDbConnection - {user} {host} {port} {db_traitement}")
+    logging.info(f"getDbConnection - {usr} {host} {port} {db_traitement}")
     return {
-       "user": user,
+       "user": usr,
         "pswd": pswd,
         "host": host,
         "port": port,
