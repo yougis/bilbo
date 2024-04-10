@@ -7,7 +7,7 @@ import logging
 import json
 import importlib.metadata
 
-DB_META_SCHEMA = 'bilbo'
+DB_META_SCHEMA = 'processing'
 
 
 class ProcessingMetadata:
