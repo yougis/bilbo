@@ -54,7 +54,7 @@ Variables d'environnement utilisées dans certaines méthodes
 considérant que le nom de l'environnement conda est **gis311** : 
 
 ```
-conda run --name gis311 pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages
+conda run --name gis311 pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages"
 ```
 
 le déploiement se fait en mode *--quiet*
@@ -63,7 +63,7 @@ pour voir ce qui se passe activer d'abord l'environnement conda
 
 et lancer pip directement :
 
-`pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages`
+`pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages"`
 
 
 ### Déployer sans installer les dépendances
@@ -95,7 +95,7 @@ pip install --force-reinstall --upgrade --exists-action=w  "git+https://informat
 Le scheduler utilise un environnement conda "light" suffixé de  *_base*.
 
 ```
-conda run --name gis311_base pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages
+conda run --name gis311_base pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages"
 ```
 
 ## Déployer à partir d'une branche du repot git sur le scheduler
