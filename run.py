@@ -283,7 +283,7 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                     metadata.environment_variables = configFile
                                     metadata.output_schema = configFile.get('project_db_schema')
                                     metadata.operator_name = configFile.get('user')
-                                    metadata.log_filename = log_filename
+                                    metadata.log_file_name = log_filename
                                     metadata.zoi_config = individuStatSpec
                                     metadata.dimensions_spatiales = individuStatSpec["confDims"]["isin_id_spatial"]
                                     metadata.theme_config = indicateurSpec
