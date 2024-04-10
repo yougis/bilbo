@@ -26,6 +26,8 @@ data_catalog_dir = os.getenv("DATA_CATALOG_DIR")
 data_output_dir = os.getenv("DATA_OUTPUT_DIR")
 sig_data_path = os.getenv("SIG_DATA_PATH")
 project_db_schema = os.getenv("PROJECT_DB_SCHEMA")
+data_config_file = os.getenv("DATA_CONFIG_DIR")
+dimension_catalog_dir = os.getenv("DIM_CATALOG_DIR")
 
 null_variables = []
 if commun_path is None:
@@ -43,6 +45,27 @@ if project_db_schema is None:
 
 if null_variables:
     logging.warning("The following variables are null: {}".format(", ".join(null_variables)))
+
+
+
+config_dict = {
+    "user": usr,
+    "pswd": pswd,
+    "host": host,
+    "port": port,
+    "home": home,
+    "db_traitement": db_traitement,
+    "db_ref": db_ref,
+    "db_externe": db_externe,
+    "commun_path": commun_path,
+    "project_dir": project_dir,
+    "data_catalog_dir": data_catalog_dir,
+    "data_output_dir": data_output_dir,
+    "sig_data_path": sig_data_path,
+    "project_db_schema": project_db_schema,
+    "data_config_file": data_config_file,
+    "dimension_catalog_dir": dimension_catalog_dir
+}
 
 
 def initializeWorkers(config_dict: dict):
@@ -112,7 +135,7 @@ def initializeBilboProject(dotenvPath=None):
     dimension_catalog_dir = os.getenv("DIM_CATALOG_DIR")
 
 
-    user = os.getenv("DB_USER")
+    usr = os.getenv("DB_USER")
     pswd = os.getenv("DB_PWD")
     host = os.getenv("DB_HOST")
     port = os.getenv("DB_PORT")
@@ -146,7 +169,7 @@ def initializeBilboProject(dotenvPath=None):
     
     
     config_dict = {
-        "user": user,
+        "user": usr,
         "pswd": pswd,
         "host": host,
         "port": port,
