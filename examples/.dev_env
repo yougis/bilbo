@@ -1,7 +1,7 @@
 
-PROJECT_ID="stac"
+PROJECT_ID = "stac"
 
-
+SCHEDULER_IP = '172.20.12.11:8786'
 COMMUN_PATH = "/media/commun/commun/"
 ARCHIVE_PATH = "media/archive/"
 

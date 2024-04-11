@@ -3,12 +3,13 @@ import logging
 from intake import open_catalog
 import yaml
 from dotenv import load_dotenv
-from dask.distributed import Client, LocalCluster
-from datetime import datetime
+from dask.distributed import Client, LocalCluster, Variable
 import os
-from oeilnc_config.metadata import ProcessingMetadata
+
 
 logging.info("Config - Settings Imported")
+configFile = Variable(name="configFile")
+
 
 usr = os.getenv("DB_USER")
 pswd = os.getenv("DB_PWD")
@@ -46,8 +47,6 @@ if project_db_schema is None:
 if null_variables:
     logging.warning("The following variables are null: {}".format(", ".join(null_variables)))
 
-
-
 config_dict = {
     "user": usr,
     "pswd": pswd,
@@ -68,43 +67,8 @@ config_dict = {
 }
 
 
-def initializeWorkers(config_dict: dict):
-
-    #logging.basicConfig( filename= f"/home/administrateur/{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
-
-    global commun_path
-    global data_catalog_dir 
-    global project_dir
-    global data_output_dir
-    global sig_data_path
-    global project_db_schema
-    global data_config_file
-    global dimension_catalog_dir
-    global user
-    global pswd
-    global host
-    global port
-    global home
-    global db_traitement
-    global db_ref
-    global db_externe
- 
-    user = config_dict.get("user")
-    pswd = config_dict.get("pswd")
-    host = config_dict.get("host")
-    port = config_dict.get("port")
-    home = config_dict.get("home")
-    db_traitement = config_dict.get("db_traitement")
-    db_ref = config_dict.get("db_ref")
-    db_externe = config_dict.get("db_externe")
-    commun_path = config_dict.get("commun_path")
-    project_dir = config_dict.get("project_dir")
-    data_catalog_dir = config_dict.get("data_catalog_dir")
-    data_output_dir = config_dict.get("data_output_dir")
-    sig_data_path = config_dict.get("sig_data_path")
-    project_db_schema = config_dict.get("project_db_schema")
-    data_config_file = config_dict.get("data_config_file")
-    dimension_catalog_dir = config_dict.get("dimension_catalog_dir")
+def initializeWorkers():
+    config_dict = configFile.get()
 
     return True
 
@@ -119,7 +83,7 @@ def initializeBilboProject(dotenvPath=None):
     global project_db_schema
     global data_config_file
     global dimension_catalog_dir
-    global user
+    global usr
     global pswd
     global host
     global port
@@ -202,44 +166,10 @@ def getDbConnection():
     }
 
 def getPaths():
-
+    data_config_file = configFile.get()
     logging.info(f'Settings - getPaths data_config_file {data_config_file} ')
-    
-    null_variables = []
-    if commun_path is None:
-        null_variables.append("commun_path")
-    if project_dir is None:
-        null_variables.append("project_dir")
-    if data_catalog_dir is None:
-        null_variables.append("data_catalog_dir")
-    if data_output_dir is None:
-        null_variables.append("data_output_dir")
-    if sig_data_path is None:
-        null_variables.append("sig_data_path")
-    if project_db_schema is None:
-        null_variables.append("project_db_schema")
-    if data_config_file is None:
-        null_variables.append("data_config_file")
-    if dimension_catalog_dir is None:
-        null_variables.append("dimension_catalog_dir")
 
-    if null_variables:
-        logging.critical("The following variables are null: {}".format(", ".join(null_variables)))
-    
-    conf = {
-        "commun_path": commun_path,
-        "project_dir": project_dir,
-        "data_catalog_dir": data_catalog_dir,
-        "data_output_dir": data_output_dir,
-        "sig_data_path": sig_data_path,
-        "project_db_schema": project_db_schema,
-        "data_config_file": data_config_file,
-        "dimension_catalog_dir": dimension_catalog_dir
-
-    }
-    logging.debug(f'Settings - getPaths - config {conf}')
-
-    return conf
+    return data_config_file
 
 
 

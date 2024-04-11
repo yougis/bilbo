@@ -48,7 +48,7 @@ def extract_data(specs: dict, input_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     :returns: GeoDataFrame fourni en entrée avec des nouvelles propriétés, soit mini_raster_array, mini_raster_affine, min and max pour les polygones, soit la valeur de la bande spécifiée pour les points.
     :rtype: gpd.GeoDataFrame
     """
-
+    logging.info("GeoIndicator - GEE - extract_data : in progress")
 
     # modifier le CRS du gdf si ce n'est pas celui de Google Earth Engine (EPSG:4326)
     if input_gdf.crs is None:

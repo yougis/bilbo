@@ -18,7 +18,7 @@ class CustomPlugin(WorkerPlugin):
         print(f"Worker {worker.address} connected to the scheduler.")
         client = settings.getDaskClient()
         configFile = settings.initializeBilboProject('.env')
-        client.run(settings.initializeWorkers, configFile)
+        client.run(settings.initializeWorkers)
         # Insérer ici la commande que vous souhaitez exécuter sur le worker
 
 
@@ -226,7 +226,7 @@ class TestCreateIndicator(unittest.TestCase):
                                     
                                     print("Go")
 
-                                    client.run(settings.initializeWorkers, configFile)
+                                    client.run(settings.initializeWorkers)
 
                                     metadata = ProcessingMetadata(run_id=run_id)
                                     metadata.environment_variables = configFile

@@ -23,7 +23,6 @@ import numpy as np
 import pandas as pd
 from dask.distributed import get_worker
 
-
 logging.info("GeoIndicator - Raster Imported")
 
 
@@ -170,6 +169,7 @@ def indicateur_from_raster(data, iterables):
         ValueError: If the geometry type of the input data is not supported.
 
     """
+
     paths = getPaths()
 
 

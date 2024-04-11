@@ -62,7 +62,7 @@ def fixpath(path,replace,winDisque="C:"):
 
 
 def fixOsPath(path,replace,winDisque="N:"):
-    #print("fixOsPath",os.name)
+    logging.info("fixOsPath : change linux uri to windows: Create Commun Path")
     if os.name == 'nt':
         #print('fix path')
         #print("change uri to windows: Create Commun Path")
