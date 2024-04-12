@@ -26,16 +26,7 @@ from oeilnc_geoindicator.calculation import create_indicator
 from intake import open_catalog
 from oeilnc_config.metadata import ProcessingMetadata
 
-from dask.distributed import WorkerPlugin, Variable
-
-class CustomPlugin(WorkerPlugin):
-    def start(self, worker):
-        print(f"Worker {worker.address} connected to the scheduler.")
-        client = settings.getDaskClient()
-        configFile = settings.initializeBilboProject('.env')
-        client.run(settings.initializeWorkers)
-        # Insérer ici la commande que vous souhaitez exécuter sur le worker
-
+from dask.distributed import  Variable
 
 
 
@@ -274,7 +265,7 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
 
                             print(f"GO ------------->>>>>>   individu: {dataFileName} | indicateur: {indicateurFileName}")
 
-                            client.run(settings.initializeWorkers)
+                            #client.run(settings.initializeWorkers)
 
 
                             if offset >= 0 or limit > 0:    

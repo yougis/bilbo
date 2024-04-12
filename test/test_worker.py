@@ -6,9 +6,6 @@ class TestWorker(unittest.TestCase):
 
     def custom_startup(worker):
         print(f"Worker {worker} connected to the scheduler.")
-        #client = settings.getDaskClient()
-        #configFile = settings.initializeBilboProject('.env')
-        #client.run(settings.initializeWorkers, configFile)
         print(f"Executing command on worker {worker}")
 
 

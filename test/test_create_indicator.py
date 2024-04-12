@@ -11,15 +11,6 @@ from oeilnc_geoindicator.calculation import create_indicator
 from intake import open_catalog
 from oeilnc_config.metadata import ProcessingMetadata
 
-from dask.distributed import WorkerPlugin
-
-class CustomPlugin(WorkerPlugin):
-    def start(self, worker):
-        print(f"Worker {worker.address} connected to the scheduler.")
-        client = settings.getDaskClient()
-        configFile = settings.initializeBilboProject('.env')
-        client.run(settings.initializeWorkers)
-        # Insérer ici la commande que vous souhaitez exécuter sur le worker
 
 
 class TestCreateIndicator(unittest.TestCase):
@@ -139,9 +130,6 @@ class TestCreateIndicator(unittest.TestCase):
     #client = Client()
     configFile = settings.initializeBilboProject('.env')
 
-    # Attacher le plugin au client
-    client.register_plugin(CustomPlugin())
-
     # Maintenant, lorsqu'un worker se connecte, la fonction start du plugin sera appelée
     # et vous pouvez exécuter votre commande personnalisée dans cette fonction
 
@@ -225,8 +213,6 @@ class TestCreateIndicator(unittest.TestCase):
                                     logging.info(f"sql_pagination : {sql_pagination}")
                                     
                                     print("Go")
-
-                                    client.run(settings.initializeWorkers)
 
                                     metadata = ProcessingMetadata(run_id=run_id)
                                     metadata.environment_variables = configFile

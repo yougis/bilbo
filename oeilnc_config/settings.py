@@ -66,12 +66,6 @@ config_dict = {
     "dimension_catalog_dir": dimension_catalog_dir
 }
 
-
-def initializeWorkers():
-    config_dict = configFile.get()
-
-    return True
-
 def initializeBilboProject(dotenvPath=None):
     load_dotenv(dotenv_path=dotenvPath)
 
