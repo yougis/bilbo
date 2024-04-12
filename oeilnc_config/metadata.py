@@ -1,4 +1,3 @@
-import yaml
 import pandas as pd
 from datetime import datetime
 from oeilnc_utils.connection import getEngine
@@ -7,7 +6,8 @@ import logging
 import json
 import importlib.metadata
 
-DB_META_SCHEMA = 'processing'
+DB_META_SCHEMA = "processing"
+TABLE_NAME = "processing_metadata"
 
 
 class ProcessingMetadata:
@@ -237,17 +237,44 @@ class ProcessingMetadata:
         pass
 
     def get_metadata_by_id(self, id):
-        table = "bilbo.processing_metadata"
-        requete_sql = f"SELECT * FROM {table} WHERE id='{id}'"
+        table = f"{DB_META_SCHEMA}.{TABLE_NAME}"
+        requete_sql = f"SELECT * FROM {table} WHERE id ='{id}'"
         print(requete_sql)
         df = pd.read_sql_query(requete_sql, self.engine)
         return df
 
     def get_metadata_by_run_id(self, run_id):
-        table = "bilbo.processing_metadata"
-        requete_sql = f"SELECT * FROM {table} WHERE run_id='{run_id}'"
+        table = f"{DB_META_SCHEMA}.{TABLE_NAME}"
+        requete_sql = f"SELECT * FROM {table} WHERE run_id ='{run_id}'"
         print(requete_sql)
         df = pd.read_sql_query(requete_sql, self.engine)
+        return df
+    
+    def get_all(self):
+        table = f"{DB_META_SCHEMA}.{TABLE_NAME}"
+        requete_sql = f"SELECT * FROM {table}"
+        print(requete_sql)
+        df = pd.read_sql_query(requete_sql, self.engine)
+        return df
+    
+    def get_all_by_conf_property(self, conf, prop, value):
+        _df = self.get_all()
+        df_non_null = _df[_df[conf].apply(lambda x: x is not None)]
+        filtered_df = df_non_null[df_non_null[conf].apply(lambda x: json.loads(x).get(prop) == value)]
+
+        return filtered_df
+    
+    def get_last_from_zoi_config(self):
+        conf = "zoi_config"
+        prop = "dataName"
+        value= self.zoi_config.get(prop)
+
+        df = self.get_all_by_conf_property(conf, prop, value)
+
+
+
+
+
         return df
 
     def insert_metadata(self):

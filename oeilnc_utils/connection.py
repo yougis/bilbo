@@ -1,14 +1,9 @@
 import os
 import logging
-from oeilnc_config import settings
-
 from sqlalchemy import create_engine, Engine
 from geopandas import GeoDataFrame, GeoSeries
 from pandas import DataFrame, Series
 from shapely.geometry import Polygon,MultiPolygon
-
-import dask
-
 from intake import entry
 from intake import open_catalog
 

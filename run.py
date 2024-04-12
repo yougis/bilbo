@@ -21,7 +21,7 @@ logging.basicConfig( filename= f"{log_filename}",format='%(asctime)s - %(levelna
 
 
 from oeilnc_config import settings
-from oeilnc_utils import connection
+from oeilnc_utils import connection, file_management
 from oeilnc_geoindicator.calculation import create_indicator
 from intake import open_catalog
 from oeilnc_config.metadata import ProcessingMetadata
@@ -32,8 +32,8 @@ from dask.distributed import  Variable
 
 list_data_to_calculate  = [ # ZOI / individu
     ## p1
-   # "H3_6_NC", # 
-    "H3_8_NC",
+    "H3_6_NC", # 
+    #"H3_8_NC",
     "Foncier",
     "Reserves_indicateurSpec",
     "UNESCO_Zones_terrestres",   
@@ -70,17 +70,15 @@ list_data_to_calculate  = [ # ZOI / individu
 
 steplist= [1,2,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
 list_indicateur_to_calculate = [ # thematique
-    #"KBA",
-    #"observation_nidification"
     #"GFC_gain_2012",
     #"GFC_treecover2000",
     
-    "TMF_transitionMap_v12022",
+    #"TMF_transitionMap_v12022",
     "TMF_degradationyear_v12022",
     "TMF_DeforestationYear_v12022",
     "GFC_gain_2020",
     "GFC_lossyear",
-    "GFC_treecover2021", # donnée à récupérer"
+    #"GFC_treecover2021", # donnée à récupérer"
     #"TMF_annualChangeCollection_v12022_Dec_1991",
     #"TMF_annualChangeCollection_v12022_Dec_1992",
     #"TMF_annualChangeCollection_v12022_Dec_1993",
@@ -201,6 +199,7 @@ daskComputation=True
 faits = list()
 theme=configFile.get('project_db_schema')
 
+
 cat_dimensions = open_catalog(f"{configFile.get('dimension_catalog_dir')}DWH_Dimensions.yaml")
 
 dim_spatial = cat_dimensions.dim_spatial
@@ -235,43 +234,76 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
             if len(list_indicateur_to_calculate) > 0:
                 for indicateurFileName in list_indicateur_to_calculate:             
                     logging.info(f"--- {indicateurFileName} ---")
+                    path_file= f"{configFile.get('data_config_file')}{indicateurFileName}.yaml"
+                    if file_management.exist_file(path_file):
                     
-                    with open(f"{configFile.get('data_config_file')}{indicateurFileName}.yaml", 'r') as file:
-                        indicateurSpec = yaml.load(file, Loader=yaml.Loader)
-                        indicateurSpec["confDb"]["schema"] = theme
+                        with open(path_file, 'r') as file:
+                            indicateurSpec = yaml.load(file, Loader=yaml.Loader)
+                            indicateurSpec["confDb"]["schema"] = theme
 
-                        logging.info(f"individu: {dataFileName} | indicateur: {indicateurFileName}")
-
-
-                        if not fromIndexList:
-                            indexList= None
-
-                        if settings.checkTableName(indicateurSpec,individuStatSpec) :                                        
-                            logging.info(f"nbchuncks: {individuStatSpec.get('nbchuncks','aucun')}")
-
-                            if {individuStatSpec.get('catalogUri',None)}:
-                                catalog = f"{configFile.get('data_catalog_dir')}{individuStatSpec.get('catalogUri',None)}"
-                                dataName = individuStatSpec.get('dataName',None)
-                                entryCatalog = getattr(open_catalog(catalog),dataName)
-                                selectString = individuStatSpec.get('selectString',entryCatalog.describe().get('args').get('sql_expr'))
-                                indexRef = individuStatSpec.get('indexRef',None)
-                                nbLignes = connection.getNbLignes(entryCatalog)
-                            
-                            if {indicateurSpec.get('catalogUri', None)}:
-                                themeCatalog = f"{configFile.get('data_catalog_dir')}{indicateurSpec.get('catalogUri',None)}"
-                            else:
-                                themeCatalog = ''
+                            logging.info(f"individu: {dataFileName} | indicateur: {indicateurFileName}")
 
 
-                            print(f"GO ------------->>>>>>   individu: {dataFileName} | indicateur: {indicateurFileName}")
+                            if not fromIndexList:
+                                indexList= None
 
-                            #client.run(settings.initializeWorkers)
+                            if settings.checkTableName(indicateurSpec,individuStatSpec) :                                        
+                                logging.info(f"nbchuncks: {individuStatSpec.get('nbchuncks','aucun')}")
+
+                                if {individuStatSpec.get('catalogUri',None)}:
+                                    catalog = f"{configFile.get('data_catalog_dir')}{individuStatSpec.get('catalogUri',None)}"
+                                    dataName = individuStatSpec.get('dataName',None)
+                                    entryCatalog = getattr(open_catalog(catalog),dataName)
+                                    indexRef = individuStatSpec.get('indexRef',None)
+                                    nbLignes = connection.getNbLignes(entryCatalog)
+                                
+                                if {indicateurSpec.get('catalogUri', None)}:
+                                    themeCatalog = f"{configFile.get('data_catalog_dir')}{indicateurSpec.get('catalogUri',None)}"
+                                else:
+                                    themeCatalog = ''
 
 
-                            if offset >= 0 or limit > 0:    
+                                print(f"GO ------------->>>>>>   individu: {dataFileName} | indicateur: {indicateurFileName}")
 
-                                while offset < nbLignes:
 
+                                if offset >= 0 or limit > 0:    
+
+                                    while offset < nbLignes:
+
+
+                                        metadata = ProcessingMetadata(run_id=run_id)
+                                        metadata.environment_variables = configFile
+                                        metadata.output_schema = configFile.get('project_db_schema')
+                                        metadata.operator_name = configFile.get('user')
+                                        metadata.log_file_name = log_filename
+                                        metadata.zoi_config = individuStatSpec
+                                        metadata.dimensions_spatiales = individuStatSpec["confDims"]["isin_id_spatial"]
+                                        metadata.theme_config = indicateurSpec
+                                        metadata.theme_catalog = themeCatalog
+                                        metadata.zoi_catalog = entryCatalog
+                                                                    
+                                        sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
+                                        logging.info(f"sql_pagination : {sql_pagination}")
+
+                                        faitsname = create_indicator(
+                                            bbox=bb,
+                                            individuStatSpec=individuStatSpec,
+                                            indicateurSpec=indicateurSpec,
+                                            dims=(dim_spatial,dim_mesure),
+                                            stepList=steplist,
+                                            indexListIndicator=indexList,
+                                            sql_pagination=sql_pagination,
+                                            indicateur_sql_flow=indicateur_sql_flow,
+                                            daskComputation=daskComputation,
+                                            metadata=metadata)
+                                        
+                                        metadata.output_table_name = faitsname
+                                        metadata.offset_value = offset
+                                        metadata.limit_value = limit
+                                        metadata.insert_metadata()
+
+                                        offset += limit
+                                else:
 
                                     metadata = ProcessingMetadata(run_id=run_id)
                                     metadata.environment_variables = configFile
@@ -280,8 +312,7 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                     metadata.log_file_name = log_filename
                                     metadata.zoi_config = individuStatSpec
                                     metadata.dimensions_spatiales = individuStatSpec["confDims"]["isin_id_spatial"]
-                                    metadata.theme_config = indicateurSpec
-                                    metadata.theme_catalog = themeCatalog
+                                    metadata.theme_config = themeCatalog
                                     metadata.zoi_catalog = entryCatalog
                                                                 
                                     sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
@@ -294,7 +325,6 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                         dims=(dim_spatial,dim_mesure),
                                         stepList=steplist,
                                         indexListIndicator=indexList,
-                                        sql_pagination=sql_pagination,
                                         indicateur_sql_flow=indicateur_sql_flow,
                                         daskComputation=daskComputation,
                                         metadata=metadata)
@@ -303,40 +333,8 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                     metadata.offset_value = offset
                                     metadata.limit_value = limit
                                     metadata.insert_metadata()
-
-                                    offset += limit
-                            else:
-
-                                metadata = ProcessingMetadata(run_id=run_id)
-                                metadata.environment_variables = configFile
-                                metadata.output_schema = configFile.get('project_db_schema')
-                                metadata.operator_name = configFile.get('user')
-                                metadata.log_file_name = log_filename
-                                metadata.zoi_config = individuStatSpec
-                                metadata.dimensions_spatiales = individuStatSpec["confDims"]["isin_id_spatial"]
-                                metadata.theme_config = themeCatalog
-                                metadata.zoi_catalog = entryCatalog
-                                                            
-                                sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
-                                logging.info(f"sql_pagination : {sql_pagination}")
-
-                                faitsname = create_indicator(
-                                    bbox=bb,
-                                    individuStatSpec=individuStatSpec,
-                                    indicateurSpec=indicateurSpec,
-                                    dims=(dim_spatial,dim_mesure),
-                                    stepList=steplist,
-                                    indexListIndicator=indexList,
-                                    indicateur_sql_flow=indicateur_sql_flow,
-                                    daskComputation=daskComputation,
-                                    metadata=metadata)
-                                
-                                metadata.output_table_name = faitsname
-                                metadata.offset_value = offset
-                                metadata.limit_value = limit
-                                metadata.insert_metadata()
-                        else : 
-                            pass 
+                            else : 
+                                pass 
                     
 
 #settings.checkConfigFiles(list_data_to_calculate, configFile,list_indicateur_to_calculate)
