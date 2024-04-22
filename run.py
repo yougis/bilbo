@@ -34,9 +34,10 @@ list_data_to_calculate  = [ # ZOI / individu
     ## p1
     "H3_6_NC", # 
     #"H3_8_NC",
-    "Foncier",
-    "Reserves_indicateurSpec",
-    "UNESCO_Zones_terrestres",   
+   # "Foncier",
+   # "Reserves_indicateurSpec",
+  #  "UNESCO_Zones_terrestres",   
+   
     # "cadastre_minier", # fichier config à faire / ? > sur georep / cadastre_minier / couches "concessions minières" et "permis de recherche"  (pas sur la BDD SIG de l'ŒIL)
     # "Fréquentation_humaine" :  Zone de Bati et voiries / calcul de distance ?
 
@@ -44,16 +45,16 @@ list_data_to_calculate  = [ # ZOI / individu
     # Incendies #VIIRS et MODIS
     # Urbanisation à créer Dynamic world built area
 
-    ## p2
+    ## p2#
 
-    "Foret_Seche_zone_vigilance",
-    "Foret_Seche_corridors",
-    "Mangrove",
-    "SurfacesAgricoles",
-    "Geologie_Substrat",
-    "bande_littorale_375M_individuStatSpec", # Dynamique trait de côte
-    "PerimetresProtectionEau", # mettre jour la donnée
-    "BassinsVersantsProducteursEP",
+ #   "Foret_Seche_zone_vigilance",
+ #   "Foret_Seche_corridors",
+ #   "Mangrove",
+ #   "SurfacesAgricoles",
+ #   "Geologie_Substrat",
+ #   "bande_littorale_375M_individuStatSpec", # Dynamique trait de côte
+ #   "PerimetresProtectionEau", # mettre jour la donnée
+ #   "BassinsVersantsProducteursEP",#
 
     # Zone de réhabilitation de sites miniers > BDD RECOSYNTH et données FNI?--> A réccupérer
     # données Sylviculture de vulcain // différe légerement du MOS 2014
@@ -74,10 +75,10 @@ list_indicateur_to_calculate = [ # thematique
     #"GFC_treecover2000",
     
     #"TMF_transitionMap_v12022",
-    "TMF_degradationyear_v12022",
-    "TMF_DeforestationYear_v12022",
-    "GFC_gain_2020",
-    "GFC_lossyear",
+   # "TMF_degradationyear_v12022",
+    #"TMF_DeforestationYear_v12022",
+    #"GFC_gain_2020",
+    #"GFC_lossyear",
     #"GFC_treecover2021", # donnée à récupérer"
     #"TMF_annualChangeCollection_v12022_Dec_1991",
     #"TMF_annualChangeCollection_v12022_Dec_1992",
@@ -88,23 +89,23 @@ list_indicateur_to_calculate = [ # thematique
     #"TMF_annualChangeCollection_v12022_Dec_1997",
     #"TMF_annualChangeCollection_v12022_Dec_1998",
     #"TMF_annualChangeCollection_v12022_Dec_1999",
-    "TMF_annualChangeCollection_v12022_Dec_2000",
-    "TMF_annualChangeCollection_v12022_Dec_2001",
-    "TMF_annualChangeCollection_v12022_Dec_2002",
-    "TMF_annualChangeCollection_v12022_Dec_2003",
-    "TMF_annualChangeCollection_v12022_Dec_2004",
-    "TMF_annualChangeCollection_v12022_Dec_2005",
-    "TMF_annualChangeCollection_v12022_Dec_2006",
-    "TMF_annualChangeCollection_v12022_Dec_2007",
-    "TMF_annualChangeCollection_v12022_Dec_2008",
-    "TMF_annualChangeCollection_v12022_Dec_2009",
-    "TMF_annualChangeCollection_v12022_Dec_2010",
-    "TMF_annualChangeCollection_v12022_Dec_2011",
-    "TMF_annualChangeCollection_v12022_Dec_2012",
-    "TMF_annualChangeCollection_v12022_Dec_2013",
-    "TMF_annualChangeCollection_v12022_Dec_2014",
-    "TMF_annualChangeCollection_v12022_Dec_2015",
-    "TMF_annualChangeCollection_v12022_Dec_2016",
+    #"TMF_annualChangeCollection_v12022_Dec_2000",
+    #"TMF_annualChangeCollection_v12022_Dec_2001",
+    #"TMF_annualChangeCollection_v12022_Dec_2002",
+    #"TMF_annualChangeCollection_v12022_Dec_2003",
+    #"TMF_annualChangeCollection_v12022_Dec_2004",
+    #"TMF_annualChangeCollection_v12022_Dec_2005",
+    #"TMF_annualChangeCollection_v12022_Dec_2006",
+    #"TMF_annualChangeCollection_v12022_Dec_2007",
+    #"TMF_annualChangeCollection_v12022_Dec_2008", reprendre à offset 400
+    #"TMF_annualChangeCollection_v12022_Dec_2009",
+   # "TMF_annualChangeCollection_v12022_Dec_2010",
+   # "TMF_annualChangeCollection_v12022_Dec_2011",
+   # "TMF_annualChangeCollection_v12022_Dec_2012",
+    #"TMF_annualChangeCollection_v12022_Dec_2013", reprendre à offset 200
+    #"TMF_annualChangeCollection_v12022_Dec_2014", reprendre de 0 à  200
+   # "TMF_annualChangeCollection_v12022_Dec_2015", reprendre de 0 à  200
+    #"TMF_annualChangeCollection_v12022_Dec_2016", reprendre de 0 à  200 ET à offset 520
     "TMF_annualChangeCollection_v12022_Dec_2017",
     "TMF_annualChangeCollection_v12022_Dec_2018",
     "TMF_annualChangeCollection_v12022_Dec_2019",
@@ -217,9 +218,6 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
             individuStatSpec["theme"]=theme
             individuStatSpec["confDims"]["isin_id_spatial"] = []
 
-            offset = individuStatSpec.get("offset", -1)
-            limit = individuStatSpec.get("limit", -1)
-            logging.info(f"Initial offset : {offset} , limit : {limit}")
 
             logging.info(f"step list : {steplist}")
 
@@ -265,6 +263,9 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
 
                                 print(f"GO ------------->>>>>>   individu: {dataFileName} | indicateur: {indicateurFileName}")
 
+                                offset = individuStatSpec.get("offset", -1)
+                                limit = individuStatSpec.get("limit", -1)
+                                logging.info(f"Initial offset : {offset} , limit : {limit}")
 
                                 if offset >= 0 or limit > 0:    
 
