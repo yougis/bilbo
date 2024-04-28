@@ -44,7 +44,9 @@ def getSqlWhereClauseBbox(bbox, geom, bbox_crs="4326", geom_crs="3163") -> str:
         str: The SQL WHERE clause for filtering geometries based on the bounding box.
     """
     (latmin, lonmin), (latmax, lonmax) = bbox
-    bbox_sql_where_clause = f"ST_Intersects(ST_Transform(ST_SetSRID({geom},3163)::geometry,{geom_crs}::int),ST_Transform(st_makeenvelope({latmin},{lonmin},{latmax},{lonmax}, {bbox_crs} )::geometry,{geom_crs}::int))"
+    #bbox_sql_where_clause = f"ST_Intersects(ST_Transform(ST_SetSRID({geom},3163)::geometry,{geom_crs}::int),ST_Transform(st_makeenvelope({latmin},{lonmin},{latmax},{lonmax}, {bbox_crs} )::geometry,{geom_crs}::int))"
+    bbox_sql_where_clause = f"{geom} && ST_Transform(st_makeenvelope({latmin},{lonmin},{latmax},{lonmax}, {bbox_crs} )::geometry,{geom_crs}::int)"
+
     return bbox_sql_where_clause
 
 
