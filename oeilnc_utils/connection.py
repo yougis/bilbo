@@ -151,7 +151,6 @@ def persistGDF(gdf,iterables):
     
     if isinstance(gdf, (GeoDataFrame, GeoSeries)) :
         logging.info(f"CRS transformation from {gdf.crs} to {epsg} ?")
-        
         #gdf.to_crs(epsg, inplace=True)
 
     elif isinstance(gdf, (DataFrame, Series)):
@@ -165,8 +164,6 @@ def persistGDF(gdf,iterables):
     if gdf.shape[0] == 0:
         logging.warning(f"persistGDF - Le Dataframe est vide, on passe")
         return gdf
-    
-
 
     if tableName:
         
