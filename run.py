@@ -32,9 +32,9 @@ from dask.distributed import  Variable
 
 list_data_to_calculate  = [ # ZOI / individu
     ## p1
-    "H3_6_NC", # 
+    #"H3_6_NC", # 
     #"H3_8_NC",
-   # "Foncier",
+    "Foncier",
    # "Reserves_indicateurSpec",
   #  "UNESCO_Zones_terrestres",   
    
@@ -71,6 +71,7 @@ list_data_to_calculate  = [ # ZOI / individu
 
 steplist= [1,2,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
 list_indicateur_to_calculate = [ # thematique
+    "fait_TMF_acc_v12022_h3_nc_6"
     #"GFC_gain_2012",
     #"GFC_treecover2000",
     
@@ -97,21 +98,21 @@ list_indicateur_to_calculate = [ # thematique
     #"TMF_annualChangeCollection_v12022_Dec_2005",
     #"TMF_annualChangeCollection_v12022_Dec_2006",
     #"TMF_annualChangeCollection_v12022_Dec_2007",
-    #"TMF_annualChangeCollection_v12022_Dec_2008", reprendre à offset 400
+   # "TMF_annualChangeCollection_v12022_Dec_2008", { check if ok}
     #"TMF_annualChangeCollection_v12022_Dec_2009",
    # "TMF_annualChangeCollection_v12022_Dec_2010",
    # "TMF_annualChangeCollection_v12022_Dec_2011",
    # "TMF_annualChangeCollection_v12022_Dec_2012",
-    #"TMF_annualChangeCollection_v12022_Dec_2013", reprendre à offset 200
-    #"TMF_annualChangeCollection_v12022_Dec_2014", reprendre de 0 à  200
-   # "TMF_annualChangeCollection_v12022_Dec_2015", reprendre de 0 à  200
-    #"TMF_annualChangeCollection_v12022_Dec_2016", reprendre de 0 à  200 ET à offset 520
-    "TMF_annualChangeCollection_v12022_Dec_2017",
-    "TMF_annualChangeCollection_v12022_Dec_2018",
-    "TMF_annualChangeCollection_v12022_Dec_2019",
-    "TMF_annualChangeCollection_v12022_Dec_2020",
-    "TMF_annualChangeCollection_v12022_Dec_2021",
-    "TMF_annualChangeCollection_v12022_Dec_2022"
+   # "TMF_annualChangeCollection_v12022_Dec_2013", #reprendre à offset 200 -> fait. faire 560 à 600 /  OK
+    #"TMF_annualChangeCollection_v12022_Dec_2014", #reprendre de 0 à  200-> fait. supprmier de 200 à 280 : run 6cc8d1b4-1141-4a9d-b236-1797f4913802 / verifier l'offset 80 à 120 car erreur / ok
+    #"TMF_annualChangeCollection_v12022_Dec_2015", #reprendre de 0 à  200 -> fait
+   # "TMF_annualChangeCollection_v12022_Dec_2016", #reprendre de 0 à  200 -> fait ET à partir d'offset 520 (verifier l'offset 640 à 680 car erreur ) /  OK
+    #"TMF_annualChangeCollection_v12022_Dec_2017",
+    #"TMF_annualChangeCollection_v12022_Dec_2018",
+    #"TMF_annualChangeCollection_v12022_Dec_2019",
+    #"TMF_annualChangeCollection_v12022_Dec_2020",
+    #"TMF_annualChangeCollection_v12022_Dec_2021",
+    #"TMF_annualChangeCollection_v12022_Dec_2022"
 
 
     ]
@@ -167,7 +168,7 @@ listIdMulti=[
     listIdSpatialCommuneMaritime,
     listIdSpatialAiresCoutumieres
     ]
-
+listIdMulti=[]
 
 listbbox= [c for c in listIdSpatialCommune]
 
@@ -192,14 +193,14 @@ global_configFile.set(configFile)
 bboxing = False #par emprise communale
 bb=None
 fromIndexList=False
-steplist= [1,2,3]# 1 : generate indicators / 2: spliting byDims & calculate ratio... / 3: persist
+steplist= [1,3]# 1 : generate indicators / 2: spliting byDims & calculate ratio... / 3: persist
 info_integration = False
 sql_pagination = ""
 indicateur_sql_flow=True # si Vrai, attention à ne pas depasser le nombre de connection postgres maximales avec la somme de chunck de l'ensemble du cluster
 daskComputation=True
 faits = list()
 theme=configFile.get('project_db_schema')
-
+boucleOffset= True
 
 cat_dimensions = open_catalog(f"{configFile.get('dimension_catalog_dir')}DWH_Dimensions.yaml")
 
@@ -265,45 +266,49 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
 
                                 offset = individuStatSpec.get("offset", -1)
                                 limit = individuStatSpec.get("limit", -1)
+                                to_offset = individuStatSpec.get("to_offset", nbLignes)
+                                    
                                 logging.info(f"Initial offset : {offset} , limit : {limit}")
 
-                                if offset >= 0 or limit > 0:    
+                                if boucleOffset:
+                                    if offset >= 0 or limit > 0:    
 
-                                    while offset < nbLignes:
+                                        while offset < nbLignes and offset <= to_offset:
 
 
-                                        metadata = ProcessingMetadata(run_id=run_id)
-                                        metadata.environment_variables = configFile
-                                        metadata.output_schema = configFile.get('project_db_schema')
-                                        metadata.operator_name = configFile.get('user')
-                                        metadata.log_file_name = log_filename
-                                        metadata.zoi_config = individuStatSpec
-                                        metadata.dimensions_spatiales = individuStatSpec["confDims"]["isin_id_spatial"]
-                                        metadata.theme_config = indicateurSpec
-                                        metadata.theme_catalog = themeCatalog
-                                        metadata.zoi_catalog = entryCatalog
-                                                                    
-                                        sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
-                                        logging.info(f"sql_pagination : {sql_pagination}")
+                                            metadata = ProcessingMetadata(run_id=run_id)
+                                            metadata.environment_variables = configFile
+                                            metadata.output_schema = configFile.get('project_db_schema')
+                                            metadata.operator_name = configFile.get('user')
+                                            metadata.log_file_name = log_filename
+                                            metadata.zoi_config = individuStatSpec
+                                            metadata.dimensions_spatiales = individuStatSpec["confDims"]["isin_id_spatial"]
+                                            metadata.theme_config = indicateurSpec
+                                            metadata.theme_catalog = themeCatalog
+                                            metadata.zoi_catalog = entryCatalog
+                                                                        
+                                            sql_pagination = f"order by {indexRef} limit {limit} offset {offset}"
+                                            logging.info(f"sql_pagination : {sql_pagination}")
 
-                                        faitsname = create_indicator(
-                                            bbox=bb,
-                                            individuStatSpec=individuStatSpec,
-                                            indicateurSpec=indicateurSpec,
-                                            dims=(dim_spatial,dim_mesure),
-                                            stepList=steplist,
-                                            indexListIndicator=indexList,
-                                            sql_pagination=sql_pagination,
-                                            indicateur_sql_flow=indicateur_sql_flow,
-                                            daskComputation=daskComputation,
-                                            metadata=metadata)
-                                        
-                                        metadata.output_table_name = faitsname
-                                        metadata.offset_value = offset
-                                        metadata.limit_value = limit
-                                        metadata.insert_metadata()
+                                            faitsname = create_indicator(
+                                                bbox=bb,
+                                                individuStatSpec=individuStatSpec,
+                                                indicateurSpec=indicateurSpec,
+                                                dims=(dim_spatial,dim_mesure),
+                                                stepList=steplist,
+                                                indexListIndicator=indexList,
+                                                sql_pagination=sql_pagination,
+                                                indicateur_sql_flow=indicateur_sql_flow,
+                                                daskComputation=daskComputation,
+                                                metadata=metadata)
+                                            
+                                            metadata.output_table_name = faitsname
+                                            metadata.offset_value = offset
+                                            metadata.limit_value = limit
+                                            metadata.insert_metadata()
 
-                                        offset += limit
+                                            offset += limit
+
                                 else:
 
                                     metadata = ProcessingMetadata(run_id=run_id)
