@@ -154,17 +154,15 @@ def persistGDF(gdf,iterables):
     elif isinstance(gdf, (DataFrame, Series)):
         logging.warning(f"persistGDF - Vous essayer de persister un donnée sans géométrie: {gdf.shape[0]} -  {gdf}")
         # Convertir les chaînes de caractères en tuples de clé et d'indice
-
-
-        if gdf.shape[0] == 0:
-            logging.warning(f"persistGDF - Le Dataframe est vide, on passe")
-
-        return gdf
     
     else :
         logging.warning(f"persistGDF - Vous essayer de persister un donnée de type -  {type(gdf)}")
         return gdf
     
+    if gdf.shape[0] == 0:
+        logging.warning(f"persistGDF - Le Dataframe est vide, on passe")
+        return gdf
+
     if tableName:
         
         schema = confDb.get('schema',None)
