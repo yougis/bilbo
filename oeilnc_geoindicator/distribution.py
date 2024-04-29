@@ -35,7 +35,7 @@ def parallelize_DaskDataFrame(df, func, paramsTuples, nbchuncks=20):
     return df2
 
 
-def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: Catalog.entry, func, paramsTuples, conf_parquet_file, metaModelList=None,  nbchuncks=20):
+def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: any, func, paramsTuples, conf_parquet_file, metaModelList=None,  nbchuncks=20):
     """
     Parallelizes the processing of a Dask DataFrame created from an Intake data source.
 
