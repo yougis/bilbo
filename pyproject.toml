@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bilbo-packages"
-version = "0.1.8"
+version = "0.1.9a0"
 description = "Package permettant de générer des indicateurs à partir de différentes sources de données (Google Earth Engine, ...)."
 authors = ["Clément Niot <clement.niot@oeil.nc>", "Hugo Roussaffa <hugo.roussaffa@oeil.nc>"]
 readme = "README.md"
@@ -37,6 +37,7 @@ psycopg2 = "^2.9.9"
 lz4 = "^4.3.3"
 msgpack = "^1.0.8"
 dask = "2024.2.1"
+h3 = "^3.7.7"
 
 
 

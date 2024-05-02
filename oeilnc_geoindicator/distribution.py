@@ -1,16 +1,15 @@
 from oeilnc_utils.connection import fixOsPath, getSqlWhereClauseBbox
-from dask_geopandas import from_geopandas as ddg_from_geopandas
-from intake import Catalog
 from geopandas import GeoDataFrame
+from tobler.util import h3fy 
 from dask_geopandas import from_geopandas as ddg_from_geopandas, from_dask_dataframe as ddg_from_daskDataframe
-from dask.distributed import Client
 from os import getenv
 import logging
 from pandas import concat as pd_concat
 
+
 from oeilnc_config import settings
 from oeilnc_utils import connection
-from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps
+from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps, geomToH3, _daskSplitGeomByAnother
 
 
 logging.info("GeoIndicator - Distribution Imported")
@@ -104,6 +103,8 @@ def generateIndicateur_parallel_v2(data, iterables):
     paths = settings.getPaths()
     logging.debug(f'Path : {paths}')
 
+    client = settings.getDaskClient()
+
 
     data_catalog_dir = paths.get('data_catalog_dir')
     commun_path  = paths.get('commun_path')
@@ -156,13 +157,24 @@ def generateIndicateur_parallel_v2(data, iterables):
     by_geom_filtered = by_geom_filtered.cx[xmin:xmax,ymin:ymax]
     
     data.columns = data.columns.str.lower()
-    #data = cleanOverlaps(data, individuStatSpec.get('indicateur_dissolve_byList',[]))
-    result = splitGeomByAnother(data,by_geom_filtered,overlayHow=overlayHow)
+    
+    keepList_zoi = [col for col in data.columns if col in keepList and col != 'geometry']
+
+    data = geomToH3(data, res=8, clip=True, keepList=keepList_zoi)
+
+    if data.shape[0]>1:
+        dd_data = ddg_from_geopandas(data,data.shape[0])
+        df_meta = GeoDataFrame(columns = data.columns)
+        result = dd_data.map_partitions(_daskSplitGeomByAnother, iterables=(by_geom_filtered,overlayHow), meta=df_meta, align_dataframes=False)
+        result = result.compute()
+
+    else:
+        result = splitGeomByAnother(data,by_geom_filtered,overlayHow=overlayHow)
     
     if not result.empty:
  
         if indexRef not in result.columns :
-            result[indexRef] = result[indexRef + '_' + '1' ]
+            result[indexRef+'_zoi'] = ""
 
         result['id_split'] = result[indexRef].map(str) + '_' + result.index.map(str)
 
