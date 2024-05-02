@@ -1,0 +1,1 @@
+# Todo : la plupart des methode dans oeilnc_util.geometry devrait être ici logiquement.

@@ -3,6 +3,8 @@ from shapely.geometry import Polygon,MultiPolygon
 from pandas import  concat as pd_concat
 from dask.dataframe import concat as dd_concat
 import numpy as np
+from tobler.util import h3fy
+from tobler.area_weighted import area_interpolate
 
 import logging
 
@@ -64,6 +66,43 @@ def splitGeom(gdf_to_split, gdf_from_raster, fp2):
     fp2.value += 1
     return res_identity
 
+def geomToH3(geoDataframe: GeoDataFrame, res=8, clip=True, keepList=None) -> GeoDataFrame:
+    """
+    Converts a GeoDataFrame to H3 hexagons.
+
+    Parameters:
+    - geoDataframe (GeoDataFrame): The input GeoDataFrame to be converted.
+
+    Returns:
+    - result (GeoDataFrame): The converted GeoDataFrame containing H3 hexagons.
+    """
+
+    if geoDataframe.shape[0]==1:
+
+        crs= geoDataframe.crs
+        geoDataframe.to_crs(4326, inplace=True)
+
+        nb_result=0
+
+        while nb_result < geoDataframe.shape[0]:
+            result = h3fy(geoDataframe, resolution=res, clip=clip, buffer=True)
+            nb_result = result.shape[0]
+            res+=1
+
+        result.to_crs(crs, inplace=True)
+
+        premiere_ligne = geoDataframe.iloc[0]
+        valeurs_attributs = {attribut: premiere_ligne[attribut] for attribut in keepList}
+
+        for attribut in keepList:
+            result[attribut] = valeurs_attributs[attribut]
+
+
+    
+    else:
+        logging.CRITICAL("le gdf à spliter contient plusieurs entités. fonctionnement non géré pour le moment")
+    
+    return result
 
 
 def splitGeomByAnother(gdf_to_split, by_geom, overlayHow="intersection", keep_geom_type=True, epsg="EPSG:3163"):
@@ -85,7 +124,7 @@ def splitGeomByAnother(gdf_to_split, by_geom, overlayHow="intersection", keep_ge
             logging.info(f"convert gdf_to_split: {type(gdf_to_split)}")
             gdf_to_split = GeoDataFrame([gdf_to_split], crs=epsg)
 
-        gdf_to_split = gdf_to_split.explode(index_parts=True, ignore_index=True).reset_index()
+        gdf_to_split = gdf_to_split.explode(index_parts=True, ignore_index=True)
         result_intersection = gdf_to_split.overlay(by_geom, how=overlayHow, keep_geom_type=keep_geom_type)
         return result_intersection
 
@@ -97,6 +136,15 @@ def splitGeomByAnother(gdf_to_split, by_geom, overlayHow="intersection", keep_ge
         errors = gdf_to_split
 
         return errors
+
+
+def _daskSplitGeomByAnother(gdf_to_split, iterables):
+
+    by_geom, overlayHow, columns = iterables
+
+    result = splitGeomByAnother(gdf_to_split,  by_geom, overlayHow)
+    result = result.reindex(columns=columns)
+    return result
 
 
 def splitGeomByDimSpatial(gdf_to_split, by_geoms):

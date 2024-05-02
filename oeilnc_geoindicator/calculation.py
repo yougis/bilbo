@@ -438,8 +438,11 @@ def create_indicator(bbox,
             metadata.theme_catalog = 'source catalog not implemented yet in metadata'
     indexRef = individuStatSpec.get('indexRef',None)
     nbchuncks = individuStatSpec.get('nbchuncks',None)
-    keepList = individuStatSpec.get('keepList',[]) + indicateurSpec.get('keepList',[])
+    keepList = list(set(individuStatSpec.get('keepList',[]) + indicateurSpec.get('keepList',[])))
+    logging.info(f"Attribut qui seront conservés pendant le traitement: {keepList}")
+    logging.info(f"Index utilisé pour ZOI: {indexRef}")
     
+
     adaptingDataframe = indicateurSpec.get('adaptingDataframe',None)
 
     #result = gpd.GeoDataFrame(columns = columnList)
