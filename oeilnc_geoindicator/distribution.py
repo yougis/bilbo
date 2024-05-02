@@ -155,17 +155,20 @@ def generateIndicateur_parallel_v2(data, iterables):
         by_geom_filtered = data_ind.read()
         
     by_geom_filtered = by_geom_filtered.cx[xmin:xmax,ymin:ymax]
-    
+    by_geom_filtered.columns = by_geom_filtered.columns.str.lower()
+
+
     data.columns = data.columns.str.lower()
     
     keepList_zoi = [col for col in data.columns if col in keepList and col != 'geometry']
+    keepList_theme = [col for col in by_geom_filtered.columns if col in keepList]
 
     data = geomToH3(data, res=8, clip=True, keepList=keepList_zoi)
 
     if data.shape[0]>1:
         dd_data = ddg_from_geopandas(data,data.shape[0])
-        df_meta = GeoDataFrame(columns = data.columns)
-        result = dd_data.map_partitions(_daskSplitGeomByAnother, iterables=(by_geom_filtered,overlayHow), meta=df_meta, align_dataframes=False)
+        df_meta = GeoDataFrame(columns = keepList)
+        result = dd_data.map_partitions(_daskSplitGeomByAnother, iterables=(by_geom_filtered[keepList_theme],overlayHow, keepList), meta=df_meta, align_dataframes=False)
         result = result.compute()
 
     else:

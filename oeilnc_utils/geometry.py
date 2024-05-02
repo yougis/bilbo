@@ -124,7 +124,7 @@ def splitGeomByAnother(gdf_to_split, by_geom, overlayHow="intersection", keep_ge
             logging.info(f"convert gdf_to_split: {type(gdf_to_split)}")
             gdf_to_split = GeoDataFrame([gdf_to_split], crs=epsg)
 
-        gdf_to_split = gdf_to_split.explode(index_parts=True, ignore_index=True).reset_index()
+        gdf_to_split = gdf_to_split.explode(index_parts=True, ignore_index=True)
         result_intersection = gdf_to_split.overlay(by_geom, how=overlayHow, keep_geom_type=keep_geom_type)
         return result_intersection
 
@@ -140,10 +140,10 @@ def splitGeomByAnother(gdf_to_split, by_geom, overlayHow="intersection", keep_ge
 
 def _daskSplitGeomByAnother(gdf_to_split, iterables):
 
-    by_geom, overlayHow = iterables
+    by_geom, overlayHow, columns = iterables
 
     result = splitGeomByAnother(gdf_to_split,  by_geom, overlayHow)
-
+    result = result.reindex(columns=columns)
     return result
 
 
