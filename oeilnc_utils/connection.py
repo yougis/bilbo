@@ -151,6 +151,9 @@ def persistGDF(gdf,iterables):
     
     if isinstance(gdf, (GeoDataFrame, GeoSeries)) :
         logging.info(f"CRS transformation from {gdf.crs} to {epsg} ?")
+        if gdf.crs != epsg:
+            if gdf.crs == 'EPSG:-1':
+                gdf.set_crs(epsg)
         #gdf.to_crs(epsg, inplace=True)
 
     elif isinstance(gdf, (DataFrame, Series)):
