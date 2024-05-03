@@ -790,8 +790,12 @@ def create_indicator(bbox,
             indicateur = indicateur.assign(metadata_id=metadata.id)
             dbEngineConnection = (user, pswd, host, db_traitement)
             #results = client.submit(persistGDF, client.compute(indicateur),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
-            results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
-            #Ajout JFNGVS 09/02/2023
+            
+            ## repartitionner
+            indicateur = indicateur.repartition(partition_size='1MB')
+            ## envoyer les lots au fur et a mesure et par plusieurs worker
+            results = indicateur.map_partitions(persistGDF, iterables=(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).compute()
+            #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
             logging.info(f"create_indicator: Etape 3 --> Resultat {results}")
             ext_table_name = individuStatSpec.get('dataName',None)
            # AjoutClePrimaire(schema,user, pswd, host, db_traitement, f"{tableName}_{ext_table_name}")
