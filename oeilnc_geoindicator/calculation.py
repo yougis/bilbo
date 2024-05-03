@@ -678,7 +678,7 @@ def create_indicator(bbox,
                             indicateur = parallelize_DaskDataFrame_From_Intake_Source(
                                 data,
                                 generateIndicateur_parallel_v2,
-                                (indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom),
+                                (indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom, False),
                                 (tableName,ext_table_name),
                                 metaModelList,
                                 nbchuncks=nbchuncks

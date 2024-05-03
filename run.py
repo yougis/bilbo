@@ -16,7 +16,7 @@ except FileExistsError:
 
 log_filename = os.path.join(current_directory, log_dir, f"{current_date}-bilbo-processing.log")
 
-logging.basicConfig( filename= f"{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.DEBUG)
+logging.basicConfig( filename= f"{log_filename}",format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
 
 

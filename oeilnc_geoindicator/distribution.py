@@ -103,14 +103,28 @@ def generateIndicateur_parallel_v2(data, iterables):
     paths = settings.getPaths()
     logging.debug(f'Path : {paths}')
 
-    client = settings.getDaskClient()
-
-
     data_catalog_dir = paths.get('data_catalog_dir')
     commun_path  = paths.get('commun_path')
 
 
-    indicateurSpec, individuStatSpec, data_indicateur, keepList, data_geom, data_indicator_geom_col  = iterables
+    indicateurSpec, individuStatSpec, data_indicateur, keepList, data_geom, data_indicator_geom_col, splitted  = iterables
+
+    keepList_zoi = [col for col in data.columns if col in keepList and col != 'geometry']
+    #keepList_theme = [col for col in by_geom_filtered.columns if col in keepList]
+
+    if not splitted:
+        data = geomToH3(data, res=8, clip=True, keepList=keepList_zoi)
+
+    if data.shape[0]>1:
+        splitted = True
+        dd_data = ddg_from_geopandas(data,data.shape[0])
+        df_meta = GeoDataFrame(columns = keepList)
+        try:
+            result = dd_data.map_partitions(generateIndicateur_parallel_v2,iterables=(indicateurSpec, individuStatSpec, data_indicateur, keepList, data_geom, data_indicator_geom_col , splitted), meta=df_meta)
+        except Exception as e:
+            logging.critical(f"DASk  parallelize generateIndicateur_parallel_v2 ERROR: {e}")        
+        #result = dd_data.map_partitions(_daskSplitGeomByAnother, iterables=(by_geom_filtered[keepList_theme],overlayHow, keepList), meta=df_meta, align_dataframes=False)
+        return result.compute()
 
     result = GeoDataFrame()
     
@@ -160,22 +174,15 @@ def generateIndicateur_parallel_v2(data, iterables):
 
     data.columns = data.columns.str.lower()
     
-    keepList_zoi = [col for col in data.columns if col in keepList and col != 'geometry']
-    keepList_theme = [col for col in by_geom_filtered.columns if col in keepList]
 
-    data = geomToH3(data, res=8, clip=True, keepList=keepList_zoi)
+    #data = geomToH3(data, res=8, clip=True, keepList=keepList_zoi)
 
-    if data.shape[0]>1:
-        dd_data = ddg_from_geopandas(data,data.shape[0])
-        df_meta = GeoDataFrame(columns = keepList)
-        result = dd_data.map_partitions(_daskSplitGeomByAnother, iterables=(by_geom_filtered[keepList_theme],overlayHow, keepList), meta=df_meta, align_dataframes=False)
-        result = result.compute()
-
-    else:
-        result = splitGeomByAnother(data,by_geom_filtered,overlayHow=overlayHow)
+    result = splitGeomByAnother(data,by_geom_filtered,overlayHow=overlayHow)
+    
     
     if not result.empty:
- 
+        logging.info(f"Result has {result.shape[0]} entities")
+
         if indexRef not in result.columns :
             result[indexRef+'_zoi'] = ""
 
@@ -189,7 +196,7 @@ def generateIndicateur_parallel_v2(data, iterables):
         result = result[keepList]
         return result
     else:
-        logging.warning("Result is empty")
+        logging.info("Result is empty")
         return result
     
 

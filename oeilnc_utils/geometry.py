@@ -100,7 +100,7 @@ def geomToH3(geoDataframe: GeoDataFrame, res=8, clip=True, keepList=None) -> Geo
 
     
     else:
-        logging.CRITICAL("le gdf à spliter contient plusieurs entités. fonctionnement non géré pour le moment")
+        logging.critical("le gdf à spliter contient plusieurs entités. fonctionnement non géré pour le moment")
     
     return result
 
