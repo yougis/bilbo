@@ -11,6 +11,7 @@ from oeilnc_utils.connection import getSqlWhereClauseBbox, fixOsPath, persistGDF
 from oeilnc_utils.geometry import daskSplitGeomByAnother
 from oeilnc_config.settings import getPaths, getDbConnection
 from dask.distributed import get_client
+from dask.dataframe.utils import make_meta
 from intake import open_catalog
 
 
@@ -794,7 +795,8 @@ def create_indicator(bbox,
             ## repartitionner
             indicateur = indicateur.repartition(partition_size='1MB')
             ## envoyer les lots au fur et a mesure et par plusieurs worker
-            results = indicateur.map_partitions(persistGDF, iterables=(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).compute()
+            df_meta = make_meta(indicateur)
+            results = indicateur.map_partitions(persistGDF, iterables=(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection), meta=df_meta).compute()
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
             logging.info(f"create_indicator: Etape 3 --> Resultat {results}")
             ext_table_name = individuStatSpec.get('dataName',None)
