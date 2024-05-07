@@ -153,7 +153,7 @@ def persistGDF(gdf,iterables):
         logging.info(f"CRS transformation from {gdf.crs} to {epsg} ?")
         if gdf.crs != epsg:
             gdf.set_crs(epsg)
-            if gdf.crs == 'EPSG:-1':
+            if gdf.crs == '-1':
                 gdf.set_crs(epsg)
         #gdf.to_crs(epsg, inplace=True)
 

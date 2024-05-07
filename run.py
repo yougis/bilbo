@@ -69,9 +69,14 @@ list_data_to_calculate  = [ # ZOI / individu
 
 ]
 
-steplist= [1,2,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
+steplist= [1,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
 list_indicateur_to_calculate = [ # thematique
-    "fait_TMF_acc_v12022_h3_nc_6"
+    "fait_TMF_acc_v12022_h3_nc_6",
+    "faits_GFC_gain_h3_nc_6",
+    "faits_GFC_lossyear_h3_nc_6",
+    "faits_TMF_v2022_def_h3_nc_6",
+    "faits_TMF_v2022_degradation_h3_nc_6",
+    "faits_TMF_v2022_TM_h3_nc_8"
     #"GFC_gain_2012",
     #"GFC_treecover2000",
     
@@ -193,7 +198,6 @@ global_configFile.set(configFile)
 bboxing = False #par emprise communale
 bb=None
 fromIndexList=False
-steplist= [1,3]# 1 : generate indicators / 2: spliting byDims & calculate ratio... / 3: persist
 info_integration = False
 sql_pagination = ""
 indicateur_sql_flow=True # si Vrai, attention à ne pas depasser le nombre de connection postgres maximales avec la somme de chunck de l'ensemble du cluster
@@ -252,7 +256,7 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                 if {individuStatSpec.get('catalogUri',None)}:
                                     catalog = f"{configFile.get('data_catalog_dir')}{individuStatSpec.get('catalogUri',None)}"
                                     dataName = individuStatSpec.get('dataName',None)
-                                    entryCatalog = getattr(open_catalog(catalog),dataName)
+                                    entryCatalog = getattr(open_catalog(catalog),dataName) 
                                     indexRef = individuStatSpec.get('indexRef',None)
                                     nbLignes = connection.getNbLignes(entryCatalog)
                                 
@@ -273,7 +277,7 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                 if boucleOffset:
                                     if offset >= 0 or limit > 0:    
 
-                                        while offset < nbLignes and offset <= to_offset:
+                                        while offset < nbLignes and offset < to_offset:
 
 
                                             metadata = ProcessingMetadata(run_id=run_id)
