@@ -85,7 +85,7 @@ def geomToH3(geoDataframe: GeoDataFrame, res=8, clip=True, keepList=None) -> Geo
         nb_result=0
 
         while nb_result < geoDataframe.shape[0]:
-            result = h3fy(geoDataframe, resolution=res, clip=clip, buffer=True)
+            result = h3fy(geoDataframe, resolution=res, clip=clip, buffer=False)
             nb_result = result.shape[0]
             res+=1
 
@@ -137,30 +137,6 @@ def splitGeomByAnother(gdf_to_split, by_geom, overlayHow="intersection", keep_ge
 
         return errors
 
-
-def _daskSplitGeomByAnother(gdf_to_split, iterables):
-
-    by_geom, overlayHow, columns = iterables
-
-    result = splitGeomByAnother(gdf_to_split,  by_geom, overlayHow)
-    result = result.reindex(columns=columns)
-    return result
-
-
-def splitGeomByDimSpatial(gdf_to_split, by_geoms):
-    """
-    Splits a GeoDataFrame by another GeoDataFrame based on spatial dimensions.
-
-    Args:
-        gdf_to_split (GeoDataFrame): The GeoDataFrame to be split.
-        by_geoms (GeoDataFrame): The GeoDataFrame containing the geometries used for splitting.
-
-    Returns:
-        GeoDataFrame: The resulting GeoDataFrame after the split.
-
-    """
-    res = splitGeomByAnother(gdf_to_split, by_geoms[['id_spatial', 'geometry']])
-    return res
 
 
 # Dask processing

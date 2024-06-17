@@ -34,9 +34,9 @@ list_data_to_calculate  = [ # ZOI / individu
     ## p1
     #"H3_6_NC", # 
     #"H3_8_NC",
-    "Foncier",
-   # "Reserves_indicateurSpec",
-  #  "UNESCO_Zones_terrestres",   
+    #"Foncier",
+    "Reserves_indicateurSpec",
+    "UNESCO_Zones_terrestres",
    
     # "cadastre_minier", # fichier config à faire / ? > sur georep / cadastre_minier / couches "concessions minières" et "permis de recherche"  (pas sur la BDD SIG de l'ŒIL)
     # "Fréquentation_humaine" :  Zone de Bati et voiries / calcul de distance ?
@@ -71,12 +71,13 @@ list_data_to_calculate  = [ # ZOI / individu
 
 steplist= [1,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
 list_indicateur_to_calculate = [ # thematique
-    "fait_TMF_acc_v12022_h3_nc_6",
+    "faits_TMF_acc_v12022_h3_nc_6",
     "faits_GFC_gain_h3_nc_6",
     "faits_GFC_lossyear_h3_nc_6",
     "faits_TMF_v2022_def_h3_nc_6",
     "faits_TMF_v2022_degradation_h3_nc_6",
     "faits_TMF_v2022_TM_h3_nc_8"
+    
     #"GFC_gain_2012",
     #"GFC_treecover2000",
     

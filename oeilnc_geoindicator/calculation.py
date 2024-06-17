@@ -391,7 +391,8 @@ def create_indicator(bbox,
                      sql_pagination='',
                      indicateur_sql_flow=False,
                      daskComputation=True,
-                     metadata=None
+                     metadata=None,
+                     voronoi_splitting=False
                      ):
     """
     Create an indicator by performing a series of operations based on the provided configuration.
@@ -438,13 +439,16 @@ def create_indicator(bbox,
         else:
             metadata.theme_catalog = 'source catalog not implemented yet in metadata'
     indexRef = individuStatSpec.get('indexRef',None)
-    nbchuncks = individuStatSpec.get('nbchuncks',None)
+    nbchuncks = individuStatSpec.get('nbchuncks',individuStatSpec.get('limit'))
     keepList = list(set(individuStatSpec.get('keepList',[]) + indicateurSpec.get('keepList',[])))
     logging.info(f"Attribut qui seront conservés pendant le traitement: {keepList}")
     logging.info(f"Index utilisé pour ZOI: {indexRef}")
     
 
     adaptingDataframe = indicateurSpec.get('adaptingDataframe',None)
+
+    confGeoprocessing = individuStatSpec.get('confGeoprocessing',None)
+    voronoi_splitting = confGeoprocessing.get('voronoi', None)
 
     #result = gpd.GeoDataFrame(columns = columnList)
     if indicateurSpec is None:
@@ -616,12 +620,33 @@ def create_indicator(bbox,
                     
                     interpolation = indicateur_from_pre_interpolation(source_df, target_df, intensive_variables,extensive_variables, pre_allocate_total, pre_int_keepList, pre_int_indexRef)
                     if split_geometry:
-                        indicateur = parallelize_DaskDataFrame_From_Intake_Source(data,generateIndicateur_parallel,(indicateurSpec,individuStatSpec, interpolation, metaModelList, geom, target_entry_geom),(tableName,ext_table_name),metaModelList,nbchuncks=nbchuncks)                       
+                        indicateur = parallelize_DaskDataFrame_From_Intake_Source(
+                            data,generateIndicateur_parallel,
+                            (indicateurSpec,individuStatSpec, interpolation, metaModelList, geom, target_entry_geom),
+                            (tableName,ext_table_name)
+                            ,metaModelList,
+                            nbchuncks=nbchuncks,
+                            voronoi_splitting=voronoi_splitting)
+                       
                     else:                        
-                        indicateur = parallelize_DaskDataFrame_From_Intake_Source(data,indicateur_from_interpolation,(interpolation, intensive_variables,extensive_variables,allocate_total),(tableName,ext_table_name),metaModelList,nbchuncks=nbchuncks)
+                        indicateur = parallelize_DaskDataFrame_From_Intake_Source(
+                            data,
+                            indicateur_from_interpolation,
+                            (interpolation, intensive_variables,extensive_variables,allocate_total),
+                            (tableName,ext_table_name),
+                            metaModelList,
+                            nbchuncks=nbchuncks,
+                            voronoi_splitting=voronoi_splitting)
                 else:
                     
-                    indicateur = parallelize_DaskDataFrame_From_Intake_Source(data,indicateur_from_interpolation,(source_df, intensive_variables,extensive_variables,allocate_total),(tableName,ext_table_name),metaModelList,nbchuncks=nbchuncks)
+                    indicateur = parallelize_DaskDataFrame_From_Intake_Source(
+                        data,
+                        indicateur_from_interpolation,
+                        (source_df, intensive_variables,extensive_variables,allocate_total),
+                        (tableName,ext_table_name),
+                        metaModelList,
+                        nbchuncks=nbchuncks,
+                        voronoi_splitting=voronoi_splitting)
                 
                 
                 if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame)):                
@@ -641,7 +666,8 @@ def create_indicator(bbox,
                     (indicateurSpec,individuStatSpec,epsg,metaModelList),
                     (tableName,ext_table_name),
                     metaModelList,
-                    nbchuncks=nbchuncks)
+                    nbchuncks=nbchuncks,
+                    voronoi_splitting=voronoi_splitting)
                 if isinstance(indicateur,(GeoDataFrame,DaskGeoDataFrame))  :
                     logging.info('indicateur Raster done. Indexing.....')
                     logging.info(f"indicateur_generateIndicateur_Parallel {indicateur}")
@@ -669,7 +695,8 @@ def create_indicator(bbox,
                         (indicateurSpec, individuStatSpec, data_indicateur, metaModelList),
                         (tableName,ext_table_name),
                         metaModelList,
-                        nbchuncks=nbchuncks
+                        nbchuncks=nbchuncks,
+                        voronoi_splitting=voronoi_splitting
                     )
                 else :
                     logging.info('Calculation ...')
@@ -682,8 +709,10 @@ def create_indicator(bbox,
                                 (indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom, False),
                                 (tableName,ext_table_name),
                                 metaModelList,
-                                nbchuncks=nbchuncks
-                            )
+                                nbchuncks=nbchuncks,
+                                voronoi_splitting=voronoi_splitting
+                                )
+                            
                         else:
                             indicateur = generateIndicateur_parallel(data.read(),(indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom))
                         

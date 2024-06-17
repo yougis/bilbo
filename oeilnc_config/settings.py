@@ -248,10 +248,14 @@ def checkTableName(indicateurSpec,individuStatSpec):
     dataName = individuStatSpec.get("dataName",'Unknown')
     index_tb = f'idx_{tableName}_{dataName}_geometry'
     tb_name_with_error = f'faits_{tableName}_{dataName}_withError'
+    index_tb_with_error = f'idx_faits_{tableName}_{dataName}_withError_geometry'
     if len(index_tb) > 63:
         logging.critical(f"le nom de l'index sur postgis est trop long. Veuillez reduire le nom de la table de faits: {index_tb}")
     elif len(tb_name_with_error) > 63:
         logging.warning(f"le nom de la table sur postgis est trop long. Veuillez reduire le nom de la table de faits: {tb_name_with_error}")
+        return True
+    elif len(index_tb_with_error) > 63:
+        logging.warning(f"le nom de l'index sur postgis est trop long si la donnée est en erreur. Pensez à  reduire le nom de la table de faits: {index_tb_with_error}")
         return True
     else:
         logging.info(f"le nom de la table de faits en base de donnée en sortie de traitement répond au pré-requis : {tableName}_{dataName}")

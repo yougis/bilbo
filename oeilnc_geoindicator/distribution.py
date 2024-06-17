@@ -1,16 +1,14 @@
 from oeilnc_utils.connection import fixOsPath, getSqlWhereClauseBbox
 from geopandas import GeoDataFrame
-from tobler.util import h3fy 
-from dask_geopandas import from_geopandas as ddg_from_geopandas, from_dask_dataframe as ddg_from_daskDataframe
-from os import getenv
+from dask_geopandas import from_geopandas as ddg_from_geopandas
 import logging
 from pandas import concat as pd_concat
 
 
 from oeilnc_config import settings
 from oeilnc_utils import connection
-from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps, geomToH3, _daskSplitGeomByAnother
-
+from oeilnc_utils.geometry import splitGeomByAnother, cleanOverlaps, geomToH3
+from oeilnc_geoindicator.geometry import voronoiSplitting
 
 logging.info("GeoIndicator - Distribution Imported")
 
@@ -34,7 +32,14 @@ def parallelize_DaskDataFrame(df, func, paramsTuples, nbchuncks=20):
     return df2
 
 
-def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: any, func, paramsTuples, conf_parquet_file, metaModelList=None,  nbchuncks=20):
+def parallelize_DaskDataFrame_From_Intake_Source(
+        intakeSource: any,
+        func, 
+        paramsTuples, 
+        conf_parquet_file, 
+        metaModelList=None,  
+        nbchuncks=20, 
+        voronoi_splitting=False):
     """
     Parallelizes the processing of a Dask DataFrame created from an Intake data source.
 
@@ -57,6 +62,22 @@ def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: any, func, params
     client = get_client()
     logging.info(f"reading intake source  {intakeSource}...")
     df = intakeSource.read()
+    crs = df.crs
+
+    if voronoi_splitting:
+        results = []
+        for idx, row in df.iterrows():
+            print(f'iterate to split by voronoi befor process : {idx}')
+            polygon = row.geometry
+            divided_polygons = voronoiSplitting(polygon, 2000, 10, crs)
+            for col in df.columns:
+                if col != 'geometry':
+                    divided_polygons[col] = row[col]
+            
+            results.append(divided_polygons)
+        df = GeoDataFrame(pd_concat(results, ignore_index=True))
+        nbchuncks = len(df.index)
+
     logging.debug(f"df: {len(df.index)}")
     if len(df.index) > 0:
         
@@ -86,16 +107,21 @@ def parallelize_DaskDataFrame_From_Intake_Source(intakeSource: any, func, params
 
 def generateIndicateur_parallel_v2(data, iterables):
     '''
-    data : unité d'analyse
-    iterables: configuration de la données indicateur à croiser avec l'unité d'analyse
-    
-    La version 2 fonctionne bien avec une données data organisée spatialement. Effectuer un order by sur un attribut qui organise les données spatialement avant.
-    les données erosions sont par exemple organisée par identidiant et se suivent dans l'espace par ligne/bande successives.
-    Cette indexation spatiale permet d'eviter des erreurs memoires, des crashs du worker, des crash du serveur de base de donnée, 
-    du fait d'un trop grand nombre ou trop grande complexité des données à intersecer (gdf_to_split)
-    
+    Generate indicator in parallel version 2.
+
+    Args:
+        data (GeoDataFrame): The spatially organized data for analysis.
+        iterables (tuple): Configuration of the indicator data to be crossed with the analysis unit.
+
+    Returns:
+        GeoDataFrame: The result of the indicator generation.
+
+    Notes:
+        - This version works well with spatially organized data.
+        - It is recommended to perform an "order by" operation on an attribute that organizes the data spatially before using this function.
+        - Spatial indexing helps avoid memory errors, worker crashes, database server crashes due to a large number or complexity of intersecting data (gdf_to_split).
     '''
-    
+
     from oeilnc_config import settings
 
     logging.info('GenerateIndicateur_parallel_V2')
@@ -116,6 +142,7 @@ def generateIndicateur_parallel_v2(data, iterables):
         data = geomToH3(data, res=8, clip=True, keepList=keepList_zoi)
 
     if data.shape[0]>1:
+        
         splitted = True
         dd_data = ddg_from_geopandas(data,data.shape[0])
         df_meta = GeoDataFrame(columns = keepList)
@@ -133,7 +160,11 @@ def generateIndicateur_parallel_v2(data, iterables):
     dataName = indicateurSpec.get('dataName',None)
     sql_expr = indicateurSpec.get('sql_expr',None)
     indexRef = individuStatSpec.get('indexRef',None)
-    
+
+    ### verifier que l'indexRef est unique ou sinon le rendre unique via l'utilisation de la valeur d'index
+    if data[indexRef].duplicated().any():
+        data[indexRef] = data[indexRef].astype(str) + '_' + data.index.astype(str)
+
     overlayHow = indicateurSpec.get('overlayHow',None)
     logging.debug(f'indicateurSpec {indicateurSpec}')
     logging.debug(f'indexRef: {indexRef}' )
@@ -167,18 +198,21 @@ def generateIndicateur_parallel_v2(data, iterables):
             data_ind = data_indicateur(sql_expr=f'{sql_expr} where {sql_with_where_clause}')
         
         by_geom_filtered = data_ind.read()
+    
+    if not by_geom_filtered.empty:
+
+        by_geom_filtered = by_geom_filtered.cx[xmin:xmax,ymin:ymax]
+        by_geom_filtered.columns = by_geom_filtered.columns.str.lower()
+
+
+        data.columns = data.columns.str.lower()
         
-    by_geom_filtered = by_geom_filtered.cx[xmin:xmax,ymin:ymax]
-    by_geom_filtered.columns = by_geom_filtered.columns.str.lower()
 
-
-    data.columns = data.columns.str.lower()
-    
-
-    #data = geomToH3(data, res=8, clip=True, keepList=keepList_zoi)
-
-    result = splitGeomByAnother(data,by_geom_filtered,overlayHow=overlayHow)
-    
+        #data = geomToH3(data, res=8, clip=True, keepList=keepList_zoi)
+        result = splitGeomByAnother(data,by_geom_filtered,overlayHow=overlayHow)
+    else:
+        logging.info("Result is empty")
+        return GeoDataFrame()
     
     if not result.empty:
         logging.info(f"Result has {result.shape[0]} entities")
