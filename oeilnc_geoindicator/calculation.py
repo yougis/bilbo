@@ -448,7 +448,8 @@ def create_indicator(bbox,
     adaptingDataframe = indicateurSpec.get('adaptingDataframe',None)
 
     confGeoprocessing = individuStatSpec.get('confGeoprocessing',None)
-    voronoi_splitting = confGeoprocessing.get('voronoi', None)
+    if confGeoprocessing:
+        voronoi_splitting = confGeoprocessing.get('voronoi', None)
 
     #result = gpd.GeoDataFrame(columns = columnList)
     if indicateurSpec is None:
