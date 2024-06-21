@@ -139,12 +139,50 @@ def getNbLignes(source: entry.Catalog):
     logging.info(f"{tableName} nblignes : {nbLignes}")
     return nbLignes
 
+def adapting_dataframe(dd, adaptingDataframe):
+
+    setValue = adaptingDataframe.get('setValue',{})
+    colNameValue = setValue.get('colName',None)
+    value = setValue.get('value',None)
+
+    if colNameValue:
+        dd[colNameValue]=value
+    
+
+    if fillNanClasse:
+        dd['classe'].fillna(fillNanClasse, inplace = True)
+
+    fillNanClasse = adaptingDataframe.get('fillNanClasse',None)
+    toDrop = adaptingDataframe.get('toDrop',[])
+    renameMap = adaptingDataframe.get('renameMap',{})
+    setAllClasseValue = adaptingDataframe.get('setAllClasseValue',None)
+    
+    changeType = adaptingDataframe.get('changeType',{})
+
+
+    if len(toDrop) > 0 :
+        dd = dd.drop(toDrop, axis=1)
+        
+    
+    if setAllClasseValue:
+        dd['classe'] = setAllClasseValue
+        
+    if changeType :
+        logging.info(f"changeType :  {changeType}")
+        dd = dd.astype(changeType)
+        logging.info(f"dtypes : {dd.dtypes}")   
+    
+    if len(renameMap.values()) > 0:
+        logging.info(f"rename {renameMap}")
+        dd = dd.rename(columns=renameMap)
+    
+    return dd
 
 def persistGDF(gdf,iterables):
     logging.info("persistGDF")
 
     logging.debug(f"persistGDF - {type(gdf)} ")
-    confDb, adaptingDataframe,individuStatSpec,epsg, dbEngineConnection = iterables
+    confDb, individuStatSpec,epsg, dbEngineConnection = iterables
     user, pswd, host, dbase = dbEngineConnection
     tableName = confDb.get('tableName',None)
     ext_table_name = individuStatSpec.get('dataName',None)
@@ -174,41 +212,9 @@ def persistGDF(gdf,iterables):
         schema = confDb.get('schema',None)
         strategy = confDb.get('strategy',None)
         chunksize = confDb.get('chunksize',None )
-        toDrop = adaptingDataframe.get('toDrop',[])
-        renameMap = adaptingDataframe.get('renameMap',{})
-        setAllClasseValue = adaptingDataframe.get('setAllClasseValue',None)
-        fillNanClasse = adaptingDataframe.get('fillNanClasse',None)
-     
-        changeType = adaptingDataframe.get('changeType',{})        
-        setValue = adaptingDataframe.get('setValue',{})
-        colNameValue = setValue.get('colName',None)
-        value = setValue.get('value',None)
-        
-
-
-        if len(toDrop) > 0 :
-            gdf = gdf.drop(toDrop, axis=1)
-            
-        
-        if setAllClasseValue:
-            gdf['classe'] = setAllClasseValue
-            
-        if changeType :
-            logging.info(f"changeType :  {changeType}")
-            gdf = gdf.astype(changeType)
-            logging.info(f"dtypes : {gdf.dtypes}")   
-        
-        if len(renameMap.values()) > 0:
-            logging.info(f"rename {renameMap}")
-            gdf = gdf.rename(columns=renameMap)
-        
-
-        if colNameValue:
-            gdf[colNameValue]=value
         
         
-        if fillNanClasse:
-            gdf['classe'].fillna(fillNanClasse, inplace = True)
+        
         
         
         logging.info(f"{tableName} to postgis {gdf.shape[0]} entities and columns {gdf.columns}")

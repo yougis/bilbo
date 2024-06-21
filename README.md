@@ -154,6 +154,23 @@ hugo@RSIdebian:~/projets/bilbo-packages$
 poetry install
 ```
 
+### Construire l'environnement conda qui permet de créer le fichier environnement.yaml
+
+créer un environnement conda vierge.
+
+installer les librairies à partir du fichier requirements.txt
+
+
+### Déployer les dépendances dans un environnement conda 
+
+Créer l'environnement à partir du fichier environment.yml
+`conda env create -f environment.yml`
+
+
+
+
+
+
 ### Configurer l'interpréteur Python dans VSCode
 
 Assurez-vous que l'extension Python est installée dans VSCode. Ensuite, configurez VSCode pour utiliser l'interpréteur Python créé par Poetry :
@@ -188,6 +205,15 @@ poetry update
 ```
 poetry lock
 ```
+
+**Générer le fichier requierement.txt**
+
+```
+poetry export
+```
+
+ce fichier pourra ensuite être exploité par pip pour installer les dependances via la commande `pip install -r requierements.txt`
+
 
 **Exécuter les tests**
 
@@ -239,6 +265,8 @@ conda install python=3.11.8
 
 
 ## Developper et évaluer sur l'infrastructure clusterisée
+
+
 
 Lorsqu'on développe un nouvelle version du package vous pourriez rencontrer des erreurs sans quelles soient veritablement explicite :
 ex : 

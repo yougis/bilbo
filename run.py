@@ -35,8 +35,10 @@ list_data_to_calculate  = [ # ZOI / individu
     #"H3_6_NC", # 
     #"H3_8_NC",
     #"Foncier",
-    "Reserves_indicateurSpec",
-    "UNESCO_Zones_terrestres",
+    #"Reserves_indicateurSpec",
+    "Sentinel_Zones_Brulees_CQ",
+    #"UNESCO_Zones_terrestres",
+
    
     # "cadastre_minier", # fichier config à faire / ? > sur georep / cadastre_minier / couches "concessions minières" et "permis de recherche"  (pas sur la BDD SIG de l'ŒIL)
     # "Fréquentation_humaine" :  Zone de Bati et voiries / calcul de distance ?
@@ -71,12 +73,14 @@ list_data_to_calculate  = [ # ZOI / individu
 
 steplist= [1,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
 list_indicateur_to_calculate = [ # thematique
-    "faits_TMF_acc_v12022_h3_nc_6",
-    "faits_GFC_gain_h3_nc_6",
-    "faits_GFC_lossyear_h3_nc_6",
-    "faits_TMF_v2022_def_h3_nc_6",
-    "faits_TMF_v2022_degradation_h3_nc_6",
-    "faits_TMF_v2022_TM_h3_nc_8"
+    "Zones_enjeux_incendies_CQ",
+    
+    #"faits_TMF_acc_v12022_h3_nc_6",
+    #"faits_GFC_gain_h3_nc_6",
+    #"faits_GFC_lossyear_h3_nc_6",
+    #"faits_TMF_v2022_def_h3_nc_6",
+    #"faits_TMF_v2022_degradation_h3_nc_6",
+    #"faits_TMF_v2022_TM_h3_nc_8"
     
     #"GFC_gain_2012",
     #"GFC_treecover2000",
@@ -174,7 +178,7 @@ listIdMulti=[
     listIdSpatialCommuneMaritime,
     listIdSpatialAiresCoutumieres
     ]
-listIdMulti=[]
+listIdMulti=[listIdSpatialHER]
 
 listbbox= [c for c in listIdSpatialCommune]
 
@@ -215,7 +219,7 @@ dim_mesure= cat_dimensions.dim_mesure
 run_id = str(uuid.uuid4())
 
 def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
-
+    
 
     for dataFileName in list_data_to_calculate:
         logging.info(f"### {dataFileName} ####")
@@ -279,7 +283,7 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                     if offset >= 0 or limit > 0:    
 
                                         while offset < nbLignes and offset < to_offset:
-
+                                            client.restart()  
 
                                             metadata = ProcessingMetadata(run_id=run_id)
                                             metadata.environment_variables = configFile
