@@ -7,7 +7,7 @@ from dask_geopandas import from_geopandas as ddg_from_geopandas, from_dask_dataf
 from oeilnc_geoindicator.interpolation import indicateur_from_pre_interpolation, indicateur_from_interpolation
 from oeilnc_geoindicator.distribution import parallelize_DaskDataFrame_From_Intake_Source, generateIndicateur_parallel_v2, generateIndicateur_parallel
 from oeilnc_geoindicator.raster import indicateur_from_raster
-from oeilnc_utils.connection import getSqlWhereClauseBbox, fixOsPath, persistGDF, AjoutClePrimaire
+from oeilnc_utils.connection import getSqlWhereClauseBbox, fixOsPath, persistGDF, AjoutClePrimaire, adapting_dataframe
 from oeilnc_utils.geometry import daskSplitGeomByAnother
 from oeilnc_config.settings import getPaths, getDbConnection
 from dask.distributed import get_client
@@ -820,7 +820,7 @@ def create_indicator(bbox,
             #client.compute(indicateur)
             indicateur = indicateur.assign(metadata_id=metadata.id)
 
-
+            indicateur = adapting_dataframe(indicateur,adaptingDataframe)
 
             dbEngineConnection = (user, pswd, host, db_traitement)
             #results = client.submit(persistGDF, client.compute(indicateur),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
@@ -829,7 +829,7 @@ def create_indicator(bbox,
             indicateur = indicateur.repartition(partition_size='1MB')
             ## envoyer les lots au fur et a mesure et par plusieurs worker
             df_meta = make_meta(indicateur)
-            results = indicateur.map_partitions(persistGDF, iterables=(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection), meta=df_meta).compute()
+            results = indicateur.map_partitions(persistGDF, iterables=(confDb,individuStatSpec, epsg, dbEngineConnection), meta=df_meta).compute()
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
             logging.info(f"create_indicator: Etape 3 --> Resultat {results}")
             ext_table_name = individuStatSpec.get('dataName',None)
