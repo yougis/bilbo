@@ -141,6 +141,13 @@ def getNbLignes(source: entry.Catalog):
 
 def adapting_dataframe(dd, adaptingDataframe):
 
+    fillNanClasse = adaptingDataframe.get('fillNanClasse',None)
+    toDrop = adaptingDataframe.get('toDrop',[])
+    renameMap = adaptingDataframe.get('renameMap',{})
+    setAllClasseValue = adaptingDataframe.get('setAllClasseValue',None)
+    
+    changeType = adaptingDataframe.get('changeType',{})
+
     setValue = adaptingDataframe.get('setValue',{})
     colNameValue = setValue.get('colName',None)
     value = setValue.get('value',None)
@@ -151,13 +158,6 @@ def adapting_dataframe(dd, adaptingDataframe):
 
     if fillNanClasse:
         dd['classe'].fillna(fillNanClasse, inplace = True)
-
-    fillNanClasse = adaptingDataframe.get('fillNanClasse',None)
-    toDrop = adaptingDataframe.get('toDrop',[])
-    renameMap = adaptingDataframe.get('renameMap',{})
-    setAllClasseValue = adaptingDataframe.get('setAllClasseValue',None)
-    
-    changeType = adaptingDataframe.get('changeType',{})
 
 
     if len(toDrop) > 0 :
