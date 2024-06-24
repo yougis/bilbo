@@ -61,9 +61,13 @@ le déploiement se fait en mode *--quiet*
 pour voir ce qui se passe activer d'abord l'environnement conda 
 `conda activate gis311`
 
-et lancer pip directement :
+et lancer pip directement (non recommandée):
+
 
 `pip install --force-reinstall --upgrade --exists-action=w  "git+https://informatique:rxf4qdzjc5pccj2423ycuedtyma3ughg6e2oepohoc7oilbbjukq@dev.azure.com/Oeilnc/Bilbo/_git/bilbo-packages"`
+
+cela va mettre à jour les versions des librairies dépendantes.
+
 
 
 ### Déployer sans installer les dépendances
