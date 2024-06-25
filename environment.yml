@@ -8,6 +8,7 @@ dependencies:
   - pip=24.0
   - poetry=1.8.3
   - python=3.11.8
+  - git
   - pip:
       - affine==2.4.0
       - appdirs==1.4.4
