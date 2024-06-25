@@ -36,8 +36,7 @@ list_data_to_calculate  = [ # ZOI / individu
     #"H3_8_NC",
     #"Foncier",
     #"Reserves_indicateurSpec",
-    "Sentinel_Zones_Brulees_CQ",
-    #"UNESCO_Zones_terrestres",
+    "UNESCO_Zones_terrestres",
 
    
     # "cadastre_minier", # fichier config à faire / ? > sur georep / cadastre_minier / couches "concessions minières" et "permis de recherche"  (pas sur la BDD SIG de l'ŒIL)
@@ -73,14 +72,13 @@ list_data_to_calculate  = [ # ZOI / individu
 
 steplist= [1,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
 list_indicateur_to_calculate = [ # thematique
-    "Zones_enjeux_incendies_CQ",
     
-    #"faits_TMF_acc_v12022_h3_nc_6",
-    #"faits_GFC_gain_h3_nc_6",
-    #"faits_GFC_lossyear_h3_nc_6",
-    #"faits_TMF_v2022_def_h3_nc_6",
-    #"faits_TMF_v2022_degradation_h3_nc_6",
-    #"faits_TMF_v2022_TM_h3_nc_8"
+    "faits_TMF_acc_v12022_h3_nc_6",
+    "faits_GFC_gain_h3_nc_6",
+    "faits_GFC_lossyear_h3_nc_6",
+    "faits_TMF_v2022_def_h3_nc_6",
+    "faits_TMF_v2022_degradation_h3_nc_6",
+    "faits_TMF_v2022_TM_h3_nc_8"
     
     #"GFC_gain_2012",
     #"GFC_treecover2000",
@@ -178,7 +176,7 @@ listIdMulti=[
     listIdSpatialCommuneMaritime,
     listIdSpatialAiresCoutumieres
     ]
-listIdMulti=[listIdSpatialHER]
+#listIdMulti=[listIdSpatialHER]
 
 listbbox= [c for c in listIdSpatialCommune]
 

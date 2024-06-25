@@ -415,9 +415,7 @@ def create_indicator(bbox,
     # Function principale qui pilote l'ensemble des opérations suivante à partir des éléments de configuration fournis individuStatSpec, indicateurSpec en input
     # Step 1 (facultatif si la donnée indicateur est déjà créée) : créer la données indicateur. Croisement donnée individu source/indicateur
     # Step 2 (facultatif l'étape 1 est faite) : appliquer les dimensions spatiales et mesures.
-    # Step 3 (facultatif) : persister les données en base Postgis.
-    
-    from dask.distributed import get_client
+    # Step 3 (facultatif) : persister les données en base Post    from dask.distributed import get_client
     client = get_client()
      #logging.info(f"Dask client : {client}")
 

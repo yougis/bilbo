@@ -151,7 +151,7 @@ def generateIndicateur_parallel_v2(data, iterables):
         except Exception as e:
             logging.critical(f"DASk  parallelize generateIndicateur_parallel_v2 ERROR: {e}")        
         #result = dd_data.map_partitions(_daskSplitGeomByAnother, iterables=(by_geom_filtered[keepList_theme],overlayHow, keepList), meta=df_meta, align_dataframes=False)
-        return result.compute()
+        return result
 
     result = GeoDataFrame()
     
