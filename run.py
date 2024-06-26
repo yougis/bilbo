@@ -73,7 +73,7 @@ list_data_to_calculate  = [ # ZOI / individu
 steplist= [1,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
 list_indicateur_to_calculate = [ # thematique
     
-   # "faits_TMF_acc_v12022_h3_nc_6",
+    "faits_TMF_acc_v12022_h3_nc_6",
     "faits_GFC_gain_h3_nc_6",
     "faits_GFC_lossyear_h3_nc_6",
     "faits_TMF_v2022_def_h3_nc_6",

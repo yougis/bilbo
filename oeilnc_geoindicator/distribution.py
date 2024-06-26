@@ -69,13 +69,14 @@ def parallelize_DaskDataFrame_From_Intake_Source(
         for idx, row in df.iterrows():
             print(f'iterate to split by voronoi befor process : {idx}')
             polygon = row.geometry
-            divided_polygons = voronoiSplitting(polygon, 2000, 10, crs)
+            divided_polygons = voronoiSplitting(polygon, 2000, 50, crs)
             for col in df.columns:
                 if col != 'geometry':
                     divided_polygons[col] = row[col]
             
             results.append(divided_polygons)
         df = GeoDataFrame(pd_concat(results, ignore_index=True))
+        df.to_parquet('parquet/voronoi.parquet')
         nbchuncks = len(df.index)
 
     logging.debug(f"df: {len(df.index)}")
@@ -152,7 +153,8 @@ def generateIndicateur_parallel_v2(data, iterables):
         except Exception as e:
             logging.critical(f"DASk  parallelize generateIndicateur_parallel_v2 ERROR: {e}")        
         #result = dd_data.map_partitions(_daskSplitGeomByAnother, iterables=(by_geom_filtered[keepList_theme],overlayHow, keepList), meta=df_meta, align_dataframes=False)
-        return result.compute()
+        del dd_data 
+        return client.persist(result)
 
     result = GeoDataFrame()
     
