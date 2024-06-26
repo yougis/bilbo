@@ -12,6 +12,7 @@ from oeilnc_utils.geometry import daskSplitGeomByAnother
 from oeilnc_config.settings import getPaths, getDbConnection
 from dask.distributed import get_client
 from dask.dataframe.utils import make_meta
+
 from intake import open_catalog
 
 
@@ -711,6 +712,7 @@ def create_indicator(bbox,
                                 nbchuncks=nbchuncks,
                                 voronoi_splitting=voronoi_splitting
                                 )
+
                             
                         else:
                             indicateur = generateIndicateur_parallel(data.read(),(indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom))
@@ -816,6 +818,7 @@ def create_indicator(bbox,
             #indicateur = client.gather(client.compute(indicateur))
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg))
             #client.compute(indicateur)
+            indicateur = client.gather(indicateur)
             indicateur = indicateur.assign(metadata_id=metadata.id)
 
             indicateur = adapting_dataframe(indicateur,adaptingDataframe)
@@ -824,10 +827,12 @@ def create_indicator(bbox,
             #results = client.submit(persistGDF, client.compute(indicateur),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
             
             ## repartitionner
-            indicateur = indicateur.repartition(partition_size='1MB')
+            indicateur = indicateur.repartition(partition_size='4MB')
             ## envoyer les lots au fur et a mesure et par plusieurs worker
             df_meta = make_meta(indicateur)
+            
             results = indicateur.map_partitions(persistGDF, iterables=(confDb,individuStatSpec, epsg, dbEngineConnection), meta=df_meta).compute()
+
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
             logging.info(f"create_indicator: Etape 3 --> Resultat {results}")
             ext_table_name = individuStatSpec.get('dataName',None)

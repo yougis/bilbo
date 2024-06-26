@@ -123,7 +123,8 @@ def generateIndicateur_parallel_v2(data, iterables):
     '''
 
     from oeilnc_config import settings
-
+    from dask.distributed import get_client
+    client = get_client()
     logging.info('GenerateIndicateur_parallel_V2')
     logging.debug(f'GenerateIndicateur_parallel_V2 - {type(data)}')
     paths = settings.getPaths()
@@ -151,7 +152,7 @@ def generateIndicateur_parallel_v2(data, iterables):
         except Exception as e:
             logging.critical(f"DASk  parallelize generateIndicateur_parallel_v2 ERROR: {e}")        
         #result = dd_data.map_partitions(_daskSplitGeomByAnother, iterables=(by_geom_filtered[keepList_theme],overlayHow, keepList), meta=df_meta, align_dataframes=False)
-        return result
+        return result.compute()
 
     result = GeoDataFrame()
     

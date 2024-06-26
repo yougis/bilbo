@@ -182,6 +182,10 @@ def persistGDF(gdf,iterables):
     logging.info("persistGDF")
 
     logging.debug(f"persistGDF - {type(gdf)} ")
+
+    if gdf.shape[0] == 0:
+        logging.warning(f"persistGDF - Le Dataframe est vide, on passe")
+        return gdf
     confDb, individuStatSpec,epsg, dbEngineConnection = iterables
     user, pswd, host, dbase = dbEngineConnection
     tableName = confDb.get('tableName',None)
@@ -203,9 +207,7 @@ def persistGDF(gdf,iterables):
         logging.warning(f"persistGDF - Vous essayer de persister un donnée de type -  {type(gdf)}")
         return gdf
     
-    if gdf.shape[0] == 0:
-        logging.warning(f"persistGDF - Le Dataframe est vide, on passe")
-        return gdf
+
 
     if tableName:
         
