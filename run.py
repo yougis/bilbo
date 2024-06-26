@@ -274,7 +274,7 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                 offset = individuStatSpec.get("offset", -1)
                                 limit = individuStatSpec.get("limit", -1)
                                 to_offset = individuStatSpec.get("to_offset", nbLignes)
-                                    
+                            
                                 logging.info(f"Initial offset : {offset} , limit : {limit}")
 
                                 if boucleOffset:

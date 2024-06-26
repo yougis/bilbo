@@ -1,6 +1,7 @@
 import logging
 
 import pandas as pd
+from pandas import concat as pd_concat
 from geopandas import sjoin as gpd_sjoin
 from geopandas import GeoDataFrame
 from dask_geopandas import from_geopandas as ddg_from_geopandas, from_dask_dataframe as ddg_from_daskDataframe,  GeoDataFrame as DaskGeoDataFrame
@@ -703,6 +704,9 @@ def create_indicator(bbox,
                     try:
                         if daskComputation:
                             logging.info(f"with Dask - metaModelList : ' {metaModelList}")
+                            
+                            
+
                             indicateur = parallelize_DaskDataFrame_From_Intake_Source(
                                 data,
                                 generateIndicateur_parallel_v2,
