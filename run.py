@@ -310,7 +310,6 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                                 metadata=metadata)
                                             
                                             if isinstance(faitsname,str) :
-                                                import re
                                                 if faitsname.endswith('.parquet'):
                                                     fichiers_numerotes = [f for f in os.listdir('parquet') if f.startswith(dataName)]
                                                     for fichier in fichiers_numerotes:

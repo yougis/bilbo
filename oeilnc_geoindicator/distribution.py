@@ -129,8 +129,8 @@ def parallelize_DaskDataFrame_From_Intake_Source(
 
     
 
-    nbFormes = 100
-    nbParquetFiles = 10
+    nbFormes = 20
+    nbParquetFiles = nbFormes
 
     if voronoi_splitting:
         results = []
@@ -146,14 +146,13 @@ def parallelize_DaskDataFrame_From_Intake_Source(
         df = GeoDataFrame(pd_concat(results, ignore_index=True))
 
         # Calculer la taille de chaque sous-ensemble
-        taille_sous_ensemble = len(df) // nbParquetFiles
-        for i in range(nbParquetFiles):
+        taille_sous_ensemble = len(df) 
+        for i in range(taille_sous_ensemble):
             parquetFilePath = f'parquet/{intakeSource.name}_{i + 1}.parquet'
-            debut = i * taille_sous_ensemble
-            fin = (i + 1) * taille_sous_ensemble if i != nbParquetFiles - 1 else len(df)
+            debut = i 
+            fin = i + 1
             sous_ensemble = df.iloc[debut:fin]
             sous_ensemble.to_parquet(parquetFilePath)
-            df.to_parquet(parquetFilePath)
         return parquetFilePath
         
     

@@ -85,7 +85,7 @@ def geomToH3(geoDataframe: GeoDataFrame, res=8, clip=True, keepList=None) -> Geo
         nb_result=0
 
         while nb_result < geoDataframe.shape[0]:
-            result = h3fy(geoDataframe, resolution=res, clip=clip, buffer=False)
+            result = h3fy(geoDataframe, resolution=res, clip=clip, buffer=True)
             nb_result = result.shape[0]
             res+=1
 
