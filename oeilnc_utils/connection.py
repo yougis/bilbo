@@ -227,7 +227,8 @@ def persistGDF(gdf,iterables):
             
             gdf.to_postgis(tableName,getEngine(user=user,pswd=pswd,host=host,dbase='oeil_traitement'), schema=schema,if_exists=strategy, chunksize=chunksize)
             logging.info(f"import postgis finish")
-            return gdf
+            del gdf
+            return f"gdf - {tableName}"
         except Exception as e:
             logging.critical(f"{tableName}_withError to postgis {e}")
             if not isinstance( gdf , GeoDataFrame):

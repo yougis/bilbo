@@ -1,12 +1,12 @@
 import logging
-
+import os
 import pandas as pd
 from pandas import concat as pd_concat
 from geopandas import sjoin as gpd_sjoin
 from geopandas import GeoDataFrame
 from dask_geopandas import from_geopandas as ddg_from_geopandas, from_dask_dataframe as ddg_from_daskDataframe,  GeoDataFrame as DaskGeoDataFrame
 from oeilnc_geoindicator.interpolation import indicateur_from_pre_interpolation, indicateur_from_interpolation
-from oeilnc_geoindicator.distribution import parallelize_DaskDataFrame_From_Intake_Source, generateIndicateur_parallel_v2, generateIndicateur_parallel
+from oeilnc_geoindicator.distribution import parallelize_DaskDataFrame_From_Intake_Source, parallelize_DaskDataFrame_From_Parquet,generateIndicateur_parallel_v2, generateIndicateur_parallel
 from oeilnc_geoindicator.raster import indicateur_from_raster
 from oeilnc_utils.connection import getSqlWhereClauseBbox, fixOsPath, persistGDF, AjoutClePrimaire, adapting_dataframe
 from oeilnc_utils.geometry import daskSplitGeomByAnother
@@ -451,6 +451,11 @@ def create_indicator(bbox,
     if confGeoprocessing:
         voronoi_splitting = confGeoprocessing.get('voronoi', None)
 
+    mode = individuStatSpec.get('mode',None)
+    parquetfile = individuStatSpec.get('file',None)
+    if mode:
+        logging.info(f'Using mode {mode}') 
+
     #result = gpd.GeoDataFrame(columns = columnList)
     if indicateurSpec is None:
         confDb = individuStatSpec.get('confDb',None)
@@ -705,17 +710,33 @@ def create_indicator(bbox,
                         if daskComputation:
                             logging.info(f"with Dask - metaModelList : ' {metaModelList}")
                             
-                            
+                            if mode == 'parquet':
 
-                            indicateur = parallelize_DaskDataFrame_From_Intake_Source(
-                                data,
-                                generateIndicateur_parallel_v2,
-                                (indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom, False),
-                                (tableName,ext_table_name),
-                                metaModelList,
-                                nbchuncks=nbchuncks,
-                                voronoi_splitting=voronoi_splitting
-                                )
+                                if parquetfile:
+                                    logging.info(f" run generateIndicateur_parallel_v2 with {parquetfile}")
+                                    indicateur = parallelize_DaskDataFrame_From_Parquet(
+                                        parquetfile,
+                                        generateIndicateur_parallel_v2,
+                                        (indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom, False),
+                                        (tableName,ext_table_name),
+                                        metaModelList,
+                                        nbchuncks=nbchuncks,
+                                        voronoi_splitting=voronoi_splitting
+                                    )
+                                pass
+                            else:
+                                indicateur = parallelize_DaskDataFrame_From_Intake_Source(
+                                    data,
+                                    generateIndicateur_parallel_v2,
+                                    (indicateurSpec, individuStatSpec, data_indicateur, metaModelList, geom, data_indicator_geom, False),
+                                    (tableName,ext_table_name),
+                                    metaModelList,
+                                    nbchuncks=nbchuncks,
+                                    voronoi_splitting=voronoi_splitting
+                                    )
+                            if isinstance(indicateur,str) :
+                                if indicateur.endswith('.parquet'):
+                                    return indicateur
 
                             
                         else:
@@ -822,7 +843,7 @@ def create_indicator(bbox,
             #indicateur = client.gather(client.compute(indicateur))
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg))
             #client.compute(indicateur)
-            indicateur = client.gather(indicateur)
+            #indicateur = client.gather(indicateur)
             indicateur = indicateur.assign(metadata_id=metadata.id)
 
             indicateur = adapting_dataframe(indicateur,adaptingDataframe)

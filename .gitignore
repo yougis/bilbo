@@ -1,4 +1,5 @@
-tmp.yaml
+
+parquet/
 .idea/
 .vscode/
 tmp.yaml

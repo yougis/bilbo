@@ -1,5 +1,6 @@
 from oeilnc_utils.connection import fixOsPath, getSqlWhereClauseBbox
 from geopandas import GeoDataFrame
+import geopandas as gpd
 from dask_geopandas import from_geopandas as ddg_from_geopandas
 import logging
 from pandas import concat as pd_concat
@@ -31,6 +32,68 @@ def parallelize_DaskDataFrame(df, func, paramsTuples, nbchuncks=20):
     df2 = data.map_partitions(func, iterables=paramsTuples).compute()
     return df2
 
+
+def parallelize_DaskDataFrame_From_Parquet(
+        parquetFilePath: str,
+        func, 
+        paramsTuples, 
+        conf_parquet_file, 
+        metaModelList=None,  
+        nbchuncks=20, 
+        voronoi_splitting=False):
+    
+    """
+    Parallelizes the processing of a Dask DataFrame created from an Intake data source.
+
+    Args:
+        intakeSource (intake.catalog.CatalogEntry): The Intake data source.
+        func (function): The function to be applied to each partition of the Dask DataFrame.
+        paramsTuples (tuple): The parameters to be passed to the function.
+        conf_parquet_file (tuple): A tuple containing the table name and the extension table name.
+        metaModelList (list, optional): The list of column names for the metadata GeoDataFrame. Defaults to None.
+        nbchuncks (int, optional): The number of chunks to split the Dask DataFrame into. Defaults to 20.
+
+    Returns:
+        dask.dataframe.DataFrame: The processed Dask DataFrame.
+
+    Raises:
+        Exception: If an error occurs during parallelization.
+
+    """
+    from dask.distributed import get_client
+    client = get_client()
+    logging.info(f"reading parquet File  {parquetFilePath}...")
+    df = gpd.read_parquet(f'parquet/{parquetFilePath}') 
+
+    nbchuncks = len(df.index)
+
+
+    logging.debug(f"df: {len(df.index)}")
+    if len(df.index) > 0:
+        
+        if metaModelList:
+            logging.debug(f"metaModelList {metaModelList}")
+            df_meta =GeoDataFrame(columns = metaModelList)
+        else:
+            metaModelList = df.columns
+            df_meta =GeoDataFrame(columns = metaModelList)
+        #df.reindex(columns=columnList)
+        logging.debug(f"Load data in memory {df.shape}")
+        logging.debug(f"converting to dask with chunksize {nbchuncks}")
+        data = ddg_from_geopandas(df,nbchuncks)
+        logging.debug(f"data : {data}")
+        logging.debug(f"func : {func}")
+        try:
+            df2 = data.map_partitions(func, iterables=paramsTuples, meta=df_meta)
+        except Exception as e:
+            logging.critical(f"DASk  parallelize ERROR: {e}")
+        if client:
+            #df2 = ddg_from_daskDataframe(df2.to_dask_dataframe(),'geometry')
+            return df2
+        return df2.compute()
+    else:
+        return False
+    
 
 def parallelize_DaskDataFrame_From_Intake_Source(
         intakeSource: any,
@@ -64,21 +127,34 @@ def parallelize_DaskDataFrame_From_Intake_Source(
     df = intakeSource.read()
     crs = df.crs
 
-    parquetFilePath = f'parquet/{intakeSource.name}.parquet'
+    
+
+    nbFormes = 100
+    nbParquetFiles = 10
 
     if voronoi_splitting:
         results = []
         for idx, row in df.iterrows():
             print(f'iterate to split by voronoi befor process : {idx}')
             polygon = row.geometry
-            divided_polygons = voronoiSplitting(polygon, 2000, 50, crs)
+            divided_polygons = voronoiSplitting(polygon, 2000, nbFormes, crs)
             for col in df.columns:
                 if col != 'geometry':
                     divided_polygons[col] = row[col]
             
             results.append(divided_polygons)
         df = GeoDataFrame(pd_concat(results, ignore_index=True))
-        df.to_parquet(parquetFilePath)
+
+        # Calculer la taille de chaque sous-ensemble
+        taille_sous_ensemble = len(df) // nbParquetFiles
+        for i in range(nbParquetFiles):
+            parquetFilePath = f'parquet/{intakeSource.name}_{i + 1}.parquet'
+            debut = i * taille_sous_ensemble
+            fin = (i + 1) * taille_sous_ensemble if i != nbParquetFiles - 1 else len(df)
+            sous_ensemble = df.iloc[debut:fin]
+            sous_ensemble.to_parquet(parquetFilePath)
+            df.to_parquet(parquetFilePath)
+        return parquetFilePath
         
     
     nbchuncks = len(df.index)
@@ -105,7 +181,7 @@ def parallelize_DaskDataFrame_From_Intake_Source(
             logging.critical(f"DASk  parallelize ERROR: {e}")
         if client:
             #df2 = ddg_from_daskDataframe(df2.to_dask_dataframe(),'geometry')
-            return client.persist(df2)
+            return df2
         return df2.compute()
     else:
         return False
@@ -236,6 +312,7 @@ def generateIndicateur_parallel_v2(data, iterables):
             result = cleanOverlaps(result,indicateur_dissolve_byList)
 
         result = result[keepList]
+        del data, by_geom_filtered
         return result
     else:
         logging.info("Result is empty")

@@ -309,6 +309,33 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                                 daskComputation=daskComputation,
                                                 metadata=metadata)
                                             
+                                            if isinstance(faitsname,str) :
+                                                import re
+                                                if faitsname.endswith('.parquet'):
+                                                    fichiers_numerotes = [f for f in os.listdir('parquet') if f.startswith(dataName)]
+                                                    for fichier in fichiers_numerotes:
+                                                        print(fichier)
+                                                        individuStatSpec['mode']= 'parquet'
+                                                        individuStatSpec['file']= fichier
+                                                        faitsname = create_indicator(
+                                                            bbox=bb,
+                                                            individuStatSpec=individuStatSpec,
+                                                            indicateurSpec=indicateurSpec,
+                                                            dims=(dim_spatial,dim_mesure),
+                                                            stepList=steplist,
+                                                            indexListIndicator=indexList,
+                                                            sql_pagination=sql_pagination,
+                                                            indicateur_sql_flow=indicateur_sql_flow,
+                                                            daskComputation=daskComputation,
+                                                            metadata=metadata)
+                                                        
+                                                        if os.path.exists(f'parquet/{fichier}'):
+                                                            os.remove(f'parquet/{fichier}')
+                                                            print(f"Le fichier {fichier} a été supprimé avec succès.")
+                                                        else:
+                                                            print(f"Le fichier {fichier} n'existe pas.")
+
+                                            
                                             metadata.output_table_name = faitsname
                                             metadata.offset_value = offset
                                             metadata.limit_value = limit
