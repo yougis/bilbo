@@ -128,15 +128,12 @@ def parallelize_DaskDataFrame_From_Intake_Source(
     crs = df.crs
 
     
-
-    nbFormes = 20
-    nbParquetFiles = nbFormes
-
     if voronoi_splitting:
         results = []
         for idx, row in df.iterrows():
             print(f'iterate to split by voronoi befor process : {idx}')
             polygon = row.geometry
+            nbFormes = round(row.geometry.area / 150000)
             divided_polygons = voronoiSplitting(polygon, 2000, nbFormes, crs)
             for col in df.columns:
                 if col != 'geometry':

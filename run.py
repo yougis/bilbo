@@ -313,6 +313,7 @@ def run(list_data_to_calculate, configFile,list_indicateur_to_calculate):
                                                 if faitsname.endswith('.parquet'):
                                                     fichiers_numerotes = [f for f in os.listdir('parquet') if f.startswith(dataName)]
                                                     for fichier in fichiers_numerotes:
+                                                        client.restart()
                                                         print(fichier)
                                                         individuStatSpec['mode']= 'parquet'
                                                         individuStatSpec['file']= fichier
