@@ -855,7 +855,7 @@ def create_indicator(bbox,
             indicateur = indicateur.repartition(partition_size='4MB')
             ## envoyer les lots au fur et a mesure et par plusieurs worker
             df_meta = make_meta(indicateur)
-            
+            df_meta['id_indicateur']=0 ## permet d'ajouter l'attribut id_indicateur dans le cas d'un overlay identify
             results = indicateur.map_partitions(persistGDF, iterables=(confDb,individuStatSpec, epsg, dbEngineConnection), meta=df_meta).compute()
 
             #results = client.submit(persistGDF, client.scatter(client.gather(client.compute(indicateur))),(confDb,adaptingDataframe,individuStatSpec, epsg, dbEngineConnection)).result()
