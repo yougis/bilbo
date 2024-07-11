@@ -55,6 +55,7 @@ dependencies:
       - httplib2==0.22.0
       - intake==2.0.5
       - intake-geopandas==0.4.0
+      - intake-xarray==0.7.0
       - intake-sql==0.4.0
       - ipyevents==2.0.2
       - ipyfilechooser==0.6.0
