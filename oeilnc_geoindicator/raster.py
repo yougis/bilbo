@@ -189,7 +189,7 @@ def indicateur_from_raster(data, iterables):
     keepList = individuStatSpec.get('keepList',[]) + indicateurSpec.get('keepList',[])[1:]
 
     # par defaut la valeur issue du raster sera stocké dans un champ nommé comme le premier de la Keeplist des spec 
-    if len(indicateurSpec.get('keepList',[])>0):   
+    if len(indicateurSpec.get('keepList',[]))>0:   
         raster_classe = indicateurSpec.get('keepList',[])[0]
     else:
         raster_classe = "classe"
