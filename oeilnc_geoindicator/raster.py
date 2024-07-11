@@ -189,8 +189,11 @@ def indicateur_from_raster(data, iterables):
     keepList = individuStatSpec.get('keepList',[]) + indicateurSpec.get('keepList',[])[1:]
 
     # par defaut la valeur issue du raster sera stocké dans un champ nommé comme le premier de la Keeplist des spec 
-    raster_classe = indicateurSpec.get('keepList',[])[0]
-
+    if len(indicateurSpec.get('keepList',[]>0)):   
+        raster_classe = indicateurSpec.get('keepList',[])[0]
+    else:
+        raster_classe = "classe"
+        
     # on voit si on traite une donnée temporelle, auquelle cas un attribut doit être créé pour intégrer la valeur de date ou d'année correspondante.
     # la proprieté confTemporal de indicateurSpec permet de définir comment l'attribut est nommé (afin d'être raccord au modèle si la table existe déjà), 
     # indique si la valeur est fixe ou si elle sera tirée de la valeur du pixel auquel cas le champs raster classe devient colName
