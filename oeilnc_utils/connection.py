@@ -50,7 +50,7 @@ def getSqlWhereClauseBbox(bbox, geom, bbox_crs="4326", geom_crs="3163") -> str:
     return bbox_sql_where_clause
 
 
-def fixpath(path,replace,winDisque="C:"):
+def fixpath(path,replace,winDisque="N:"):
     logging.info("change uri to windows: Create Commun Path")
     path = path.replace(replace, '/')
     path = os.path.normpath(os.path.expanduser(path))
