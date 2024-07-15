@@ -47,10 +47,10 @@ def getStatMultiThread(gdf,width=512, height=512,raster="full_masked.tif"):
                 if gdf_filtered.shape[0] > 0:
                     img = src.read(1, window=window)
                     transform = src.window_transform(window)
-                    result = zonal_stats(gdf_filtered,img, affine=transform, nodata=99,geojson_out=True,raster_out=True, all_touched=True)
+                    result = zonal_stats(gdf_filtered,img, affine=transform, nodata=255,geojson_out=True,raster_out=True, all_touched=True)
                     geoprocess.append(result)
-                    
-                    
+                else:
+                    return
             return geoprocess
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
@@ -80,13 +80,24 @@ def getStatMultiThread(gdf,width=512, height=512,raster="full_masked.tif"):
 def createRasterIndicateur(data,uri_image, spec_raster_indicateur, epsg="EPSG:3163"):
     windows_width = spec_raster_indicateur.get('windows_width',2048)
     windows_height = spec_raster_indicateur.get('windows_height',2048)
-    indicateur_raster = GeoDataFrame.from_features([item for i in getStatMultiThread(data,windows_width,windows_height,uri_image) for item in i],crs=epsg)
-    
+    try:
+        test=[item for i in getStatMultiThread(data,windows_width,windows_height,uri_image) for item in i]
+        print(test)
+        if len(test)>0:
+            indicateur_raster = GeoDataFrame.from_features(test,crs=epsg)
+        else:
+            indicateur_raster=pd.DataFrame()
+
+    except Exception as e:
+        logging.warning("Error de création indicateur raster:", e)
+        logging.info("Aucunes données résultant de l'intersection:", e)
+
     if indicateur_raster.shape[0] > 0:
         try:
             indicateur_raster.sindex
         except Exception as e:
             print("Indexing error:", e)
+
     return indicateur_raster
 
 
@@ -235,7 +246,12 @@ def indicateur_from_raster(data, iterables):
                 from oeilnc_geoindicator import gee as gee_
                 gdf_to_split = gee_.extract_data(indicateurSpec,data)
         else:
-            gdf_to_split = createRasterIndicateur(data,uri_image, spec_raster_indicateur, epsg)
+            with rasterio.open(uri_image) as src:
+                if data.crs == src.crs:
+                    gdf_to_split = createRasterIndicateur(data,uri_image, spec_raster_indicateur, epsg)
+                else:
+                    logging.critical("les CRS de la geomtrie et du raster sont différents")
+                    gdf_to_split=GeoDataFrame()
 
         # on regarde
         if gdf_to_split.shape[0] > 0:
@@ -247,8 +263,8 @@ def indicateur_from_raster(data, iterables):
 
             min_diff_max= "min != max"
             min_eg_max= "min == max"
-            without_nodata= "nodata < 1"
-            with_nodata = "nodata > 0"
+            without_nodata= "mini_raster_nodata < 1"
+            with_nodata = "mini_raster_nodata > 0"
             gdf_to_split_filtered = gdf_to_split.query(f"{min_diff_max} or {with_nodata}")
             #print('gdf_to_split_filtered : ', gdf_to_split_filtered)
             gdf_to_concat = gdf_to_split.query(f"{min_eg_max} and {without_nodata}")
