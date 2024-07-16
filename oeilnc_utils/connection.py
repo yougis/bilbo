@@ -58,19 +58,16 @@ def fixpath(path,replace,winDisque="N:"):
     return path
 
 
-def fixOsPath(path, replace, win_disque="N:", lin_disque="/media/commun"):
+def fixOsPath(path, replace, win_disque="N:/", lin_disque="/media/commun"):
     logging.info("fix_os_path : change linux uri to windows: Create Commun Path")
     
-    # Normalisation du chemin et remplacement
     path = path.replace(replace, os.path.sep)
     path = os.path.normpath(os.path.expanduser(path))
     
     if os.name == 'nt':
-        # Si le chemin commence par un backslash, ajouter le disque windows
         if path.startswith(os.path.sep):
-            return os.path.join(win_disque, path.lstrip(os.path.sep))
+            return win_disque + path.lstrip(os.path.sep)
     elif os.name == 'posix':
-        # Si le chemin commence par un slash, ajouter le disque linux
         if path.startswith(os.path.sep):
             return os.path.join(lin_disque, path.lstrip(os.path.sep))
     
