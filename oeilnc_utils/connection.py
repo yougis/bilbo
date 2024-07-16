@@ -58,7 +58,7 @@ def fixpath(path,replace,winDisque="N:"):
     return path
 
 
-def fixOsPath(path, replace, win_disque="N:/", lin_disque="/media/commun"):
+def fixOsPath(path, replace, win_disque="N:\\", lin_disque="/media/commun"):
     logging.info("fix_os_path : change linux uri to windows: Create Commun Path")
     
     path = path.replace(replace, os.path.sep)
