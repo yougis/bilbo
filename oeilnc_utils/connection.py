@@ -72,8 +72,8 @@ def fixOsPath(path,replace,winDisque="N:",linDisque="media\\commun"):
         #print("change uri to windows: Create Commun Path")
         path = path.replace(replace, "\\")
         path = os.path.normpath(os.path.expanduser(path))
-        if path.startswith("//"): 
-            return linDisque + path + "\\"
+        if path.startswith("/"): 
+            return linDisque + path + "//"
     return path
 
 
