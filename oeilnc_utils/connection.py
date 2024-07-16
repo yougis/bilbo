@@ -58,24 +58,21 @@ def fixpath(path,replace,winDisque="N:"):
     return path
 
 
-def fixOsPath(path,replace,winDisque="N:",linDisque="media\\commun"):
-    logging.info("fixOsPath : change linux uri to windows: Create Commun Path")
+def fixOsPath(path, replace, win_disque="N:", lin_disque="media/commun"):
+    logging.info("fix_os_path : change linux uri to windows: Create Commun Path")
+    
+    # Normalisation du chemin et remplacement
+    path = path.replace(replace, os.path.sep)
+    path = os.path.normpath(os.path.expanduser(path))
+    
     if os.name == 'nt':
-        #print('fix path')
-        #print("change uri to windows: Create Commun Path")
-        path = path.replace(replace, '/')
-        path = os.path.normpath(os.path.expanduser(path))
-        if path.startswith("\\"): 
-            return winDisque + path + "\\"
+        if path.startswith(os.path.sep):
+            return os.path.join(win_disque, path.lstrip(os.path.sep))
     elif os.name == 'posix':
-        #print('fix path')
-        #print("change uri to windows: Create Commun Path")
-        path = path.replace(replace, "\\")
-        path = os.path.normpath(os.path.expanduser(path))
-        if path.startswith("/"): 
-            return linDisque + path + "//"
+        if path.startswith("//"):
+            return os.path.join(lin_disque, path.lstrip("/"))
+    
     return path
-
 
 def AjoutClePrimaire(schem, user, pswd, host, dbase, tb):
     from sqlalchemy.sql import text
