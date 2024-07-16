@@ -58,7 +58,7 @@ def fixpath(path,replace,winDisque="N:"):
     return path
 
 
-def fixOsPath(path,replace,winDisque="N:"):
+def fixOsPath(path,replace,winDisque="N:",linDisque="media\\commun"):
     logging.info("fixOsPath : change linux uri to windows: Create Commun Path")
     if os.name == 'nt':
         #print('fix path')
@@ -67,7 +67,13 @@ def fixOsPath(path,replace,winDisque="N:"):
         path = os.path.normpath(os.path.expanduser(path))
         if path.startswith("\\"): 
             return winDisque + path + "\\"
-    
+    elif os.name == 'posix':
+        #print('fix path')
+        #print("change uri to windows: Create Commun Path")
+        path = path.replace(replace, "\\")
+        path = os.path.normpath(os.path.expanduser(path))
+        if path.startswith("//"): 
+            return linDisque + path + "\\"
     return path
 
 

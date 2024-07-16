@@ -190,11 +190,10 @@ def indicateur_from_raster(data, iterables):
     indicateurSpec, individuStatSpec, epsg , metamodel= iterables
     spec_raster_indicateur = indicateurSpec.get('confRaster',{})
     uri_image = f"{spec_raster_indicateur.get('uri_image',None)}"
-    if os.name == 'nt':
-        replace = commun_path
-        print('fix path:', commun_path)
-        uri_image = fixpath(uri_image,replace)
-         #print('New uri_image for Windows',uri_image)
+    replace = commun_path
+    print('fix path:', commun_path)
+    uri_image = fixOsPath(uri_image,replace)
+    print('New uri_image for Windows',uri_image)
 
     indexRef = individuStatSpec.get('indexRef',None)
     keepList = individuStatSpec.get('keepList',[]) + indicateurSpec.get('keepList',[])[1:]
