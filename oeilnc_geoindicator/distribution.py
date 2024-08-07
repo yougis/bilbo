@@ -130,27 +130,38 @@ def parallelize_DaskDataFrame_From_Intake_Source(
     
     if voronoi_splitting:
         results = []
+        total_splited=0
         for idx, row in df.iterrows():
-            print(f'iterate to split by voronoi befor process : {idx}')
+            logging.info(f'iterate to split by voronoi befor process : {idx+1}/{len(df)}')
             polygon = row.geometry
-            nbFormes = round(row.geometry.area / 150000)
-            divided_polygons = voronoiSplitting(polygon, 2000, nbFormes, crs)
-            for col in df.columns:
-                if col != 'geometry':
-                    divided_polygons[col] = row[col]
-            
+            nbFormes = round(row.geometry.area / 100000000) # on divise en zone d'environs 100 km2
+            total_splited += nbFormes 
+            if nbFormes <=1:
+                divided_polygons = gpd.GeoDataFrame(geometry=[row.geometry], crs=crs)
+                for col in df.columns:                    
+                    if col != 'geometry':
+                        divided_polygons[col] = row[col]
+            else:
+
+                randomPoint=nbFormes*100
+                divided_polygons = voronoiSplitting(polygon, randomPoint, 3 + nbFormes, crs) # +3 pour s'assurer d'avoir au moins 4 zones minimum sinon erreur
+                for col in df.columns:
+                    if col != 'geometry':
+                        divided_polygons[col] = row[col]
+                
             results.append(divided_polygons)
         df = GeoDataFrame(pd_concat(results, ignore_index=True))
 
         # Calculer la taille de chaque sous-ensemble
         taille_sous_ensemble = len(df) 
-        for i in range(taille_sous_ensemble):
-            parquetFilePath = f'parquet/{intakeSource.name}_{i + 1}.parquet'
-            debut = i 
-            fin = i + 1
-            sous_ensemble = df.iloc[debut:fin]
-            sous_ensemble.to_parquet(parquetFilePath)
-        return parquetFilePath
+        if taille_sous_ensemble > 1 and total_splited > 1:
+            for i in range(taille_sous_ensemble):
+                parquetFilePath = f'parquet/{intakeSource.name}_{i + 1}.parquet'
+                debut = i 
+                fin = i + 1
+                sous_ensemble = df.iloc[debut:fin]
+                sous_ensemble.to_parquet(parquetFilePath)
+            return parquetFilePath
         
     
     nbchuncks = len(df.index)
