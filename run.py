@@ -32,14 +32,16 @@ from dask.distributed import  Variable
 
 list_data_to_calculate  = [ # ZOI / individu
     ## p1
-    #"H3_6_NC", # 
+    "H3_6_NC", # 
     #"H3_8_NC",
-    #"Foncier",
     #"Reserves_indicateurSpec",
-    "UNESCO_Zones_terrestres",
+    
+    #"PerimetresProtectionEau",
+    #"concessions_minieres", 
+    #"permis_rch_miniere",
+    #"UNESCO_Zones_terrestres",
+    #"Foncier",
 
-   
-    # "cadastre_minier", # fichier config à faire / ? > sur georep / cadastre_minier / couches "concessions minières" et "permis de recherche"  (pas sur la BDD SIG de l'ŒIL)
     # "Fréquentation_humaine" :  Zone de Bati et voiries / calcul de distance ?
 
     ##### TRAITEMENT list_indicateur_to_calculate différent
@@ -50,13 +52,15 @@ list_data_to_calculate  = [ # ZOI / individu
 
  #   "Foret_Seche_zone_vigilance",
  #   "Foret_Seche_corridors",
- #   "Mangrove",
+ #   'Mangrove'
  #   "SurfacesAgricoles",
  #   "Geologie_Substrat",
  #   "bande_littorale_375M_individuStatSpec", # Dynamique trait de côte
- #   "PerimetresProtectionEau", # mettre jour la donnée
+    #"PerimetresProtectionEau", # mettre jour la donnée
  #   "BassinsVersantsProducteursEP",#
-
+    #"concessions_minieres",
+    #"permis_rch_miniere"
+    #'Foncier_detail'
     # Zone de réhabilitation de sites miniers > BDD RECOSYNTH et données FNI?--> A réccupérer
     # données Sylviculture de vulcain // différe légerement du MOS 2014
     # Sècheresse végétale : VHI/VAI annualisé ?
@@ -70,16 +74,20 @@ list_data_to_calculate  = [ # ZOI / individu
 
 ]
 
-steplist= [1,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
+steplist= [1,2,3]  # 1 : generate indicators by spatial intersection (interpolation/raster/vector)/ 2: spliting byDims & calculate ratio... / 3: persist
 list_indicateur_to_calculate = [ # thematique
     
-    "faits_TMF_acc_v12022_h3_nc_6",
-    "faits_GFC_gain_h3_nc_6",
-    "faits_GFC_lossyear_h3_nc_6",
-    "faits_TMF_v2022_def_h3_nc_6",
-    "faits_TMF_v2022_degradation_h3_nc_6",
-    "faits_TMF_v2022_TM_h3_nc_8"
-    
+    #"faits_TMF_acc_v12022_h3_nc_6",
+    #"faits_GFC_gain_h3_nc_6",
+    #"faits_GFC_lossyear_h3_nc_6",
+    #"faits_TMF_v2022_def_h3_nc_6",
+    #"faits_TMF_v2022_degradation_h3_nc_6",
+    #"faits_TMF_v2022_TM_h3_nc_8",
+    #"faits_GFC_TC_h3_nc_8",
+    #"GFC_treecover2020",
+    #"VIIRS_noaa_snpp",
+    #'ZEE_individuStatSpec'
+    #'Sentinel_Zones_Brulees'
     #"GFC_gain_2012",
     #"GFC_treecover2000",
     
@@ -87,7 +95,7 @@ list_indicateur_to_calculate = [ # thematique
    # "TMF_degradationyear_v12022",
     #"TMF_DeforestationYear_v12022",
     #"GFC_gain_2020",
-    #"GFC_lossyear",
+    "GFC_lossyear",
     #"GFC_treecover2021", # donnée à récupérer"
     #"TMF_annualChangeCollection_v12022_Dec_1991",
     #"TMF_annualChangeCollection_v12022_Dec_1992",
@@ -171,14 +179,14 @@ listIdMulti=[
     listIdSpatialNC, 
     listIdSpatialHER, 
     listIdSpatialProvince, 
-    listIdSpatialProvinceMaritime, 
+    #listIdSpatialProvinceMaritime, 
     listIdSpatialCommune,
-    listIdSpatialCommuneMaritime,
+    #listIdSpatialCommuneMaritime,
     listIdSpatialAiresCoutumieres
     ]
 #listIdMulti=[listIdSpatialHER]
 
-listbbox= [c for c in listIdSpatialCommune]
+#listbbox= [c for c in listIdSpatialCommune]
 
 
 
